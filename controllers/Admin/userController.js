@@ -1,10 +1,11 @@
-const LoginUser = (req, res) => {
-  try {
-    let msg = req.user
-    return res.send(msg);
-  } catch (error) {
-    return res.send(error);
-  }
-}
+import ApiError from "../../Utils/ApiError.js";
+import catchAsync from "../../Utils/catchAsync.js";
+import connect from "../../database/mongo.service.js";
 
-export default {LoginUser}
+export const LoginUser = catchAsync(async (req, res, next) => {
+  const abc = "qwerty";
+  console.log(await connect().local)
+  return res.status(200).json({
+    message: abc
+  })
+})

@@ -1,6 +1,4 @@
 import mongoose from "mongoose";
-// import validator from 'validator');
-import jwt from "jsonwebtoken";
 
 const UserSchema = new mongoose.Schema({
   employee_id: { type: String, min: 2, max: 25, indexedDB: true },
@@ -54,7 +52,6 @@ const UserSchema = new mongoose.Schema({
             type: String,
             validate: {
               validator: function (value) {
-                // 'this' refers to the document being validated
                 return value === this.type.account_no;
               },
               message: "Confirm Account Number must be the same as Account Number.",
@@ -94,23 +91,5 @@ const UserSchema = new mongoose.Schema({
   deleted_at: { type: Date, default: null },
 });
 
-UserSchema.methods.generateAuthToken = async function (data) {
-  try {
-    const token = jwt.sign(
-      {
-        _id: this._id.toString(),
-        email: this.primary_email_id,
-        password: this.password,
-      },
-      process.env.SECRET_KEY,
-      {
-        expiresIn: "15h",
-        // expiresIn: "60s"
-      }
-    );
-    return token;
-  } catch (err) {
-    return res.status(400).json({ data: null, response_msg: err });
-  }
-};
+
 export default mongoose.model("UserModel", UserSchema, "users");

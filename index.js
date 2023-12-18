@@ -5,6 +5,8 @@ import expressGroupRoutes from 'express-group-routes';
 import connect from "./database/mongo.service.js";
 import usersRouter from "./routes/Admin/UserRoutes.js";
 import rolesRouter from "./routes/Admin/RolesRoutes.js";
+import ApiError from "./Utils/ApiError.js";
+import { globalErrorHandler } from "./Utils/GlobalErrorHandler.js";
 const app = express();
 
 const port = process.env.PORT || 4001
@@ -22,22 +24,11 @@ app.group("/api/v1/admin", (router) => {
    router.use('/roles', rolesRouter);
 });
 
+app.all("*",(req,res,next)=>{
+    next(new ApiError("Routes Not Found",404));
+})
 
-// Routes for Retail Store Portal
-// app.route('/retail-store',UserRoutes)
-
-
-// // Routes for Market Executive Portal
-// app.route('/market-executive',UserRoutes)
-
-
-// // Routes for SSK Offline Store Portal
-// app.route('/offline-store',UserRoutes)
-
-
-// // Routes for Website
-// app.route('/website',UserRoutes)
-  
+app.use(globalErrorHandler)
 
 app.listen(port,()=>{
     console.log(`listning on Port ${port}`)
