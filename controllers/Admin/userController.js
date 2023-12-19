@@ -123,3 +123,13 @@ export const ChangePassword = catchAsync(async(req,res)=>{
     message: "Password updated successfully",
   });
 })
+
+export const FetchUsers = catchAsync(async(req,res)=>{
+  let users = await userModel.find();
+  return res.json({
+    statusCode: 200,
+    status: "Success",
+    data: users,
+    message: "Fetched successfully",
+  });
+})
