@@ -11,14 +11,14 @@ export const LoginUser = catchAsync(async (req, res, next) => {
   const secretKey = "yourSecretKey";
   const saltRounds = 10;
   // Check if the user exists
-  const user = users.find((u) => u.username === username);
+  const user = userModel.find((u) => u.username === username);
 
   if (!user) {
     return res.status(401).json({ message: "Invalid credentials" });
   }
 
   // Use bcrypt to compare the entered password with the hashed password
-  const passwordMatch = await bcrypt.compare(password, user.passwordHash);
+  const passwordMatch = await bcrypt.compare(password, user.password);
 
   if (!passwordMatch) {
     return res.status(401).json({ message: "Invalid credentials" });
@@ -32,7 +32,10 @@ export const LoginUser = catchAsync(async (req, res, next) => {
   );
 
   return res.status(200).json({
-    message: abc,
+    statusCode:200,
+    data:token,
+    message:"Login success",
+
   });
 });
 
@@ -125,11 +128,30 @@ export const ChangePassword = catchAsync(async(req,res)=>{
 })
 
 export const FetchUsers = catchAsync(async(req,res)=>{
-  let users = await userModel.find();
-  return res.json({
-    statusCode: 200,
-    status: "Success",
-    data: users,
-    message: "Fetched successfully",
-  });
+ const page = parseInt(req.query.page) || 1;
+ const limit = 10;
+ const skip = (page - 1) * limit;
+
+ const sortField = req.query.sortField || "employee_id";
+ const sortOrder = req.query.sortOrder || "asc";
+ const sort = {};
+ sort[sortField] = sortOrder === "asc" ? 1 : -1;
+
+ const filter = {};
+ if (req.query.district) filter["address.district"] = req.query.district;
+ if (req.query.location) filter["address.location"] = req.query.location;
+ if (req.query.taluka) filter["address.taluka"] = req.query.taluka;
+ if (req.query.state) filter["address.state"] = req.query.state;
+ if (req.query.city) filter["address.city"] = req.query.city;
+ if (req.query.area) filter["address.area"] = req.query.area;
+
+ // Fetching users
+ const users = await userModel.find(filter).sort(sort).skip(skip).limit(limit);
+
+ return res.json({
+   statusCode: 200,
+   status: "Success",
+   data: users,
+   message: "Fetched successfully",
+ });
 })

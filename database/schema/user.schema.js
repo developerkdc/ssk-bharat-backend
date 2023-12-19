@@ -20,7 +20,7 @@ const UserSchema = new mongoose.Schema({
   role_id: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
-    ref: "RoleModel",
+    ref: "roles",
   },
   address: {
     type: {
@@ -66,29 +66,51 @@ const UserSchema = new mongoose.Schema({
       },
     },
   },
-  // approver_one: {
-  //   user_id: {
-  //     type: mongoose.Schema.Types.ObjectId,
-  //     // required: true,
-  //     ref: "Users",
-  //   },
-  //   employee_id: { type: String, required: true },
-  //   name: { type: String, required: true },
-  //   email_id: { type: String, required: true },
-  // },
-  // approver_two: {
-  //   type: {
-  //     user_id: {
-  //       type: mongoose.Schema.Types.ObjectId,
-  //       // required: true,
-  //       ref: "Users",
-  //     },
-  //     employee_id: { type: String },
-  //     name: { type: String, trim: true },
-  //     email_id: { type: String },
-  //   },
-  //   default: null,
-  // },
+  approver_one: {
+    type: {
+      user_id: mongoose.Schema.Types.ObjectId,
+      name: {
+        type: String,
+        trim: true,
+      },
+      email_id: {
+        type: String,
+        validate: {
+          validator: function (value) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+          },
+          message: "approver one invalid email Id",
+        },
+      },
+      employee_id: String,
+      isApprove: {
+        type: Boolean,
+        default: false,
+      },
+    },
+    default: null,
+  },
+  approver_two: {
+    type: {
+      user_id: mongoose.Schema.Types.ObjectId,
+      name: String,
+      email_id: {
+        type: String,
+        validate: {
+          validator: function (value) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+          },
+          message: "approver two invalid email Id",
+        },
+      },
+      employee_id: String,
+      isApprove: {
+        type: Boolean,
+        default: false,
+      },
+    },
+    default: null,
+  },
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: Date.now },
   deleted_at: { type: Date, default: null },
