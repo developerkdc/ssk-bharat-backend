@@ -52,7 +52,7 @@ export const getRolesList = catchAsync(async (req, res, next) => {
     {
       $project: {
         _id: 1,
-        role_name: 1,
+        role_name: 1
       },
     },
   ]);

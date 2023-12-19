@@ -1,18 +1,21 @@
 import ApiError from "../../Utils/ApiError";
 import catchAsync from "../../Utils/catchAsync";
 import categoryModel from "../../database/schema/category.schema";
-import { unlink } from "fs/promises";
+import fs from "fs";
 
 export const createCategory = catchAsync(async (req, res, next) => {
   // Get the relative path of the uploaded image
-  console.log(req.file)
+  console.log(req.file);
   const relativeImagePath = req.file ? req.file.filename : null;
-  const category = await categoryModel.create({...req.body, category_image: relativeImagePath});
+  const category = await categoryModel.create({
+    ...req.body,
+    category_image: relativeImagePath,
+  });
   if (category) {
     return res.status(201).json({
       statusCode: 201,
       status: true,
-      image_path:`${process.env.IMAGE_PATH}/admin/category/${category.category_image}`,
+      image_path: `${process.env.IMAGE_PATH}/admin/category/${category.category_image}`,
       data: category,
       message: "Category Created",
     });
@@ -77,32 +80,32 @@ export const getCategoryList = catchAsync(async (req, res, next) => {
 
 export const updateCategory = catchAsync(async (req, res, next) => {
   const { id } = req.params;
-
+  let relativeImagePath;
   // Step 1: Retrieve the old category
   const oldCategory = await categoryModel.findById(id);
 
   if (!oldCategory) {
     return next(new ApiError("Category Not Found", 404));
   }
-console.log(req.file,"file")
-console.log(req.body,"body")
-console.log(oldCategory,"old")
-  // Step 2: Delete the previous image file if it exists
-  if (oldCategory.category_image) {
-    try {
-      await unlink(oldCategory.category_image);
-    } catch (error) {
-      console.error("Error deleting previous image:", error);
-    }
+  relativeImagePath = oldCategory.category_image;
+  if (req.file) {
+    fs.unlinkSync(`/uploads/admin/category/${oldCategory.category_image}`)
+      .then(() => {
+        console.log("File deleted successfully");
+        relativeImagePath = req.file.filename;
+      })
+      .catch((error) => {
+        console.error("Error deleting file:", error);
+      });
   }
 
-  // Step 3: Update the category with new information
   const updatedCategory = await categoryModel.findByIdAndUpdate(
     id,
-    { ...req.body, updated_at: Date.now() },
+    { ...req.body, category_image: relativeImagePath, updated_at: Date.now() },
     { new: true }
   );
-
+  console.log(updateCategory,"new");
+  console.log(oldCategory,"old");
   // Respond with the updated category
   return res.status(200).json({
     statusCode: 200,
