@@ -13,13 +13,13 @@ const UserSchema = new mongoose.Schema({
   },
   secondary_email_id: { type: String, min: 5, max: 50, trim: true },
   password: { type: String, required: true, trim: true },
-  primary_mobile_no: { type: Number, min: 10, max: 10, trim: true },
-  secondary_mobile_no: { type: Number, min: 10, max: 10, trim: true },
+  primary_mobile_no: { type: Number, min: 10, trim: true },
+  secondary_mobile_no: { type: Number, min: 10, trim: true },
   profile_pic: { type: String, max: 150, default: null },
   status: { type: Boolean, default: true },
   role_id: {
     type: mongoose.Schema.Types.ObjectId,
-    // required: true,
+    required: true,
     ref: "RoleModel",
   },
   address: {
@@ -32,13 +32,13 @@ const UserSchema = new mongoose.Schema({
       district: { type: String, trim: true },
       state: { type: String, trim: true },
       country: { type: String, trim: true },
-      pincode: { type: Number, min: 6, max: 6, trim: true },
+      pincode: { type: Number, min: 6, trim: true },
     },
   },
   kyc: {
     type: {
       pan_card_detail: {
-        pan_no: { type: String, min: 16, max: 16, trim: true },
+        pan_no: { type: String, min: 10, max: 16, trim: true },
         pan_image: { type: String, max: 150, default: null },
       },
       aadhar_card_detail: {
@@ -54,7 +54,7 @@ const UserSchema = new mongoose.Schema({
             trim: true,
             validate: {
               validator: function (value) {
-                return value === this.type.account_no;
+                return value === this.account_no;
               },
               message:
                 "Confirm Account Number must be the same as Account Number.",
@@ -66,31 +66,31 @@ const UserSchema = new mongoose.Schema({
       },
     },
   },
-  approver_one: {
-    user_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
-      ref: "Users",
-    },
-    employee_id: { type: String, required: true },
-    name: { type: String, required: true },
-    email_id: { type: String, required: true },
-  },
-  approver_two: {
-    type: {
-      user_id: {
-        type: mongoose.Schema.Types.ObjectId,
-        required: true,
-        ref: "Users",
-      },
-      employee_id: { type: String },
-      name: { type: String, trim: true },
-      email_id: { type: String },
-    },
-    default: null,
-  },
-  created_at: { type: Date, default: Date.now() },
-  updated_at: { type: Date, default: Date.now() },
+  // approver_one: {
+  //   user_id: {
+  //     type: mongoose.Schema.Types.ObjectId,
+  //     // required: true,
+  //     ref: "Users",
+  //   },
+  //   employee_id: { type: String, required: true },
+  //   name: { type: String, required: true },
+  //   email_id: { type: String, required: true },
+  // },
+  // approver_two: {
+  //   type: {
+  //     user_id: {
+  //       type: mongoose.Schema.Types.ObjectId,
+  //       // required: true,
+  //       ref: "Users",
+  //     },
+  //     employee_id: { type: String },
+  //     name: { type: String, trim: true },
+  //     email_id: { type: String },
+  //   },
+  //   default: null,
+  // },
+  created_at: { type: Date, default: Date.now },
+  updated_at: { type: Date, default: Date.now },
   deleted_at: { type: Date, default: null },
 });
 
