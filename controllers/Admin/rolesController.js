@@ -3,7 +3,6 @@ import catchAsync from "../../Utils/catchAsync";
 import rolesModel from "../../database/schema/roles.schema";
 
 export const createRole = catchAsync(async (req, res, next) => {
-  console.log("iuhrgiuh");
   const role = await rolesModel.create(req.body);
   if (role) {
     return res.status(201).json({
@@ -16,7 +15,6 @@ export const createRole = catchAsync(async (req, res, next) => {
 });
 
 export const getRoles = catchAsync(async (req, res, next) => {
-  console.log("iuhrgiuh");
 
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
