@@ -5,6 +5,7 @@ import expressGroupRoutes from 'express-group-routes';
 import connect from "./database/mongo.service.js";
 import usersRouter from "./routes/Admin/UserRoutes.js";
 import rolesRouter from "./routes/Admin/RolesRoutes.js";
+import categoryRouter from "./routes/Admin/categoryRoutes.js"
 import ApiError from "./Utils/ApiError.js";
 import { globalErrorHandler } from "./Utils/GlobalErrorHandler.js";
 import fs from "fs";
@@ -13,6 +14,7 @@ const app = express();
 const port = process.env.PORT || 4001
 
 //Middlewares
+app.use(express.static(__dirname))
 app.use(express.json());
 
 
@@ -23,6 +25,7 @@ connect()
 app.group("/api/v1/admin", (router) => {
    router.use('/users', usersRouter);
    router.use('/roles', rolesRouter);
+   router.use('/category', categoryRouter);
 });
 
 app.all("*",(req,res,next)=>{
