@@ -7,6 +7,7 @@ import usersRouter from "./routes/Admin/UserRoutes.js";
 import rolesRouter from "./routes/Admin/RolesRoutes.js";
 import ApiError from "./Utils/ApiError.js";
 import { globalErrorHandler } from "./Utils/GlobalErrorHandler.js";
+import fs from "fs";
 const app = express();
 
 const port = process.env.PORT || 4001
@@ -28,7 +29,7 @@ app.all("*",(req,res,next)=>{
     next(new ApiError("Routes Not Found",404));
 })
 
-app.use(globalErrorHandler)
+app.use(globalErrorHandler);
 
 app.listen(port,()=>{
     console.log(`listning on Port ${port}`)
