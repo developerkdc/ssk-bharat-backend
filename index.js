@@ -8,6 +8,7 @@ import rolesRouter from "./routes/Admin/RolesRoutes.js";
 import ApiError from "./Utils/ApiError.js";
 import { globalErrorHandler } from "./Utils/GlobalErrorHandler.js";
 import fs from "fs";
+import SupplierRouter from "./routes/Admin/Supplier/Supplier.routes.js";
 const app = express();
 
 const port = process.env.PORT || 4001
@@ -23,6 +24,7 @@ connect()
 app.group("/api/v1/admin", (router) => {
    router.use('/users', usersRouter);
    router.use('/roles', rolesRouter);
+   router.use('/suppliers', SupplierRouter);
 });
 
 app.all("*",(req,res,next)=>{
