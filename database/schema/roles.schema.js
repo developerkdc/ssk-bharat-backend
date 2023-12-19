@@ -18,6 +18,11 @@ const RoleSchema = new mongoose.Schema({
       edit: { type: Boolean, default: false },
       view: { type: Boolean, default: false },
     },
+    category: {
+      add: { type: Boolean, default: false },
+      edit: { type: Boolean, default: false },
+      view: { type: Boolean, default: false },
+    },
     sskcompany: {
       add: { type: Boolean, default: false },
       edit: { type: Boolean, default: false },

@@ -20,7 +20,7 @@ const UserSchema = new mongoose.Schema({
   role_id: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
-    ref: "RoleModel",
+    ref: "roles",
   },
   address: {
     type: {
