@@ -22,10 +22,10 @@ export const getRoles = catchAsync(async (req, res, next) => {
   const search = req.query.search || '';
   const searchQuery = search ? { role_name: { $regex: search, $options: 'i' } } : {};
   const totalRoles = await rolesModel.countDocuments(searchQuery);
+  if(!totalRoles) throw new Error (new ApiError("No Data",404))
   const totalPages = Math.ceil(totalRoles / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
   const skip = (validPage - 1) * limit;
-
   const role = await rolesModel
     .find(searchQuery)
     .sort({ role_name: sortDirection })

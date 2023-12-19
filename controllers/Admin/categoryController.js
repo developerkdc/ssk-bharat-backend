@@ -32,8 +32,9 @@ export const getCategory = catchAsync(async (req, res, next) => {
   const searchQuery = search
     ? { category_name: { $regex: search, $options: "i" } }
     : {};
-  const totalRoles = await categoryModel.countDocuments(searchQuery);
-  const totalPages = Math.ceil(totalRoles / limit);
+  const totalCategory = await categoryModel.countDocuments(searchQuery);
+  if(!totalCategory) throw new Error (new ApiError("No Data",404))
+  const totalPages = Math.ceil(totalCategory / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
   const skip = (validPage - 1) * limit;
 
@@ -89,14 +90,9 @@ export const updateCategory = catchAsync(async (req, res, next) => {
   }
   relativeImagePath = oldCategory.category_image;
   if (req.file) {
-    fs.unlinkSync(`/uploads/admin/category/${oldCategory.category_image}`)
-      .then(() => {
-        console.log("File deleted successfully");
-        relativeImagePath = req.file.filename;
-      })
-      .catch((error) => {
-        console.error("Error deleting file:", error);
-      });
+    fs.unlinkSync(`../../uploads/admin/category/${oldCategory.category_image}`)
+    console.log("File deleted successfully");
+    relativeImagePath = req.file.filename;
   }
 
   const updatedCategory = await categoryModel.findByIdAndUpdate(

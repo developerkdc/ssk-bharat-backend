@@ -1,14 +1,4 @@
-// const users = require('../database/schema/admin_users.schema');
-// const ResponseMsg = require('../lables/response');
-// const jwt = require('jsonwebtoken');
-// const mongoose = require("mongoose");
-// var PermissionSchema = require("../database/schema/permission.schema");
-// var RolePermissionSchema = require("../database/schema/role_permissions.schema");
-// let Permission = mongoose.model("PermissionModel");
-// let RolePermission = mongoose.model("RolePermissionModel");
-// var RoleSchema = require("../database/schema/roles.schema");
 
-// let Role = mongoose.model("RoleModel");
 
 export default async (req, res, next) => {
     try {
