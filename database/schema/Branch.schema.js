@@ -29,7 +29,10 @@ const BranchSchema = new mongoose.Schema({
                         trim:true,
                         required: [true, "pan no is required"]
                     },
-                    file: String
+                    pan_image: {
+                        type:String,
+                        default:null
+                    }
                 }
             },
             gst: {
@@ -39,7 +42,10 @@ const BranchSchema = new mongoose.Schema({
                         trim:true,
                         required: [true, "gst no is required"]
                     },
-                    file: String
+                    gst_image: {
+                        type:String,
+                        default:null
+                    }
                 }
             },
             bank_details: {
@@ -59,7 +65,7 @@ const BranchSchema = new mongoose.Schema({
                         trim:true,
                         validate: {
                             validator: function (value) {
-                                return value == this.account_no;
+                                return value === this.account_no;
                             },
                             message: "confirm account is not matched"
                         },
@@ -70,7 +76,10 @@ const BranchSchema = new mongoose.Schema({
                         trim:true,
                         required: [true, "ifsc code is required"]
                     },
-                    file: String
+                    passbook_image: {
+                        type:String,
+                        default:null
+                    }
                 }
             }
         }
@@ -173,7 +182,11 @@ const BranchSchema = new mongoose.Schema({
                 default: false
             }
         }
-    ]
+    ],
+    created_at:{
+        type:Date,
+        default:Date.now
+    }
 });
 
 BranchSchema.pre("save", function (next) {

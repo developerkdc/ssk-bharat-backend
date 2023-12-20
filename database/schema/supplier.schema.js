@@ -101,6 +101,10 @@ const SupplierSchema = new mongoose.Schema({
     },
     default: null,
   },
+  created_at: {
+    type: Date,
+    default: Date.now
+  }
 })
 const SupplierModel = mongoose.model("Supplier", SupplierSchema);
 
