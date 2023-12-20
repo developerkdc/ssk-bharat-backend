@@ -1,12 +1,12 @@
 
 import userModel from "../database/schema/user.schema";
-import ApiError from "../middlewares/adminAuth"; // Make sure to provide the correct path
+import ApiError from "../Utils/ApiError"; // Make sure to provide the correct path
 
 const rolesPermissions = (name,key) => {
   return async (req, res, next) => {
     try {
-      const user = await userModel.findById("658184df8768ecf9a3f81d3c").populate("role_id")
-      console.log(user,"userrrr");
+      //req.userId
+      const user = await userModel.findById("6582917c9ea18fbaac4e7ae6").populate("role_id")
       
       if (!user) {
         return next(new ApiError("User Not Found", 404));
@@ -22,7 +22,7 @@ const rolesPermissions = (name,key) => {
       }
       next();
     } catch (error) {
-      console.error("Error in rolesPermissions middleware:", error);
+      console.error("Error in roles Permissions middleware:", error);
       next(new ApiError("Internal Server Error", 500));
     }
   };
