@@ -6,6 +6,7 @@ import connect from "./database/mongo.service.js";
 import usersRouter from "./routes/Admin/UserRoutes.js";
 import rolesRouter from "./routes/Admin/RolesRoutes.js";
 import categoryRouter from "./routes/Admin/categoryRoutes.js"
+import authRouter from "./routes/Admin/authRoutes.js"
 import ApiError from "./Utils/ApiError.js";
 import { globalErrorHandler } from "./Utils/GlobalErrorHandler.js";
 import fs from "fs";
@@ -23,6 +24,7 @@ app.use(express.json());
 connect()
 // Routes for Admin Portal
 app.group("/api/v1/admin", (router) => {
+   router.use('/auth', authRouter);
    router.use('/users', usersRouter);
    router.use('/roles', rolesRouter);
    router.use('/category', categoryRouter);
