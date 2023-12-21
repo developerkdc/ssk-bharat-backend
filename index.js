@@ -8,7 +8,7 @@ import rolesRouter from "./routes/Admin/RolesRoutes.js";
 import ApiError from "./Utils/ApiError.js";
 import { globalErrorHandler } from "./Utils/GlobalErrorHandler.js";
 import fs from "fs";
-import SupplierRouter from "./routes/Admin/Supplier/Supplier.routes.js";
+import SupplierRouter from "./routes/Admin/Supplier.routes.js";
 const app = express();
 
 const port = process.env.PORT || 4001

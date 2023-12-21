@@ -4,19 +4,12 @@ import fs from "fs";
 import supplierBranchModel from "../../../database/schema/Branch.schema";
 
 export const getAllBranchSuppliers = catchAsync(async (req, res, next) => {
-    const { filter } = req.body;
+    const { filter = {} } = req.body;
     let page = req.query.page || 1;
     let limit = req.query.limit || 10;
-
-    const filterData = {};
-    if (filter) {
-        for (let i in filter) {
-            filterData[`branch_address.${i}`] = filter[i]
-        }
-    }
     const AllSuppliers = await supplierBranchModel.aggregate([
         {
-            $match: filterData
+            $match: filter
         },
         {
             $limit: limit
@@ -35,7 +28,7 @@ export const getAllBranchSuppliers = catchAsync(async (req, res, next) => {
         {
             $unwind:"$supplierId"
         },
-    ]).sort(req.query.sort)
+    ]).sort(req.query.sort || "-created_at")
     return res.status(200).json({
         statusCode: 200,
         status: "Success",

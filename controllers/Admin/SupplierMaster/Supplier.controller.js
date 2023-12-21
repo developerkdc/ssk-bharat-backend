@@ -3,7 +3,7 @@ import SupplierModel from "../../../database/schema/supplier.schema";
 
 
 export const GetSupplier = catchAsync(async (req,res,next)=>{
-    const Suppliers = await SupplierModel.find({company_status:true});
+    const Suppliers = await SupplierModel.find({});
     return res.status(201).json({
         statusCode:200,
         status:"Success",
@@ -16,7 +16,7 @@ export const GetSupplier = catchAsync(async (req,res,next)=>{
 })
 
 export const GetSupplierById = catchAsync(async (req,res,next)=>{
-    const Suppliers = await SupplierModel.findOne({_id:req.params.id,company_status:true});
+    const Suppliers = await SupplierModel.findOne({_id:req.params.id});
     return res.status(201).json({
         statusCode:200,
         status:"Success",

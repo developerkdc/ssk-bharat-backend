@@ -172,5 +172,5 @@ class CompanyMaster {
             message: "Supplier has Updated"
         })
     })
-} 
+}
 export default CompanyMaster;
