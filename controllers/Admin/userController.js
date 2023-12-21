@@ -3,48 +3,13 @@ import catchAsync from "../../Utils/catchAsync.js";
 import connect from "../../database/mongo.service.js";
 import mongoose from "mongoose";
 import userModel from "../../database/schema/user.schema.js";
-
-import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-export const LoginUser = catchAsync(async (req, res, next) => {
-  const { username, password } = req.body;
-  const secretKey = "yourSecretKey";
-  const saltRounds = 10;
-  // Check if the user exists
-  const user = users.find((u) => u.username === username);
-
-  if (!user) {
-    return res.status(401).json({ message: "Invalid credentials" });
-  }
-
-  // Use bcrypt to compare the entered password with the hashed password
-  const passwordMatch = await bcrypt.compare(password, user.passwordHash);
-
-  if (!passwordMatch) {
-    return res.status(401).json({ message: "Invalid credentials" });
-  }
-
-  // Create a JWT token
-  const token = jwt.sign(
-    { userId: user.id, username: user.username },
-    secretKey,
-    { expiresIn: "1h" }
-  );
-
-  return res.status(200).json({
-    message: abc,
-  });
-});
 
 export const AddUser = catchAsync(async (req, res) => {
   const userData = req.body;
-  console.log(userData);
   const saltRounds = 10;
   userData.password = await bcrypt.hash(userData.password, saltRounds);
-  // Create a new user using the User model
   const newUser = new userModel(userData);
-
-  // Save the new user to the database
   const savedUser = await newUser.save();
 
   // Send a success response
@@ -63,20 +28,14 @@ export const EditUser = catchAsync(async (req, res) => {
   const updateData = req.body;
   updateData.updated_at = new Date().toLocaleString();
 
-  console.log(updateData);
-  // Validate if userId is a valid ObjectId
   if (!mongoose.Types.ObjectId.isValid(userId)) {
     return res.status(400).json({ message: "Invalid user ID" });
   }
-
-  // Find the user by ID and update the data
   const user = await userModel.findByIdAndUpdate(
     userId,
     { $set: updateData },
     { new: true }
   );
-
-  // Check if the user exists
   if (!user) {
     return res.status(404).json({
       statusCode: 404,
@@ -124,11 +83,30 @@ export const ChangePassword = catchAsync(async(req,res)=>{
 })
 
 export const FetchUsers = catchAsync(async(req,res)=>{
-  let users = await userModel.find();
-  return res.json({
-    statusCode: 200,
-    status: "Success",
-    data: users,
-    message: "Fetched successfully",
-  });
+ const page = parseInt(req.query.page) || 1;
+ const limit = 10;
+ const skip = (page - 1) * limit;
+
+ const sortField = req.query.sortField || "employee_id";
+ const sortOrder = req.query.sortOrder || "asc";
+ const sort = {};
+ sort[sortField] = sortOrder === "asc" ? 1 : -1;
+
+ const filter = {};
+ if (req.query.district) filter["address.district"] = req.query.district;
+ if (req.query.location) filter["address.location"] = req.query.location;
+ if (req.query.taluka) filter["address.taluka"] = req.query.taluka;
+ if (req.query.state) filter["address.state"] = req.query.state;
+ if (req.query.city) filter["address.city"] = req.query.city;
+ if (req.query.area) filter["address.area"] = req.query.area;
+
+ // Fetching users
+ const users = await userModel.find(filter).sort(sort).skip(skip).limit(limit);
+
+ return res.json({
+   statusCode: 200,
+   status: "Success",
+   data: users,
+   message: "Fetched successfully",
+ });
 })

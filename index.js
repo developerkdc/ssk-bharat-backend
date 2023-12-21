@@ -10,6 +10,7 @@ import unitRouter from "./routes/Admin/unitsRoutes.js"
 import gstRouter from "./routes/Admin/gstRoutes.js"
 import hsnRouter from "./routes/Admin/hsnRoutes.js"
 import productRouter from "./routes/Admin/productRoutes.js"
+import authRouter from "./routes/Admin/authRoutes.js"
 import ApiError from "./Utils/ApiError.js";
 import { globalErrorHandler } from "./Utils/GlobalErrorHandler.js";
 import fs from "fs";
@@ -27,6 +28,7 @@ app.use(express.json());
 connect()
 // Routes for Admin Portal
 app.group("/api/v1/admin", (router) => {
+   router.use('/auth', authRouter);
    router.use('/users', usersRouter);
    router.use('/roles', rolesRouter);
    router.use('/category', categoryRouter);
