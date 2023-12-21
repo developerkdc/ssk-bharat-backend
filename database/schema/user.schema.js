@@ -66,6 +66,7 @@ const UserSchema = new mongoose.Schema({
       },
     },
   },
+  otp:{type:String, trim:true},
   approver_one: {
     type: {
       user_id: mongoose.Schema.Types.ObjectId,
