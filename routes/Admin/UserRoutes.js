@@ -1,8 +1,20 @@
 import express from "express";
-import { LoginUser } from "../../controllers/Admin/userController";
+import {
+  AddUser,
+  ChangePassword,
+  EditUser,
+  FetchUsers,
+
+} from "../../controllers/Admin/userController";
+import rolesPermissions from "../../middlewares/rolesPermissionAuth"
+import authMiddleware from "../../middlewares/adminAuth";
+
 const router = express.Router();
 
 
-router.get('/login',LoginUser);
+router.post("/adduser",rolesPermissions("user", "add"), AddUser);
+router.patch("/edituser/:userId", rolesPermissions("user", "edit"), EditUser);
+router.patch("/:userId/changepassword", ChangePassword);
+router.get("/userslist",authMiddleware, rolesPermissions("user", "view"), FetchUsers);
 
 export default router;
