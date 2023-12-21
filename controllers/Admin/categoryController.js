@@ -15,7 +15,6 @@ export const createCategory = catchAsync(async (req, res, next) => {
     return res.status(201).json({
       statusCode: 201,
       status: true,
-      image_path: `${process.env.IMAGE_PATH}/admin/category/${category.category_image}`,
       data: category,
       message: "Category Created",
     });
@@ -52,6 +51,7 @@ export const getCategory = catchAsync(async (req, res, next) => {
         category: category,
         totalPages: totalPages,
         currentPage: validPage,
+        imagePath:`${process.env.IMAGE_PATH}/admin/category/`
       },
       message: "All Categories",
     });
@@ -88,21 +88,18 @@ export const updateCategory = catchAsync(async (req, res, next) => {
   if (!oldCategory) {
     return next(new ApiError("Category Not Found", 404));
   }
+
   relativeImagePath = oldCategory.category_image;
   if (req.file) {
-    fs.unlinkSync(`../../uploads/admin/category/${oldCategory.category_image}`)
+    fs.unlinkSync(`./uploads/admin/category/${oldCategory.category_image}`)
     console.log("File deleted successfully");
     relativeImagePath = req.file.filename;
   }
-
   const updatedCategory = await categoryModel.findByIdAndUpdate(
     id,
     { ...req.body, category_image: relativeImagePath, updated_at: Date.now() },
     { new: true }
   );
-  console.log(updateCategory,"new");
-  console.log(oldCategory,"old");
-  // Respond with the updated category
   return res.status(200).json({
     statusCode: 200,
     status: true,

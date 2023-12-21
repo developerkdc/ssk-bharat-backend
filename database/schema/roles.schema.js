@@ -33,6 +33,26 @@ const RoleSchema = new mongoose.Schema({
       edit: { type: Boolean, default: false },
       view: { type: Boolean, default: false },
     },
+    unit: {
+      add: { type: Boolean, default: false },
+      edit: { type: Boolean, default: false },
+      view: { type: Boolean, default: false },
+    },
+    gst: {
+      add: { type: Boolean, default: false },
+      edit: { type: Boolean, default: false },
+      view: { type: Boolean, default: false },
+    },
+    hsnCode: {
+      add: { type: Boolean, default: false },
+      edit: { type: Boolean, default: false },
+      view: { type: Boolean, default: false },
+    },
+    product: {
+      add: { type: Boolean, default: false },
+      edit: { type: Boolean, default: false },
+      view: { type: Boolean, default: false },
+    },
   },
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: Date.now },

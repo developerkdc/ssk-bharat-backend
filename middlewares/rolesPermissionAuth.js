@@ -1,5 +1,5 @@
 import userModel from "../database/schema/user.schema";
-import ApiError from "../middlewares/adminAuth"; // Make sure to provide the correct path
+import ApiError from "../Utils/ApiError"; // Make sure to provide the correct path
 
 const rolesPermissions = (name, key) => {
   return async (req, res, next) => {
@@ -22,7 +22,7 @@ const rolesPermissions = (name, key) => {
       }
       next();
     } catch (error) {
-      console.error("Error in rolesPermissions middleware:", error);
+      console.error("Error in roles Permissions middleware:", error);
       next(new ApiError("Internal Server Error", 500));
     }
   };
