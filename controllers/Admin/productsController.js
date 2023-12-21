@@ -117,46 +117,18 @@ export const getProducts = catchAsync(async (req, res, next) => {
 
 export const updateProduct = catchAsync(async (req, res, next) => {
   const { id } = req.params;
-  let relativeImagePaths;
-  
-  // Step 1: Retrieve the old product
+
   const oldProduct = await productModel.findById(id);
 
   if (!oldProduct) {
     return next(new ApiError("Product Not Found", 404));
   }
 
-  relativeImagePaths = oldProduct.product_images;
-
-  // Step 2: Handle image updates
-  if (req.body.product_images) {
-    const removedImages = relativeImagePaths.filter(
-      (image) => !req.body.product_images.includes(image)
-    );
-
-    // Step 3: Remove deleted images from the file system
-    if (removedImages.length > 0) {
-      try {
-        const newArr=[]
-        for (const removedImage of removedImages) {
-          await fs.unlink(`./uploads/admin/product/${removedImage}`);
-          console.log(`File ${removedImage} deleted successfully`);
-        }
-        
-      } catch (err) {
-        console.error('Error deleting files:', err);
-        // Handle the error as needed
-      }
-    }
-
-    // Step 4: Update the product with new image paths
-    relativeImagePaths = req.body.product_images;
-  }
-
   // Step 5: Update the product in the database
+  console.log(req.body)
   const updatedProduct = await productModel.findByIdAndUpdate(
     id,
-    { ...req.body, product_images: relativeImagePaths, updated_at: Date.now() },
+    { ...req.body, updated_at: Date.now() },
     { new: true }
   );
 
