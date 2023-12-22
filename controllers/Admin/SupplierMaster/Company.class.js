@@ -117,43 +117,43 @@ class CompanyMaster {
         this.#modalName = modalName
         this.#modal = mongoose.model(this.#collectionName, this.#Schema)
     }
-    GetSupplier = catchAsync(async (req, res, next) => {
-        const modalName = await this.#modal.find({ company_status: true });
+    GetCompany = catchAsync(async (req, res, next) => {
+        const modalName = await this.#modal.find({});
         return res.status(201).json({
             statusCode: 200,
             status: "Success",
-            length: modalName.length,
+            length: this.#modalName.length,
             data: {
-                supplier: modalName
+                [this.#modalName]: modalName
             },
-            message: "All Supplier"
+            message: `All ${this.#modalName}`
         })
     })
-    GetSupplierById = catchAsync(async (req, res, next) => {
-        const modalName = await this.#modal.findOne({ _id: req.params.id, company_status: true });
+    GetCompanyById = catchAsync(async (req, res, next) => {
+        const modalName = await this.#modal.findOne({ _id: req.params.id});
         return res.status(201).json({
             statusCode: 200,
             status: "Success",
             data: {
-                supplier: modalName
+                [this.#modalName]: modalName
             },
         })
     })
-    AddSupplier = catchAsync(async (req, res, next) => {
-        const addSupplier = await this.#modal.create(req.body);
+    AddCompany = catchAsync(async (req, res, next) => {
+        const addData = await this.#modal.create(req.body);
         return res.status(201).json({
             statusCode: 201,
             status: "Success",
             data: {
-                supplier: addSupplier
+                [this.#modalName]: addData
             },
-            message: "Supplier has created"
+            message: `${this.#modalName} has created`
         })
     })
-    UpdateSupplier = catchAsync(async (req, res, next) => {
+    UpdateCompany = catchAsync(async (req, res, next) => {
         const { company_name, onboarding_date, company_status, approver_one, approver_two } = req.body;
         const { id } = req.params;
-        const updatedSupplier = await this.#modal.findByIdAndUpdate({ _id: id }, {
+        const updateData = await this.#modal.findByIdAndUpdate({ _id: id }, {
             $set: {
                 company_name,
                 company_status,
@@ -167,9 +167,9 @@ class CompanyMaster {
             statusCode: 200,
             status: "Updated",
             data: {
-                supplier: updatedSupplier
+                [this.#modalName]: updateData
             },
-            message: "Supplier has Updated"
+            message: `${this.#modalName} has Updated`
         })
     })
 }

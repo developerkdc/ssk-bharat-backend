@@ -15,6 +15,8 @@ import ApiError from "./Utils/ApiError.js";
 import { globalErrorHandler } from "./Utils/GlobalErrorHandler.js";
 import fs from "fs";
 import SupplierRouter from "./routes/Admin/Supplier.routes.js";
+import marketExecutiveRouter from "./routes/Admin/marketExecutive.routes.js";
+import sskCompanyRouter from "./routes/Admin/SSkCompany.routes.js";
 const app = express();
 
 const port = process.env.PORT || 4001
@@ -33,11 +35,13 @@ app.group("/api/v1/admin", (router) => {
    router.use('/users', usersRouter);
    router.use('/roles', rolesRouter);
    router.use('/suppliers', SupplierRouter);
+   router.use('/sskcompany', sskCompanyRouter);
    router.use('/category', categoryRouter);
    router.use('/unit', unitRouter);
    router.use('/gst', gstRouter);
    router.use('/hsn', hsnRouter);
    router.use('/product', productRouter);
+   router.use('/market-executive',marketExecutiveRouter)
 });
 
 app.all("*",(req,res,next)=>{

@@ -87,6 +87,7 @@ export const uploadDocument = catchAsync(async (req, res, next) => {
     const { branchId, supplierId } = req.params;
     const supplierBranch = await supplierBranchModel.findOne({ _id: branchId, supplierId: supplierId });
     const images = {};
+    console.log(req.files)
     if (req.files) {
         for (let i in req.files) {
             images[i] = req.files[i][0].filename;
