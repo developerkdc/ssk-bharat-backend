@@ -2,9 +2,6 @@ import fs from "fs";
 import multer from "multer";
 
 export const MulterFunction = (dist) => {
-
-   
-
     const storage = multer.diskStorage({
         destination: function (req, file, cb) {
             if(!fs.existsSync(dist)){

@@ -9,7 +9,7 @@ const saltRounds = 10;
 export const LoginUser = catchAsync(async (req, res, next) => {
   const { username, password } = req.body;
   const secretKey = process.env.JWT_SECRET;
-  const user = await userModel.findOne({primary_email_id:username});
+  const user = await userModel.findOne({ primary_email_id: username });
   if (!user) {
     return res.status(401).json({ message: "Invalid credentials" });
   }
@@ -25,23 +25,21 @@ export const LoginUser = catchAsync(async (req, res, next) => {
     { expiresIn: process.env.JWT_EXPIRES }
   );
 
-  return res.status(200).cookie("token", token).json({
+  return res.status(200).cookie("token", token).cookie("userId", user.id).json({
     statusCode: 200,
     token: token,
     message: "Login success",
   });
 });
 
-
 export const SendOTP = catchAsync(async (req, res) => {
-  
-  const {email} = req.body;
+  const { email } = req.body;
   let otp = Math.floor(Math.random() * 100000);
-   const user = await userModel.findOne({ primary_email_id: email });
-   user.otp = otp; 
-   const updatedUser = await user.save();
-   console.log(updatedUser)
-   const message = `
+  const user = await userModel.findOne({ primary_email_id: email });
+  user.otp = otp;
+  const updatedUser = await user.save();
+  console.log(updatedUser);
+  const message = `
    <!DOCTYPE html>
 <html>
 <head>
@@ -130,16 +128,15 @@ export const SendOTP = catchAsync(async (req, res) => {
   `;
 
   await sendEmail({
-    email:email,
+    email: email,
     subject: "OTP",
     message,
   });
 
-   return res.status(200).json({
+  return res.status(200).json({
     success: true,
     message: `OTP sent successfully`,
   });
-
 });
 
 export const VerifyOTPAndUpdatePassword = catchAsync(async (req, res) => {
@@ -155,7 +152,7 @@ export const VerifyOTPAndUpdatePassword = catchAsync(async (req, res) => {
   }
   const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
   user.password = hashedPassword;
-  user.otp=null
+  user.otp = null;
   const updatedUser = await user.save();
   return res.status(200).json({
     statusCode: 200,
@@ -166,4 +163,3 @@ export const VerifyOTPAndUpdatePassword = catchAsync(async (req, res) => {
     message: "Password updated successfully",
   });
 });
-

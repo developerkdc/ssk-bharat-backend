@@ -4,7 +4,44 @@ import connect from "../../database/mongo.service.js";
 import mongoose from "mongoose";
 import userModel from "../../database/schema/user.schema.js";
 import bcrypt from "bcrypt";
+import userlogModel from "../../database/schema/userlog.schema.js";
 
+const userChangeStream = userModel.watch();
+userChangeStream.on("change", async (change) => {
+  if (change.operationType === "update") {
+    const userId = change.documentKey._id;
+    const updatedFields = change.updateDescription.updatedFields;
+
+    // Create a user log entry
+    const userLog = new userlogModel({
+      employee_id: userId,
+      action: "update",
+      userUpdatedEmp_id: userId,
+      timestamp: new Date().toLocaleString(),
+      updatedFields: updatedFields,
+    });
+
+    await userLog.save();
+    console.log("Updated user logs:", userLog);
+  }
+  if (change.operationType === "insert") {
+    console.log(change.fullDocument)
+    const userId = change.documentKey._id;
+    const updatedFields = change.fullDocument; ;
+
+    // Create a user log entry
+    const userLog = new userlogModel({
+      employee_id: userId,
+      action: "insert",
+      userCreatedEmp_id: userId,
+      timestamp: new Date().toLocaleString(),
+      updatedFields: updatedFields,
+    });
+
+    await userLog.save();
+    console.log("Updated user logs:", userLog);
+  }
+});
 export const AddUser = catchAsync(async (req, res) => {
   const userData = req.body;
   const saltRounds = 10;
@@ -27,7 +64,7 @@ export const EditUser = catchAsync(async (req, res) => {
   const userId = req.params.userId;
   const updateData = req.body;
   updateData.updated_at = new Date().toLocaleString();
-
+  console.log(updateData);
   if (!mongoose.Types.ObjectId.isValid(userId)) {
     return res.status(400).json({ message: "Invalid user ID" });
   }

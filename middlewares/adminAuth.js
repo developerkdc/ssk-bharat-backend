@@ -54,18 +54,32 @@ import ApiError from "../Utils/ApiError";
 //     }
 // }
 
+// const authMiddleware = (req, res, next) => {
+//   const token =req.headers.authorization;
+//   if (!token) {
+//     return next(new ApiError("Token not provided",401))
+//   }
+//   jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+//     if (err) {
+//       return res.status(401).json({ message: "Unauthorized - Invalid token" });
+//     }
+//     req.userId = decoded.userId;
+//     next();
+//   });
+// };
 const authMiddleware = (req, res, next) => {
-  const token =req.headers.authorization;
+  const token = req.headers.authorization;
   if (!token) {
-    return next(new ApiError("Token not provided",401))
+    return next(new ApiError("Token not provided", 401));
   }
   jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
     if (err) {
-      return res.status(401).json({ message: "Unauthorized - Invalid token" });
+      return next(new ApiError("Unauthorized - Invalid token", 401));
     }
     req.userId = decoded.userId;
     next();
   });
 };
+
 
 export default authMiddleware;

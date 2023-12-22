@@ -13,7 +13,7 @@ const UserSchema = new mongoose.Schema({
   },
   secondary_email_id: { type: String, min: 5, max: 50, trim: true },
   password: { type: String, required: true, trim: true },
-  primary_mobile_no: { type: Number, min: 10, trim: true },
+  primary_mobile_no: { type: Number, min: 10,unique:true, trim: true },
   secondary_mobile_no: { type: Number, min: 10, trim: true },
   profile_pic: { type: String, max: 150, default: null },
   status: { type: Boolean, default: true },
@@ -66,7 +66,7 @@ const UserSchema = new mongoose.Schema({
       },
     },
   },
-  otp:{type:String, trim:true},
+  otp: { type: String, trim: true },
   approver_one: {
     type: {
       user_id: mongoose.Schema.Types.ObjectId,
