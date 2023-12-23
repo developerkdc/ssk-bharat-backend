@@ -53,6 +53,11 @@ const RoleSchema = new mongoose.Schema({
       edit: { type: Boolean, default: false },
       view: { type: Boolean, default: false },
     },
+    ssk_po: {
+      add: { type: Boolean, default: false },
+      edit: { type: Boolean, default: false },
+      view: { type: Boolean, default: false },
+    },
   },
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: Date.now },

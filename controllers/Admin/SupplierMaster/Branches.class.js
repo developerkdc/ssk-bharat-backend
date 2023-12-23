@@ -12,7 +12,8 @@ class Branches {
         this.#branchSchema = new mongoose.Schema({
             [`${modalName}Id`]: {
                 type: mongoose.Schema.Types.ObjectId,
-                required: [true, `${modalName} Id is required`]
+                required: [true, `${modalName} Id is required`],
+                ref:collectionName
             },
             branch_name: {
                 type: String,
@@ -22,6 +23,10 @@ class Branches {
             branch_onboarding_date: {
                 type: Date,
                 default: Date.now
+            },
+            branch_status:{
+                type:Boolean,
+                default:true,
             },
             isPrimary: {
                 type: Boolean,
@@ -206,7 +211,7 @@ class Branches {
         this.#modalName = modalName
         this.#modal = mongoose.model(this.#collectionName, this.#branchSchema)
     }
-    getAllBranchSuppliers = catchAsync(async (req, res, next) => {
+    getAllBranchCompany = catchAsync(async (req, res, next) => {
         const { filter = {} } = req.body;
         let page = req.query.page || 1;
         let limit = req.query.limit || 10;
@@ -239,18 +244,18 @@ class Branches {
             data: {
                 branch: data
             },
-            message: "Supplier All Branch"
+            message: `${this.#modalName} All Branch`
         })
     })
-    getBranchOfSupplier = catchAsync(async (req, res, next) => {
-        const branch = await this.#modal.find({ [`${this.#modalName}Id`]: req.params.companyId });
+    getBranchOfCompany = catchAsync(async (req, res, next) => {
+        const branch = await this.#modal.find({ [`${this.#modalName}Id`]: req.params.companyId }).populate(`${this.#modalName}Id`);
         return res.status(200).json({
             statusCode: 200,
             status: "Success",
             data: {
                 branch: branch
             },
-            message: "Supplier All Branch"
+            message: `${this.#modalName} All Branch`
         })
     })
     addBranch = catchAsync(async (req, res, next) => {
@@ -261,7 +266,7 @@ class Branches {
             data: {
                 branch: branch
             },
-            message: "Supplier Branch created"
+            message: `${this.#modalName} Branch created`
         })
     });
     updateBranch = catchAsync(async (req, res, next) => {
@@ -280,7 +285,7 @@ class Branches {
             data: {
                 branch: updateBranch
             },
-            message: "Supplier Branch updated"
+            message: `${this.#modalName} Branch updated`
         })
     })
     uploadDocument = (fileName) => {
@@ -288,19 +293,20 @@ class Branches {
             const { branchId, companyId } = req.params;
             const branch = await this.#modal.findOne({ _id: branchId, [`${this.#modalName}Id`]: companyId });
             const images = {};
+            console.log(req.files)
             if (req.files) {
                 for (let i in req.files) {
                     images[i] = req.files[i][0].filename;
-                    if (fs.existsSync(`${fileName}/${i.split("_")[0] === "passbook" ? branch.kyc.bank_details[i] : branch.kyc[i.split("_")[0]][i]}`)) {
-                        fs.unlinkSync(`${fileName}/${i.split("_")[0] === "passbook" ? branch.kyc.bank_details[i] : branch.kyc[i.split("_")[0]][i]}`)
+                    if (fs.existsSync(`${fileName}/${i.split("_")[0] === "passbook" ? branch?.kyc?.bank_details[i] : branch?.kyc[i?.split("_")[0]][i]}`)) {
+                        fs.unlinkSync(`${fileName}/${i.split("_")[0] === "passbook" ? branch?.kyc?.bank_details[i] : branch?.kyc[i?.split("_")[0]][i]}`)
                     }
                 }
             }
             const updatedImages = await this.#modal.updateOne({ _id: branchId, [`${this.#modalName}Id`]: companyId }, {
                 $set: {
-                    "kyc.pan.pan_image": images.pan_image,
-                    "kyc.gst.gst_image": images.gst_image,
-                    "kyc.bank_details.passbook_image": images.passbook_image
+                    "kyc.pan.pan_image": images?.pan_image,
+                    "kyc.gst.gst_image": images?.gst_image,
+                    "kyc.bank_details.passbook_image": images?.passbook_image
                 }
             });
 

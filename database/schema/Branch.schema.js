@@ -15,6 +15,10 @@ const BranchSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
+    branch_status:{
+        type:Boolean,
+        default:true,
+    },
     isPrimary: {
         type: Boolean,
         default: false

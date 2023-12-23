@@ -76,6 +76,7 @@ const authMiddleware = (req, res, next) => {
     if (err) {
       return next(new ApiError("Unauthorized - Invalid token", 401));
     }
+    
     req.userId = decoded.userId;
     next();
   });
