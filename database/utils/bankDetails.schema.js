@@ -14,12 +14,13 @@ const bankDetailsSchema = new mongoose.Schema({
     confirm_account_no: {
         type: String,
         trim: true,
-        validate: {
-            validator: function (value) {
-                return value === this.account_no;
-            },
-            message: "confirm account is not matched"
-        },
+        // validate: {
+        //     validator: function (value) {
+        //         console.log(this.ban)
+        //         return value === this.account_no;
+        //     },
+        //     message: "confirm account is not matched"
+        // },
         required: [true, "confirm account no is required"]
     },
     ifsc_code: {
