@@ -17,6 +17,7 @@ import fs from "fs";
 import SupplierRouter from "./routes/Admin/Supplier.routes.js";
 import marketExecutiveRouter from "./routes/Admin/marketExecutive.routes.js";
 import sskCompanyRouter from "./routes/Admin/SSkCompany.routes.js";
+import sskPoRouter from "./routes/Admin/sskPurchaseOrderRoutes.js";
 const app = express();
 
 const port = process.env.PORT || 4001
@@ -42,6 +43,7 @@ app.group("/api/v1/admin", (router) => {
    router.use('/hsn', hsnRouter);
    router.use('/product', productRouter);
    router.use('/market-executive',marketExecutiveRouter)
+   router.use('/ssk/po',sskPoRouter)
 });
 
 app.all("*",(req,res,next)=>{

@@ -12,9 +12,9 @@ import authMiddleware from "../../middlewares/adminAuth";
 const router = express.Router();
 
 
-router.post("/adduser",rolesPermissions("user", "add"), AddUser);
-router.patch("/edituser/:userId", rolesPermissions("user", "edit"), EditUser);
+router.post("/adduser",authMiddleware,rolesPermissions("user", "add"), AddUser);
+router.patch("/edituser/:userId",authMiddleware, rolesPermissions("user", "edit"), EditUser);
 router.patch("/:userId/changepassword", ChangePassword);
-router.get("/userslist",authMiddleware, rolesPermissions("user", "view"), FetchUsers);
+router.get("/userslist",authMiddleware,rolesPermissions("user", "view"), FetchUsers);
 
 export default router;

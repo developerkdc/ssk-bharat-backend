@@ -63,6 +63,7 @@ const authMiddleware = (req, res, next) => {
     if (err) {
       return res.status(401).json({ message: "Unauthorized - Invalid token" });
     }
+    
     req.userId = decoded.userId;
     next();
   });
