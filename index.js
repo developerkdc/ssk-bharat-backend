@@ -18,6 +18,7 @@ import SupplierRouter from "./routes/Admin/Supplier.routes.js";
 import marketExecutiveRouter from "./routes/Admin/marketExecutive.routes.js";
 import sskCompanyRouter from "./routes/Admin/SSkCompany.routes.js";
 import sskPoRouter from "./routes/Admin/sskPurchaseOrderRoutes.js";
+import InventoryRouter from "./routes/Admin/InventoryRoutes.js";
 const app = express();
 
 const port = process.env.PORT || 4001
@@ -25,7 +26,7 @@ const port = process.env.PORT || 4001
 //Middlewares
 app.use(express.static(__dirname))
 app.use(express.json());
-app.use(cookieParser());
+
 
 
 connect()
@@ -43,6 +44,7 @@ app.group("/api/v1/admin", (router) => {
    router.use('/product', productRouter);
    router.use('/market-executive',marketExecutiveRouter)
    router.use('/ssk/po',sskPoRouter)
+   router.use('/ssk/inventory',InventoryRouter)
 });
 
 app.all("*",(req,res,next)=>{
