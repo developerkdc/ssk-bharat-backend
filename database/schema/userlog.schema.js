@@ -1,7 +1,11 @@
 import mongoose from "mongoose";
 
 const UserLogSchema = new mongoose.Schema({
-  employee_id: { type: mongoose.Schema.Types.ObjectId, required: true },
+  employee_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    ref: "Users",
+  },
   action: { type: String, default: null },
   userUpdatedEmp_id: { type: String, default: null },
   userCreatedEmp_id: { type: String, default: null },
