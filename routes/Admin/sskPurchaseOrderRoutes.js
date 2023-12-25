@@ -1,14 +1,44 @@
 import express from "express";
 import rolesPermissions from "../../middlewares/rolesPermissionAuth";
 import authMiddleware from "../../middlewares/adminAuth";
-import { createSSKPO, getSSKPo, latestSSKPONo } from "../../controllers/Admin/sskPOController";
+import {
+  createSSKPO,
+  getPOBasedOnSupplierID,
+  getSSKPo,
+  latestSSKPONo,
+  updatePOStatus,
+} from "../../controllers/Admin/PurchaseOrders/sskPOController";
 
 const router = express.Router();
 
-router.post("/createSSK/Po",authMiddleware, rolesPermissions("ssk_po", "add"), createSSKPO);
-router.get("/latestPo",authMiddleware, latestSSKPONo);
-router.get("/getSSK/PO", authMiddleware,rolesPermissions("ssk_po", "view"), getSSKPo);
-// router.get("/gstSSKPOList", authMiddleware,getGstList);
+router.post(
+  "/create",
+  authMiddleware,
+  rolesPermissions("ssk_po", "add"),
+  createSSKPO
+);
+router.get("/latestPo", authMiddleware, latestSSKPONo);
+router.get(
+  "/fetch",
+  authMiddleware,
+  rolesPermissions("ssk_po", "view"),
+  getSSKPo
+);
+router.get("/supplierId/:id", authMiddleware, getPOBasedOnSupplierID);
+
+router.patch(
+  "/update/status/:id",
+  authMiddleware,
+  rolesPermissions("ssk_po", "edit"),
+  updatePOStatus
+);
+
+router.post(
+  "/create/newOrder",
+  authMiddleware,
+  rolesPermissions("new_order", "add"),
+  createSSKPO
+);
 // router.patch("/updateSSK/PO/:id",authMiddleware, rolesPermissions("ssk_po", "edit"), updateGst);
 
 export default router;

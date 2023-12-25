@@ -18,6 +18,8 @@ import SupplierRouter from "./routes/Admin/Supplier.routes.js";
 import marketExecutiveRouter from "./routes/Admin/marketExecutive.routes.js";
 import sskCompanyRouter from "./routes/Admin/SSkCompany.routes.js";
 import sskPoRouter from "./routes/Admin/sskPurchaseOrderRoutes.js";
+import ordersRouter from "./routes/Admin/ordersRoute.js";
+import storeRouter from "./routes/Admin/OfflineStore.routes.js";
 const app = express();
 
 const port = process.env.PORT || 4001
@@ -42,8 +44,10 @@ app.group("/api/v1/admin", (router) => {
    router.use('/gst', gstRouter);
    router.use('/hsn', hsnRouter);
    router.use('/product', productRouter);
-   router.use('/market-executive',marketExecutiveRouter)
-   router.use('/ssk/po',sskPoRouter)
+   router.use('/market-executive',marketExecutiveRouter);
+   router.use('/ssk/po',sskPoRouter);
+   router.use('/orders',ordersRouter);
+//    router.use('/store',storeRouter);
 });
 
 app.all("*",(req,res,next)=>{

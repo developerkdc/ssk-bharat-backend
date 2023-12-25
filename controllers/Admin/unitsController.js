@@ -30,6 +30,7 @@ export const getUnits = catchAsync(async (req, res, next) => {
   const totalUnits = await unitModel.countDocuments(searchQuery);
   if (!totalUnits) throw new Error(new ApiError("No Data", 404));
   const totalPages = Math.ceil(totalUnits / limit);
+  if (page > totalPages) throw new Error(new ApiError("Invalid Page", 404));
   const validPage = Math.min(Math.max(page, 1), totalPages);
   const skip = (validPage - 1) * limit;
   const sortField =

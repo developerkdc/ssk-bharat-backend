@@ -15,35 +15,44 @@ export const createRole = catchAsync(async (req, res, next) => {
 });
 
 export const getRoles = catchAsync(async (req, res, next) => {
-
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
-  const sortDirection = req.query.sort === 'desc' ? -1 : 1;
-  const search = req.query.search || '';
-  const searchQuery = search ? { role_name: { $regex: search, $options: 'i' } } : {};
+  const sortDirection = req.query.sort === "desc" ? -1 : 1;
+  const search = req.query.search || "";
+  const searchQuery = search
+    ? { role_name: { $regex: search, $options: "i" } }
+    : {};
+
+  // Count total roles with or without search
   const totalRoles = await rolesModel.countDocuments(searchQuery);
-  if(!totalRoles) throw new Error (new ApiError("No Data",404))
+
+  if (!totalRoles) {
+    throw new Error(new ApiError("No Data", 404));
+  }
+
+  // Calculate total pages
   const totalPages = Math.ceil(totalRoles / limit);
+  if (page > totalPages) throw new Error(new ApiError("Invalid Page", 404));
   const validPage = Math.min(Math.max(page, 1), totalPages);
   const skip = (validPage - 1) * limit;
-  const role = await rolesModel
+
+  // Fetch roles based on search and pagination
+  const roles = await rolesModel
     .find(searchQuery)
     .sort({ role_name: sortDirection })
     .skip(skip)
     .limit(limit);
 
-  if (role) {
-    return res.status(200).json({
-      statusCode: 200,
-      status: true,
-      data: {
-        roles:role,
-        totalPages:totalPages,
-        currentPage: validPage,
-      },
-      message: "All Roles and Permissions",
-    });
-  }
+  return res.status(200).json({
+    statusCode: 200,
+    status: true,
+    data: {
+      roles: roles,
+      totalPages: totalPages,
+      currentPage: validPage,
+    },
+    message: "All Roles and Permissions",
+  });
 });
 
 export const getRolesList = catchAsync(async (req, res, next) => {
@@ -52,7 +61,7 @@ export const getRolesList = catchAsync(async (req, res, next) => {
     {
       $project: {
         _id: 1,
-        role_name: 1
+        role_name: 1,
       },
     },
   ]);

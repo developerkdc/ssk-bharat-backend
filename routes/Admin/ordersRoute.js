@@ -1,24 +1,24 @@
 import express from "express";
 import rolesPermissions from "../../middlewares/rolesPermissionAuth";
 import authMiddleware from "../../middlewares/adminAuth";
-import { createStorePO } from "../../controllers/Admin/PurchaseOrders/storePOController";
+import { createNewOrder, fetchOrders, latestOrderNo } from "../../controllers/Admin/order.controller";
 
 
 const router = express.Router();
 
 router.post(
-  "/create/PO",
+  "/newOrder",
   authMiddleware,
-  rolesPermissions("store_po", "add"),
-  createStorePO
+  rolesPermissions("new_order", "add"),
+  createNewOrder
 );
-// router.get("/latestPo", authMiddleware, latestSSKPONo);
-// router.get(
-//   "/fetch",
-//   authMiddleware,
-//   rolesPermissions("ssk_po", "view"),
-//   getSSKPo
-// );
+router.get("/latestOrderNo", authMiddleware, latestOrderNo);
+router.get(
+  "/fetch",
+  authMiddleware,
+  rolesPermissions("new_order", "view"),
+  fetchOrders
+);
 // router.get("/supplierId/:id", authMiddleware, getPOBasedOnSupplierID);
 
 // router.patch(
