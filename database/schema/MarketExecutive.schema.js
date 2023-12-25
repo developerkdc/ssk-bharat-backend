@@ -48,9 +48,7 @@ const nomineeSchema = new mongoose.Schema({
                     }
                 }
             },
-            bank_details: {
-                type: bankDetailsSchema
-            }
+            bank_details: bankDetailsSchema
         }
     }
 })
@@ -189,11 +187,9 @@ const MarketExecutiveSchema = new mongoose.Schema({
         }
     },
     insurance: insuranceSchema,
-    nominee: {
-        type: [
-            nomineeSchema
-        ]
-    },
+    nominee: [
+        nomineeSchema
+    ],
     address: addressSchema,
     approvals: userAndApprovals
 });
