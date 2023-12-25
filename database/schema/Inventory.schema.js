@@ -98,5 +98,5 @@ const InventorySchema = new mongoose.Schema({
   approvals: userAndApprovals,
 });
 
-const inventoryModel = mongoose.model("`Inventory`", InventorySchema);
+const inventoryModel = mongoose.model("Inventory", InventorySchema);
 export default inventoryModel;
