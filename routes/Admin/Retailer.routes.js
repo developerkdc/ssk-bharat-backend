@@ -5,7 +5,7 @@ import Branches from "../../controllers/Admin/SupplierMaster/Branches.class";
 const retailerRouter = express.Router();
 
 const retailer = new CompanyMaster("retailer","retailers");
-const branch = new Branches("retailer","retailerbranches")
+const branch = new Branches("retailer","retailerbranches","retailers")
 
 retailerRouter.route('/')
     .get(retailer.GetCompany)

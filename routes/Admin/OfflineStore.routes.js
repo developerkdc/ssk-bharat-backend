@@ -4,8 +4,8 @@ import CompanyMaster from "../../controllers/Admin/SupplierMaster/Company.class"
 import Branches from "../../controllers/Admin/SupplierMaster/Branches.class";
 const offlineStoreRouter = express.Router();
 
-const offlineStore = new CompanyMaster("offlineStore","offlineStores");
-const branch = new Branches("offlineStore","offlineStorebranches")
+const offlineStore = new CompanyMaster("offlinestore","offlinestores");
+const branch = new Branches("offlinestore","offlinestorebranches","offlinestores")
 
 offlineStoreRouter.route('/')
     .get(offlineStore.GetCompany)

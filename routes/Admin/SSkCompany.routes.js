@@ -5,7 +5,7 @@ import Branches from "../../controllers/Admin/SupplierMaster/Branches.class";
 const sskCompanyRouter = express.Router();
 
 const sskCompany = new CompanyMaster("sskCompany","sskCompanies");
-const branch = new Branches("sskCompany","sskCompanybranches")
+const branch = new Branches("sskCompany","sskCompanybranches","sskCompanies")
 
 sskCompanyRouter.route('/')
     .get(sskCompany.GetCompany)
