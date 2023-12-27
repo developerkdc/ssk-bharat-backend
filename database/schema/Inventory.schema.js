@@ -75,7 +75,7 @@ const SupplierDetailsSchema = new mongoose.Schema({
 });
 
 const InvoiceDetailsSchema = new mongoose.Schema({
-  invoiceNo: {type:String,required:true},
+  invoiceNo: {type:String,trim:true},
   invoiceDate: {type:Date,trim:true},
   itemsAmount: {type:Number,trim:true},
   discountPercentage: {type:Number,trim:true},
@@ -88,7 +88,7 @@ const InvoiceDetailsSchema = new mongoose.Schema({
 });
 
 const InventorySchema = new mongoose.Schema({
-  purchaseOrderNo: { type: String,required:true,trim:true,unique:true },
+  purchaseOrderNo: { type: String,trim:true,unique:true },
   supplierCompanyName: String,
   receivedDate: Date,
   supplierDetails: SupplierDetailsSchema,

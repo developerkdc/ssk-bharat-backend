@@ -2,14 +2,14 @@ import mongoose from "mongoose";
 import addressSchema from "../utils/address.schema";
 import userAndApprovals from "../utils/approval.schema";
 
-const purchaseOrderSchema = new mongoose.Schema({
-  purchase_order_no: {
+const orders = new mongoose.Schema({
+  order_no: {
     type: Number,
     required: [true, "Purchase Order No is required"],
     trim: true,
     unique: true,
   },
-  purchase_order_date: {
+  order_date: {
     type: Date,
     required: [true, "Purchase Order Date is required"],
     trim: true,
@@ -19,12 +19,18 @@ const purchaseOrderSchema = new mongoose.Schema({
     required: [true, "Purchase Estimate Date is required"],
     trim: true,
   },
+  order_type: {
+    type: String,
+    required: [true, "Purchase Order Type is required"],
+    enum: ["Store", "Retailer", "Website"],
+    trim: true,
+  },
 
-  supplier_details: {
-    supplier_id: {
+  ssk_details: {
+    ssk_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Supplier",
-      required: true,
+      ref: "sskcompanies",
+      required: [true,"SSK Id is required"],
     },
     company_name: {
       type: String,
@@ -34,20 +40,19 @@ const purchaseOrderSchema = new mongoose.Schema({
     },
     gst_no: {
       type: String,
-      // required: [true, "Gst No is required"],
+      //   required: [true, "Gst No is required"],
       trim: true,
       default: null,
     },
     first_name: {
       type: String,
-      // required: [true, "First Name is required"],
+      //   required: [true, "First Name is required"],
       trim: true,
-
       default: null,
     },
     last_name: {
       type: String,
-      // required: [true, "Last Name is required"],
+      //   required: [true, "Last Name is required"],
       trim: true,
       default: null,
     },
@@ -55,8 +60,17 @@ const purchaseOrderSchema = new mongoose.Schema({
       type: String,
       required: [true, "Primary Email Id is required"],
       trim: true,
+      validate: {
+        validator: function (value) {
+          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+        },
+        message: "invalid email Id",
+      },
     },
-    secondary_email_id: { type: String, default: null },
+    secondary_email_id: {
+      type: String,
+      default: null,
+    },
     primary_mobile_no: {
       type: String,
       required: [true, "Primary Mobile Number is required"],
@@ -65,11 +79,15 @@ const purchaseOrderSchema = new mongoose.Schema({
     secondary_mobile_no: { type: String, default: null },
     address: addressSchema,
   },
-  ssk_details: {
+  customer_details: {
+    customer_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: [true, "Customer Id is required"],
+    },
     bill_to: {
-      company_name: {
+      name: {
         type: String,
-        // required: [true, "Company Name is required"],
+        // required: [true, "Name is required"],
         trim: true,
         default: null,
       },
@@ -95,8 +113,17 @@ const purchaseOrderSchema = new mongoose.Schema({
         type: String,
         required: [true, "Primary Email Id is required"],
         trim: true,
+        validate: {
+          validator: function (value) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+          },
+          message: "invalid email Id",
+        },
       },
-      secondary_email_id: { type: String, default: null },
+      secondary_email_id: {
+        type: String,
+        default: null,
+      },
       primary_mobile_no: {
         type: String,
         required: [true, "Primary Mobile Number is required"],
@@ -106,9 +133,9 @@ const purchaseOrderSchema = new mongoose.Schema({
       address: addressSchema,
     },
     ship_to: {
-      company_name: {
+      name: {
         type: String,
-        // required: [true, "Company Name is required"],
+        // required: [true, "Name is required"],
         trim: true,
         default: null,
       },
@@ -121,6 +148,7 @@ const purchaseOrderSchema = new mongoose.Schema({
       first_name: {
         type: String,
         // required: [true, "First Name is required"],
+
         trim: true,
         default: null,
       },
@@ -134,8 +162,17 @@ const purchaseOrderSchema = new mongoose.Schema({
         type: String,
         required: [true, "Primary Email Id is required"],
         trim: true,
+        validate: {
+          validator: function (value) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+          },
+          message: "invalid email Id",
+        },
       },
-      secondary_email_id: { type: String, default: null },
+      secondary_email_id: {
+        type: String,
+        default: null,
+      },
       primary_mobile_no: {
         type: String,
         required: [true, "Primary Mobile No is required"],
@@ -217,6 +254,7 @@ const purchaseOrderSchema = new mongoose.Schema({
           },
         },
       },
+
       total_amount: {
         type: Number,
         required: [true, "Total Amount is required"],
@@ -258,5 +296,5 @@ const purchaseOrderSchema = new mongoose.Schema({
   deleted_at: { type: Date, default: null },
 });
 
-const sskPOModel = mongoose.model("SSKPurchaseOrder", purchaseOrderSchema);
-export default sskPOModel;
+const OrdersModel = mongoose.model("orders", orders);
+export default OrdersModel;

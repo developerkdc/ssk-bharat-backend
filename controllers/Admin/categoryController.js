@@ -34,6 +34,7 @@ export const getCategory = catchAsync(async (req, res, next) => {
   const totalCategory = await categoryModel.countDocuments(searchQuery);
   if(!totalCategory) throw new Error (new ApiError("No Data",404))
   const totalPages = Math.ceil(totalCategory / limit);
+  if (page > totalPages) throw new Error(new ApiError("Invalid Page", 404));
   const validPage = Math.min(Math.max(page, 1), totalPages);
   const skip = (validPage - 1) * limit;
 
