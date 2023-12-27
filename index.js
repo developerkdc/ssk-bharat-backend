@@ -19,6 +19,8 @@ import marketExecutiveRouter from "./routes/Admin/marketExecutive.routes.js";
 import sskCompanyRouter from "./routes/Admin/SSkCompany.routes.js";
 import offlineStoreRouter from "./routes/Admin/OfflineStore.routes.js";
 import retailerRouter from "./routes/Admin/Retailer.routes.js";
+import marketExecutiveCommissionRouter from "./routes/Admin/marketExectiveCommission.route.js";
+import payoutAndCommissionRouter from "./routes/Admin/payoutAndCommission.route.js";
 const app = express();
 
 const port = process.env.PORT || 4001
@@ -46,6 +48,8 @@ app.group("/api/v1/admin", (router) => {
    router.use('/hsn', hsnRouter);
    router.use('/product', productRouter);
    router.use('/market-executive',marketExecutiveRouter)
+   router.use('/MECommission',marketExecutiveCommissionRouter)
+   router.use('/payoutAndCommission',payoutAndCommissionRouter)
 });
 
 app.all("*",(req,res,next)=>{

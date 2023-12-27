@@ -61,7 +61,7 @@ export const updateMarketExec = catchAsync(async (req,res)=>{
     const {nominee,...data} = req.body;
     const updateME = await MarketExecutiveModel.updateOne({_id:req.params.id},{
         $set:data
-    });
+    },{runValidators:true});
 
     if(!updateME.acknowledged){
         return res.status(400).json({

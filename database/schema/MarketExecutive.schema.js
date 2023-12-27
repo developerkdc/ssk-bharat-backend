@@ -138,6 +138,16 @@ const MarketExecutiveSchema = new mongoose.Schema({
             default: null,
         },
     },
+    account_balance:{
+        type:Number,
+        validate:{
+            validator:function(value){
+                return value >= 0
+            },
+            message:"value should be greater than 0"
+        },
+        default:0,
+    },
     kyc: {
         type: {
             kyc_status: Boolean,

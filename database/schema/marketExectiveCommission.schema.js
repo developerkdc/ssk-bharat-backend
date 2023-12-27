@@ -5,7 +5,7 @@ const marketExectiveCommissionSchema = new mongoose.Schema({
         type:mongoose.Schema.Types.ObjectId,
         trim:true,
         required:[true,"retailer id is required"],
-        refPath:"collectionRef"
+        refPath:"companyType"
     },
     marketExecutiveId:{
         type:mongoose.Schema.Types.ObjectId,
@@ -13,11 +13,11 @@ const marketExectiveCommissionSchema = new mongoose.Schema({
         ref:"marketexecutives",
         required:[true,"market executive id is required"]
     },
-    collectionRef:{
+    companyType:{
         type:String,
         enum:{
             values:["retailers","offlinestores"],
-            message:"collection ref must contain retailers or offlinestores"
+            message:"company type must contain retailers or offlinestores"
         }
     },
     onBoardingDate:{

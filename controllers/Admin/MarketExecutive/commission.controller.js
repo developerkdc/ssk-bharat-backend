@@ -4,7 +4,7 @@ import marketExectiveCommissionModel from "../../../database/schema/marketExecti
 
 
 export const listingMECommissionBasedOnReatiler = catchAsync(async(req,res,next)=>{
-    const retailerMarketExective = await marketExectiveCommissionModel.find({retailerId:req.params.id});
+    const retailerMarketExective = await marketExectiveCommissionModel.find({companyId:req.params.id}).populate("companyId");
     return res.status(200).json({
         statusCode: 200,
         status: "success",
