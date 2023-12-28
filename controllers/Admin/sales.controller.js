@@ -1,5 +1,6 @@
 import catchAsync from "../../Utils/catchAsync";
 import SalesModel from "../../database/schema/salesOrder.schema";
+import ApiError from "../../Utils/ApiError";
 
 export const latestSalesOrderNo = catchAsync(async (req, res, next) => {
   try {
@@ -30,6 +31,9 @@ export const latestSalesOrderNo = catchAsync(async (req, res, next) => {
 
 export const createSalesOrder = catchAsync(async (req, res, next) => {
     const sales = await SalesModel.create(req.body);
+    if (!sales) {
+      throw new Error(new ApiError("Error during Sales Order", 400));
+    }
     if (sales) {
       return res.status(201).json({
         statusCode: 201,

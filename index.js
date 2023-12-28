@@ -21,6 +21,8 @@ import ordersRouter from "./routes/Admin/ordersRoute.js";
 import storeRouter from "./routes/Admin/OfflineStore.routes.js";
 import salesRouter from "./routes/Admin/salesRoutes.js";
 import refundRoute from "./routes/Admin/refundRoutes.js";
+import dispatchRoute from "./routes/Admin/dispatchRoutes.js";
+
 const app = express();
 
 const port = process.env.PORT || 4001
@@ -51,6 +53,7 @@ app.group("/api/v1/admin", (router) => {
    router.use('/store',storeRouter);
    router.use('/sales',salesRouter);
    router.use('/refund',refundRoute);
+   router.use('/dispatch',dispatchRoute);
 });
 
 app.all("*",(req,res,next)=>{
