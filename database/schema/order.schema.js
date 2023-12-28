@@ -22,7 +22,7 @@ const orders = new mongoose.Schema({
   order_type: {
     type: String,
     required: [true, "Purchase Order Type is required"],
-    enum: ["Store", "Retailer", "Website"],
+    enum: ["retailers", "offlinestores", "websites"],
     trim: true,
   },
 
@@ -88,6 +88,10 @@ const orders = new mongoose.Schema({
     customer_id: {
       type: mongoose.Schema.Types.ObjectId,
       required: [true, "Customer Id is required"],
+    },
+    customer_name: {
+      type: String,
+      required: [true, "Customer name is required"],
     },
     bill_to: {
       branch_id: {

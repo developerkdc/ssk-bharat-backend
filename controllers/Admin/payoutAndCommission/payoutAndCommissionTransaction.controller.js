@@ -44,7 +44,7 @@ export const addPayout = catchAsync(async (req, res, next) => {
             { _id: marketExecutiveId },
             {
                 $inc: {
-                    account_balance: -Number(amountPaid)
+                    account_balance: -Number(amountPaid).toFixed(2)
                 }
             },
             { session }

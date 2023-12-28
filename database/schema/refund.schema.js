@@ -18,7 +18,7 @@ const refundSchema = new mongoose.Schema({
     trim: true,
   },
   transaction_id: {
-    type: Number,
+    type: String,
     required: [true, "Transaction ID is required"],
     trim: true,
   },

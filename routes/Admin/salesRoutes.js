@@ -11,8 +11,8 @@ const router = express.Router();
 router.get("/latestOrderNo", authMiddleware, latestSalesOrderNo);
 router.post(
   "/create",
-  authMiddleware,
-  rolesPermissions("sales", "add"),
+  // authMiddleware,
+  // rolesPermissions("sales", "add"),
   createSalesOrder
 );
 router.get(
