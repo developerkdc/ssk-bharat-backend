@@ -32,46 +32,57 @@ export const latestSalesOrderNo = catchAsync(async (req, res, next) => {
   }
 });
 
-
 export const createSalesOrder = catchAsync(async (req, res, next) => {
   let session;
   try {
     session = await mongoose.startSession();
-    session.startTransaction()
+    session.startTransaction();
     const sales = await SalesModel.create([req.body], { session });
     if (!sales) {
       throw new Error(new ApiError("Error during Sales Order", 400));
     }
 
-    const marketExecutive = await marketExectiveCommissionModel.find({ companyId: sales[0].customer_details.customer_id });
+    const marketExecutive = await marketExectiveCommissionModel.find({
+      companyId: sales[0].customer_details.customer_id,
+    });
 
-
-
-    const commission = await payoutAndCommissionTransModel.insertMany(marketExecutive.map((marketExec) => {
-      return {
-        marketExecutiveId: marketExec.marketExecutiveId,
-        commission: {
-          companyDetails: {
-            companyId: sales[0].customer_details.customer_id,
-            companyName: sales[0].customer_details.customer_name,
-            companyType: sales[0].order_type
+    const commission = await payoutAndCommissionTransModel.insertMany(
+      marketExecutive.map((marketExec) => {
+        return {
+          marketExecutiveId: marketExec.marketExecutiveId,
+          commission: {
+            companyDetails: {
+              companyId: sales[0].customer_details.customer_id,
+              companyName: sales[0].customer_details.customer_name,
+              companyType: sales[0].order_type,
+            },
+            salesOrderId: sales[0]._id,
+            salesOrderNo: sales[0].sales_order_no,
+            salesOrderAmount: sales[0].total_amount,
+            commissionPercentage: marketExec.commissionPercentage,
+            commissionAmount: Number(
+              (sales[0].total_amount / 100) * marketExec.commissionPercentage
+            ).toFixed(2),
           },
-          salesOrderId: sales[0]._id,
-          salesOrderNo: sales[0].sales_order_no,
-          salesOrderAmount: sales[0].total_amount,
-          commissionPercentage: marketExec.commissionPercentage,
-          commissionAmount: Number((sales[0].total_amount / 100) * marketExec.commissionPercentage).toFixed(2)
-        },
-      }
-    }), { session })
+        };
+      }),
+      { session }
+    );
 
-    const updateAccountBalance = Promise.all(commission.map(async (marketExecutive) => {
-      const updateAccountBalance = await MarketExecutiveModel.updateOne({ _id: marketExecutive.marketExecutiveId }, {
-        $inc: {
-          account_balance: Number(marketExecutive.commission.commissionAmount).toFixed(2)
-        }
+    const updateAccountBalance = Promise.all(
+      commission.map(async (marketExecutive) => {
+        const updateAccountBalance = await MarketExecutiveModel.updateOne(
+          { _id: marketExecutive.marketExecutiveId },
+          {
+            $inc: {
+              account_balance: Number(
+                marketExecutive.commission.commissionAmount
+              ).toFixed(2),
+            },
+          }
+        );
       })
-    }))
+    );
 
     await session.commitTransaction();
     await session.endSession();
@@ -84,7 +95,6 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
         message: "Sales Order Created",
       });
     }
-
   } catch (error) {
     await session.abortTransaction();
     await session.endSession();
@@ -94,7 +104,7 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
 
 export const fetchSalesOrders = catchAsync(async (req, res, next) => {
   const {
-    type = "Store",
+    type,
     page,
     limit = 10,
     sortBy = "sales_order_no",
@@ -102,11 +112,18 @@ export const fetchSalesOrders = catchAsync(async (req, res, next) => {
   } = req.query;
   const skip = (page - 1) * limit;
 
-  const matchQuery = {
-    order_type: type,
-    ...(req.body.filters || {}),
-  };
+  const { to, from , ...data } = req?.body?.filters || {};
+  const matchQuery = data || {};
+  if (type) {
+    matchQuery.order_type = type;
+  }
 
+  if (to && from) {
+    matchQuery.sales_order_date = {
+      $gte: new Date(from),
+      $lte: new Date(to),
+    };
+  }
   const salesOrders = await SalesModel.find(matchQuery)
     .skip(skip)
     .limit(limit)
@@ -115,10 +132,6 @@ export const fetchSalesOrders = catchAsync(async (req, res, next) => {
 
   const totalDocuments = await SalesModel.countDocuments(matchQuery);
   const totalPages = Math.ceil(totalDocuments / limit);
-
-  if (salesOrders.length === 0) {
-    return next(new ApiError("No Data Found", 404));
-  }
 
   return res.status(200).json({
     data: salesOrders,

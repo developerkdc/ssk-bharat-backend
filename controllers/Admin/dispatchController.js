@@ -83,7 +83,7 @@ export const createDispatch = catchAsync(async (req, res, next) => {
 export const fetchDispatchBasedonDeliveryStatus = catchAsync(
   async (req, res, next) => {
     const {
-      type = "dispatched",
+      type,
       page,
       limit = 10,
       sortBy = "dispatch_no",
@@ -91,10 +91,31 @@ export const fetchDispatchBasedonDeliveryStatus = catchAsync(
     } = req.query;
     const skip = (page - 1) * limit;
 
-    const matchQuery = {
-      delivery_status: type,
-      ...(req.body.filters || {}),
-    };
+  const { to, from , ...data } = req?.body?.filters || {};
+    const matchQuery = data || {};
+    if (type) {
+      matchQuery.delivery_status = type;
+    }
+
+    if (to && from) {
+      if (type == "dispatched") {
+        matchQuery["tracking_date.dispatch_generated_date"] = {
+          $gte: new Date(from),
+          $lte: new Date(to),
+        };
+      } else if (type == "outForDelivery") {
+        matchQuery["tracking_date.out_for_delivery.dispatch_date"] = {
+          $gte: new Date(from),
+          $lte: new Date(to),
+        };
+      }
+      else if (type == "delivered") {
+        matchQuery["tracking_date.delivered"]= {
+          $gte: new Date(from),
+          $lte: new Date(to),
+        };
+      }
+    }
 
     const dispatchOrders = await DispatchModel.find(matchQuery)
       .skip(skip)
@@ -104,10 +125,6 @@ export const fetchDispatchBasedonDeliveryStatus = catchAsync(
 
     const totalDocuments = await DispatchModel.countDocuments(matchQuery);
     const totalPages = Math.ceil(totalDocuments / limit);
-
-    if (dispatchOrders.length === 0) {
-      return next(new ApiError("No Data Found", 404));
-    }
 
     return res.status(200).json({
       data: dispatchOrders,
@@ -124,39 +141,40 @@ export const outForDelivery = catchAsync(async (req, res, next) => {
   const updateData = await DispatchModel.findByIdAndUpdate(
     { _id: id },
     {
-        "delivery_status": "outForDelivery",
-        "tracking_date.out_for_delivery.dispatch_date":
-          req.body?.tracking_date?.out_for_delivery?.dispatch_date || null,
-        "tracking_date.out_for_delivery.estimate_delivery_date":
-          req.body?.tracking_date?.out_for_delivery?.estimate_delivery_date || null,
-        "transport_details.hand_delivery.person_name":
-          req.body?.transport_details?.hand_delivery?.person_name || null,
-        "transport_details.hand_delivery.person_phone_no":
-          req.body?.transport_details?.hand_delivery?.person_phone_no || null,
-        "transport_details.courier.company_name":
-          req.body?.transport_details?.courier?.company_name || null,
-        "transport_details.courier.docket_no":
-          req.body?.transport_details?.courier?.docket_no || null,
-        "transport_details.road.transporter_name":
-          req.body?.transport_details?.road?.transporter_name || null,
-        "transport_details.road.vehicle_no":
-          req.body?.transport_details?.road?.vehicle_no || null,
-        "transport_details.road.driver_name":
-          req.body?.transport_details?.road?.driver_name || null,
-        "transport_details.road.driver_phone_no":
-          req.body?.transport_details?.road?.driver_phone_no || null,
-        "transport_details.rail.transporter_name":
-          req.body?.transport_details?.rail?.transporter_name || null,
-        "transport_details.rail.awb_no":
-          req.body?.transport_details?.rail?.awb_no || null,
-        "transport_details.air.transporter_name":
-          req.body?.transport_details?.air?.transporter_name || null,
-        "transport_details.air.awb_no":
-          req.body?.transport_details?.air?.awb_no || null,
-        "transport_details.delivery_challan_no":
-          req.body?.transport_details?.delivery_challan_no || null,
-        "transport_details.transport_type":
-          req.body?.transport_details?.transport_type || null,
+      delivery_status: "outForDelivery",
+      "tracking_date.out_for_delivery.dispatch_date":
+        req.body?.tracking_date?.out_for_delivery?.dispatch_date || null,
+      "tracking_date.out_for_delivery.estimate_delivery_date":
+        req.body?.tracking_date?.out_for_delivery?.estimate_delivery_date ||
+        null,
+      "transport_details.hand_delivery.person_name":
+        req.body?.transport_details?.hand_delivery?.person_name || null,
+      "transport_details.hand_delivery.person_phone_no":
+        req.body?.transport_details?.hand_delivery?.person_phone_no || null,
+      "transport_details.courier.company_name":
+        req.body?.transport_details?.courier?.company_name || null,
+      "transport_details.courier.docket_no":
+        req.body?.transport_details?.courier?.docket_no || null,
+      "transport_details.road.transporter_name":
+        req.body?.transport_details?.road?.transporter_name || null,
+      "transport_details.road.vehicle_no":
+        req.body?.transport_details?.road?.vehicle_no || null,
+      "transport_details.road.driver_name":
+        req.body?.transport_details?.road?.driver_name || null,
+      "transport_details.road.driver_phone_no":
+        req.body?.transport_details?.road?.driver_phone_no || null,
+      "transport_details.rail.transporter_name":
+        req.body?.transport_details?.rail?.transporter_name || null,
+      "transport_details.rail.awb_no":
+        req.body?.transport_details?.rail?.awb_no || null,
+      "transport_details.air.transporter_name":
+        req.body?.transport_details?.air?.transporter_name || null,
+      "transport_details.air.awb_no":
+        req.body?.transport_details?.air?.awb_no || null,
+      "transport_details.delivery_challan_no":
+        req.body?.transport_details?.delivery_challan_no || null,
+      "transport_details.transport_type":
+        req.body?.transport_details?.transport_type || null,
     },
     { new: true }
   );
@@ -171,9 +189,7 @@ export const outForDelivery = catchAsync(async (req, res, next) => {
       message: "Out For Delivery Successful",
     });
   }
-
 });
-
 
 export const delivered = catchAsync(async (req, res, next) => {
   const { id } = req.params;
@@ -186,7 +202,7 @@ export const delivered = catchAsync(async (req, res, next) => {
   const updateData = await DispatchModel.findByIdAndUpdate(
     { _id: id },
     {
-      "delivery_status":"delivered",
+      delivery_status: "delivered",
       "tracking_date.delivered": req.body?.tracking_date?.delivered || null,
     },
     { new: true }

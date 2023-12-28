@@ -90,7 +90,7 @@ export const latestOrderNo = catchAsync(async (req, res, next) => {
 
 export const fetchOrders = catchAsync(async (req, res, next) => {
   const {
-    type = "Store",
+    type,
     page,
     limit = 10,
     sortBy = "order_no",
@@ -98,10 +98,16 @@ export const fetchOrders = catchAsync(async (req, res, next) => {
   } = req.query;
   const skip = (page - 1) * limit;
 
-  const matchQuery = {
-    order_type: type,
-    ...(req.body.filters || {}),
-  };
+  const {to,from,...data} = req?.body?.filters || {}
+  const matchQuery = data || {};
+  if(type){
+    matchQuery.order_type = type
+  }
+
+  if(to && from){
+      matchQuery.order_date = { $gte: new Date(from) }
+      matchQuery.estimate_delivery_date = { $lte: new Date(to) }
+  }
 
   const orders = await OrdersModel.find(matchQuery)
     .skip(skip)
@@ -111,10 +117,6 @@ export const fetchOrders = catchAsync(async (req, res, next) => {
 
   const totalDocuments = await OrdersModel.countDocuments(matchQuery);
   const totalPages = Math.ceil(totalDocuments / limit);
-
-  if (orders.length === 0) {
-    return next(new ApiError("No Data Found", 404));
-  }
 
   return res.status(200).json({
     data: orders,
