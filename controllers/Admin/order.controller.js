@@ -26,10 +26,10 @@ export const createNewOrder = catchAsync(async (req, res, next) => {
     } else {
       latestPoNo = 1;
     }
-
     const storePO = await storePOModel.create(
       [
         {
+          ...req.body,
           purchase_order_no: latestPoNo,
           purchase_order_date: order_date,
           ssk_details: { ...sskData, supplier_id: sskData.ssk_id },
@@ -37,7 +37,6 @@ export const createNewOrder = catchAsync(async (req, res, next) => {
             ...customer_details,
             store_id: customer_details.customer_id,
           },
-          ...req.body,
         },
       ],
       { session }
@@ -71,28 +70,32 @@ export const latestOrderNo = catchAsync(async (req, res, next) => {
       .select("order_no");
     if (latestOrder) {
       return res.status(200).json({
-        latest_order_number: latestOrder.order_no + 1,
+        order_no: latestOrder.order_no + 1,
         statusCode: 200,
         status: "Latest Order Number",
       });
     } else {
       // Handle the case where no purchase orders exist
       return res.status(200).json({
-        latest_order_number: 1,
+        order_no: 1,
         statusCode: 200,
         status: "Latest Order Number",
       });
     }
   } catch (error) {
-    console.error("Error getting latest purchase order number:", error);
+    console.error("Error getting latest order number:", error);
     throw error;
   }
 });
 
 export const fetchOrders = catchAsync(async (req, res, next) => {
-  const { type } = req.query;
-  const { page = 1, limit = 10 } = req.query;
-
+  const {
+    type = "Store",
+    page,
+    limit = 10,
+    sortBy = "order_no",
+    sort = "desc",
+  } = req.query;
   const skip = (page - 1) * limit;
 
   const matchQuery = {
@@ -103,6 +106,7 @@ export const fetchOrders = catchAsync(async (req, res, next) => {
   const orders = await OrdersModel.find(matchQuery)
     .skip(skip)
     .limit(limit)
+    .sort({ [sortBy]: sort })
     .exec();
 
   const totalDocuments = await OrdersModel.countDocuments(matchQuery);
@@ -120,4 +124,3 @@ export const fetchOrders = catchAsync(async (req, res, next) => {
     currentPage: page,
   });
 });
-

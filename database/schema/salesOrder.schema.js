@@ -2,29 +2,40 @@ import mongoose from "mongoose";
 import addressSchema from "../utils/address.schema";
 import userAndApprovals from "../utils/approval.schema";
 
-const storePurchaseOrderSchema = new mongoose.Schema({
-  purchase_order_no: {
+const salesOrder = new mongoose.Schema({
+  order_no: {
     type: Number,
-    required: [true, "Purchase Order No is required"],
+    required: [true, "Order No is required"],
+    trim: true
+  },
+  sales_order_no: {
+    type: Number,
+    required: [true, "Sales Order No is required"],
     trim: true,
     unique: true,
   },
-  purchase_order_date: {
+  sales_order_date: {
     type: Date,
-    required: [true, "Purchase Order Date is required"],
+    required: [true, "Sales Order Date is required"],
     trim: true,
   },
-  estimate_delivery_date: {
+  order_date: {
     type: Date,
-    required: [true, "Purchase Estimate Date is required"],
+    required: [true, "Sales Order Date is required"],
+    trim: true,
+  },
+  order_type: {
+    type: String,
+    required: [true, "Sales Order Type is required"],
+    enum: ["Store", "Retailer", "Website"],
     trim: true,
   },
 
   ssk_details: {
-    supplier_id: {
+    ssk_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Supplier",
-      required: true,
+      ref: "sskcompanies",
+      required: [true, "SSK Id is required"],
     },
     branch_id: {
       type: mongoose.Schema.Types.ObjectId,
@@ -39,20 +50,19 @@ const storePurchaseOrderSchema = new mongoose.Schema({
     },
     gst_no: {
       type: String,
-      // required: [true, "Gst No is required"],
+      //   required: [true, "Gst No is required"],
       trim: true,
       default: null,
     },
     first_name: {
       type: String,
-      // required: [true, "First Name is required"],
+      //   required: [true, "First Name is required"],
       trim: true,
-
       default: null,
     },
     last_name: {
       type: String,
-      // required: [true, "Last Name is required"],
+      //   required: [true, "Last Name is required"],
       trim: true,
       default: null,
     },
@@ -60,8 +70,17 @@ const storePurchaseOrderSchema = new mongoose.Schema({
       type: String,
       required: [true, "Primary Email Id is required"],
       trim: true,
+      validate: {
+        validator: function (value) {
+          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+        },
+        message: "invalid email Id",
+      },
     },
-    secondary_email_id: { type: String, default: null },
+    secondary_email_id: {
+      type: String,
+      default: null,
+    },
     primary_mobile_no: {
       type: String,
       required: [true, "Primary Mobile Number is required"],
@@ -70,22 +89,19 @@ const storePurchaseOrderSchema = new mongoose.Schema({
     secondary_mobile_no: { type: String, default: null },
     address: addressSchema,
   },
-
-  store_details: {
-    store_id: {
+  customer_details: {
+    customer_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "StorePurchaseOrder",
-      required: [true, "Store Id is required"], //random  id pasing api is not created for store user
+      required: [true, "Customer Id is required"],
     },
     bill_to: {
       branch_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "offlinestorebranches",
         required: true,
       },
-      company_name: {
+      name: {
         type: String,
-        // required: [true, "Company Name is required"],
+        // required: [true, "Name is required"],
         trim: true,
         default: null,
       },
@@ -111,8 +127,17 @@ const storePurchaseOrderSchema = new mongoose.Schema({
         type: String,
         required: [true, "Primary Email Id is required"],
         trim: true,
+        validate: {
+          validator: function (value) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+          },
+          message: "invalid email Id",
+        },
       },
-      secondary_email_id: { type: String, default: null },
+      secondary_email_id: {
+        type: String,
+        default: null,
+      },
       primary_mobile_no: {
         type: String,
         required: [true, "Primary Mobile Number is required"],
@@ -124,12 +149,11 @@ const storePurchaseOrderSchema = new mongoose.Schema({
     ship_to: {
       branch_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "offlinestorebranches",
         required: true,
       },
-      company_name: {
+      name: {
         type: String,
-        // required: [true, "Company Name is required"],
+        // required: [true, "Name is required"],
         trim: true,
         default: null,
       },
@@ -142,6 +166,7 @@ const storePurchaseOrderSchema = new mongoose.Schema({
       first_name: {
         type: String,
         // required: [true, "First Name is required"],
+
         trim: true,
         default: null,
       },
@@ -155,8 +180,17 @@ const storePurchaseOrderSchema = new mongoose.Schema({
         type: String,
         required: [true, "Primary Email Id is required"],
         trim: true,
+        validate: {
+          validator: function (value) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+          },
+          message: "invalid email Id",
+        },
       },
-      secondary_email_id: { type: String, default: null },
+      secondary_email_id: {
+        type: String,
+        default: null,
+      },
       primary_mobile_no: {
         type: String,
         required: [true, "Primary Mobile No is required"],
@@ -238,6 +272,7 @@ const storePurchaseOrderSchema = new mongoose.Schema({
           },
         },
       },
+
       total_amount: {
         type: Number,
         required: [true, "Total Amount is required"],
@@ -269,18 +304,10 @@ const storePurchaseOrderSchema = new mongoose.Schema({
     required: [true, "Total Amount is required"],
   },
   approver: userAndApprovals,
-  status: {
-    type: String,
-    enum: ["Active", "Cancelled", "Closed"],
-    default: "Active",
-  },
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: Date.now },
   deleted_at: { type: Date, default: null },
 });
 
-const storePOModel = mongoose.model(
-  "offlineStorePurchaseOrder",
-  storePurchaseOrderSchema
-);
-export default storePOModel;
+const SalesModel = mongoose.model("salesorders", salesOrder);
+export default SalesModel;

@@ -26,6 +26,11 @@ const purchaseOrderSchema = new mongoose.Schema({
       ref: "Supplier",
       required: true,
     },
+    branch_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "supplierbranches",
+      required: true,
+    },
     company_name: {
       type: String,
       // required: [true, "Company Name is required"],
@@ -67,6 +72,11 @@ const purchaseOrderSchema = new mongoose.Schema({
   },
   ssk_details: {
     bill_to: {
+      branch_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "sskcompanybranches",
+        required: true,
+      },
       company_name: {
         type: String,
         // required: [true, "Company Name is required"],
@@ -106,6 +116,11 @@ const purchaseOrderSchema = new mongoose.Schema({
       address: addressSchema,
     },
     ship_to: {
+      branch_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "sskcompanybranches",
+        required: true,
+      },
       company_name: {
         type: String,
         // required: [true, "Company Name is required"],

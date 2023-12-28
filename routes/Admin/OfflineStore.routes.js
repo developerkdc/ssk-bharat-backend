@@ -1,7 +1,7 @@
 import express from "express";
 import rolesPermissions from "../../middlewares/rolesPermissionAuth";
 import authMiddleware from "../../middlewares/adminAuth";
-import { createStorePO } from "../../controllers/Admin/PurchaseOrders/storePOController";
+import { createOfflineStorePO, getStorePo, latestStorePONo } from "../../controllers/Admin/PurchaseOrders/storePOController";
 
 
 const router = express.Router();
@@ -10,15 +10,15 @@ router.post(
   "/create/PO",
   authMiddleware,
   rolesPermissions("store_po", "add"),
-  createStorePO
+  createOfflineStorePO
 );
-// router.get("/latestPo", authMiddleware, latestSSKPONo);
-// router.get(
-//   "/fetch",
-//   authMiddleware,
-//   rolesPermissions("ssk_po", "view"),
-//   getSSKPo
-// );
+router.get("/latestStorePoNo", authMiddleware, latestStorePONo);
+router.get(
+  "/fetch",
+  authMiddleware,
+  rolesPermissions("store_po", "view"),
+  getStorePo
+);
 // router.get("/supplierId/:id", authMiddleware, getPOBasedOnSupplierID);
 
 // router.patch(

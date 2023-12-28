@@ -6,7 +6,7 @@ import authMiddleware from "../../middlewares/adminAuth";
 
 const router = express.Router();
 
-router.post("/createProduct",rolesPermissions("product","add"),MulterFunction("./uploads/admin/products").array("product_images",4),createProduct)
+router.post("/createProduct",authMiddleware,rolesPermissions("product","add"),MulterFunction("./uploads/admin/products").array("product_images",4),createProduct)
 // router.get("/getProduct",rolesPermissions("product","view"),getProducts)
 router.get("/getProduct",authMiddleware,rolesPermissions("product","view"),getProducts)
 router.patch("/updateProduct/:id",authMiddleware,rolesPermissions("product","edit"),updateProduct)

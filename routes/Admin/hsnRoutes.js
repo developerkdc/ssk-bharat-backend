@@ -13,20 +13,20 @@ const router = express.Router();
 router.post(
   "/createHsnCode",
   authMiddleware,
-  rolesPermissions("hsnCode", "add"),
+  rolesPermissions("hsn_code", "add"),
   createHSN
 );
 router.get(
   "/getHSNCode",
   authMiddleware,
-  rolesPermissions("hsnCode", "view"),
+  rolesPermissions("hsn_code", "view"),
   getHSNCode
 );
 router.get("/hsnCodeList", getHSNCodeList);
 router.patch(
   "/updateHsnCode/:id",
   authMiddleware,
-  rolesPermissions("hsnCode", "edit"),
+  rolesPermissions("hsn_code", "edit"),
   updateHsnCode
 );
 

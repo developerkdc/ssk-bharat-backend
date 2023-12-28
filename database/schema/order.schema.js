@@ -5,18 +5,18 @@ import userAndApprovals from "../utils/approval.schema";
 const orders = new mongoose.Schema({
   order_no: {
     type: Number,
-    required: [true, "Purchase Order No is required"],
+    required: [true, "Order No is required"],
     trim: true,
     unique: true,
   },
   order_date: {
     type: Date,
-    required: [true, "Purchase Order Date is required"],
+    required: [true, "Order Date is required"],
     trim: true,
   },
   estimate_delivery_date: {
     type: Date,
-    required: [true, "Purchase Estimate Date is required"],
+    required: [true, "Order Estimate Date is required"],
     trim: true,
   },
   order_type: {
@@ -30,7 +30,12 @@ const orders = new mongoose.Schema({
     ssk_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "sskcompanies",
-      required: [true,"SSK Id is required"],
+      required: [true, "SSK Id is required"],
+    },
+    branch_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "sskcompanybranches",
+      required: true,
     },
     company_name: {
       type: String,
@@ -85,6 +90,10 @@ const orders = new mongoose.Schema({
       required: [true, "Customer Id is required"],
     },
     bill_to: {
+      branch_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+      },
       name: {
         type: String,
         // required: [true, "Name is required"],
@@ -133,6 +142,10 @@ const orders = new mongoose.Schema({
       address: addressSchema,
     },
     ship_to: {
+      branch_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+      },
       name: {
         type: String,
         // required: [true, "Name is required"],

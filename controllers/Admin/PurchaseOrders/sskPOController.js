@@ -49,9 +49,7 @@ export const getSSKPo = catchAsync(async (req, res, next) => {
   const sortDirection = req.query.sort === "desc" ? -1 : 1;
   const search = req.query.search || "";
   const filters = req.body.filters || {};
-  const searchQuery = buildSearchQuery(search);
-
-  const totalUnits = await sskPOModel.countDocuments(searchQuery);
+  const totalUnits = await sskPOModel.countDocuments(filters);
   if (!totalUnits) throw new Error(new ApiError("No Data", 404));
   const totalPages = Math.ceil(totalUnits / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
@@ -77,18 +75,6 @@ export const getSSKPo = catchAsync(async (req, res, next) => {
     });
   }
 });
-
-// Function to build search query
-function buildSearchQuery(search) {
-  const searchQuery = {};
-  if (search) {
-    searchQuery.$or = [
-      { purchase_order_no: parseInt(search) },
-      // Add more fields to search as needed
-    ];
-  }
-  return searchQuery;
-}
 
 export const updatePOStatus = catchAsync(async (req, res, next) => {
   const { id } = req.params;
@@ -128,10 +114,9 @@ export const getPOBasedOnSupplierID = catchAsync(async (req, res, next) => {
   });
 });
 
-
 //new Order
 export const createPOForStore = catchAsync(async (req, res, next) => {
-  console.log(req.body)
+  console.log(req.body);
   // const po = await sskPOModel.create(req.body);
   // if (po) {
   //   return res.status(201).json({
