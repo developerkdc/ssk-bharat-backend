@@ -40,7 +40,7 @@ export const createDispatch = catchAsync(async (req, res, next) => {
     ...req.body,
     sales_order_no:sales_order_no,
     order_type:order_type,
-    delivery_status:"Dispatched",
+    delivery_status:"dispatched",
     tracking_date:{
       sales_order_date:sales_order_date,
     },
@@ -53,11 +53,11 @@ export const createDispatch = catchAsync(async (req, res, next) => {
     total_gst:total_gst,
     total_amount:total_amount
   }
-  const dispatch = await new DispatchModel(body);
+  const dispatch =  new DispatchModel(body);
   if (!dispatch) {
     throw new Error(new ApiError("Error during dispatch", 400));
   }
-  dispatch.save()
+  await dispatch.save()
   if (dispatch) {
     return res.status(201).json({
       statusCode: 201,

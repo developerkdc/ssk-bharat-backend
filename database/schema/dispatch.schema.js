@@ -29,7 +29,7 @@ const dispatchOrder = new mongoose.Schema({
   delivery_status: {
     type: String,
     required: [true, "Sales Order Type is required"],
-    enum: ["Dispatched", "OutForDelivery", "Delivered"],
+    enum: ["dispatched", "outForDelivery", "delivered"],
     trim: true,
   },
   tracking_date: {
