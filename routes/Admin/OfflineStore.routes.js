@@ -21,19 +21,7 @@ offlineStoreRouter.post(
         authMiddleware,
         rolesPermissions("store_po", "view"),
         getStorePo
-        );
-        // router.get("/supplierId/:id", authMiddleware, getPOBasedOnSupplierID);
-        
-// router.patch(
-    //   "/update/status/:id",
-    //   authMiddleware,
-    //   rolesPermissions("ssk_po", "edit"),
-    //   updatePOStatus
-    // );
-    
-    
-    
-    
+        );  
     
     const offlineStore = new CompanyMaster("offlinestore","offlinestores");
     const branch = new Branches("offlinestore","offlinestorebranches","offlinestores")

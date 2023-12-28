@@ -45,17 +45,17 @@ const dispatchOrder = new mongoose.Schema({
       dispatch_date: {
         type: Date,
 
-        default: Date.now,
+        default: null,
       },
       estimate_delivery_date: {
         type: Date,
 
-        default: Date.now,
+        default: null,
       },
     },
     delivered: {
       type: Date,
-      default: Date.now,
+      default: null,
     },
   },
   ssk_details: {
@@ -333,13 +333,13 @@ const dispatchOrder = new mongoose.Schema({
   transport_details: {
     delivery_challan_no: {
       type: String,
-      required: [true, "Delivery Challan No is required"],
+      default: null,
     },
     transport_type: {
       type: String,
-      required: [true, "Transportation Type is required"],
       enum: ["hand", "courier", "road", "rail", "air"],
       trim: true,
+      default: null,
     },
     hand_delivery: {
       person_name: {

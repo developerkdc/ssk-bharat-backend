@@ -124,36 +124,3 @@ export const getStorePo = catchAsync(async (req, res, next) => {
 });
 
 
-export const updatePOStatus = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-  console.log(req.body, "req.body");
-  const updatePO = await sskPOModel.findOneAndUpdate(
-    { _id: id }, // Assuming 'id' is the unique identifier field
-    { $set: { status: req.body.status } },
-    { new: true } // This option returns the updated document
-  );
-  if (!updatePO) return next(new ApiError("Purchase Order Not Found", 404));
-  return res.status(200).json({
-    statusCode: 200,
-    status: true,
-    data: updatePO,
-    message: "Status Updated",
-  });
-});
-
-export const getPOBasedOnSupplierID=catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-  console.log(req.body, "req.body");
-  const poDetails = await sskPOModel.aggregate([
-    {$match:{"supplier_details.supplier_id":new mongoose.Types.ObjectId(id)}}
-  ])
-
-  if (poDetails.length==0) return next(new ApiError("Purchase Order Not Found", 404));
-  return res.status(200).json({
-    statusCode: 200,
-    status: true,
-    data: poDetails,
-    message: "SSK Purchased Order Based on Supplier",
-  });
-});
-
