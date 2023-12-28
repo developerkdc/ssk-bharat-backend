@@ -1,8 +1,9 @@
 import express from "express";
-import { addPayout } from "../../controllers/Admin/payoutAndCommission/payoutAndCommissionTransaction.controller";
+import { addPayout, getPayoutAndCommissionTrans } from "../../controllers/Admin/payoutAndCommission/payoutAndCommissionTransaction.controller";
 const payoutAndCommissionRouter = express.Router();
 
-payoutAndCommissionRouter.route("/")
+payoutAndCommissionRouter.route("/:marketExecutiveId")
+    .get(getPayoutAndCommissionTrans)
     .post(addPayout)
 
 export default payoutAndCommissionRouter

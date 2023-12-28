@@ -140,12 +140,13 @@ const MarketExecutiveSchema = new mongoose.Schema({
     },
     account_balance:{
         type:Number,
-        validate:{
-            validator:function(value){
-                return value >= 0
-            },
-            message:"value should be greater than 0"
-        },
+        min:0,
+        // validate:{
+        //     validator:function(value){
+        //         return value >= 0
+        //     },
+        //     message:"value should be greater than 0"
+        // },
         default:0,
     },
     kyc: {
@@ -203,6 +204,22 @@ const MarketExecutiveSchema = new mongoose.Schema({
     address: addressSchema,
     approvals: userAndApprovals
 });
+
+// MarketExecutiveSchema.pre("updateOne", function (next) {
+//     // `this` refers to the query object
+//     const update = this.getUpdate();
+//     const newBalance = update["$inc"]["account_balance"];
+
+//     if (newBalance !== undefined) {
+//         // If the updated balance is less than 0, set it to 0
+//         update["$inc"]["account_balance"] = Math.max(newBalance, 0);
+//     }
+
+//     // Continue with the update
+//     next();
+// });
+
+
 
 const MarketExecutiveModel = mongoose.model("MarketExecutive", MarketExecutiveSchema);
 export default MarketExecutiveModel

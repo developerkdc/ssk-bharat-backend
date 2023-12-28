@@ -80,7 +80,6 @@ const payoutAndCommissionTranSchema = new mongoose.Schema({
 
 payoutAndCommissionTranSchema.pre("save",function(next){
     const {payouts:{payoutAmount,tdsPercentage}} = this;
-    console.log(payoutAmount,tdsPercentage)
     this.payouts.tdsAmount = (payoutAmount/100)*tdsPercentage;
     this.payouts.amountPaid = this.payouts.payoutAmount - this.payouts.tdsAmount;
     next()
