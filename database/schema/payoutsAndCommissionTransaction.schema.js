@@ -28,6 +28,10 @@ const payoutAndCommissionTranSchema = new mongoose.Schema({
                 type: mongoose.Schema.Types.ObjectId,
                 required: [true, "sales order id is required"]
             },
+            salesOrderNo: {
+                type: Number,
+                required: [true, "sales order no is required"]
+            },
             salesOrderAmount:{
                 type:Number,
                 required:[true,"Amount is required"]

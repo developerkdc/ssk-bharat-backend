@@ -26,6 +26,10 @@ const storePurchaseOrderSchema = new mongoose.Schema({
       ref: "Supplier",
       required: true,
     },
+    supplier_name: {
+      type: String,
+      required: [true, "supplier name is required"],
+    },
     branch_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "sskcompanybranches",
@@ -76,6 +80,10 @@ const storePurchaseOrderSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: "StorePurchaseOrder",
       required: [true, "Store Id is required"], //random  id pasing api is not created for store user
+    },
+    store_name: {
+      type: String,
+      required: [true, "store name is required"],
     },
     bill_to: {
       branch_id: {

@@ -26,6 +26,10 @@ const purchaseOrderSchema = new mongoose.Schema({
       ref: "Supplier",
       required: true,
     },
+    supplier_name: {
+      type: String,
+      required: [true, "supplier name is required"],
+    },
     branch_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "supplierbranches",
