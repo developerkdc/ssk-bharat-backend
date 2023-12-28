@@ -122,7 +122,7 @@ class CompanyMaster {
         return res.status(201).json({
             statusCode: 200,
             status: "Success",
-            length: this.#modalName.length,
+            length: modalName.length,
             data: {
                 [this.#modalName]: modalName
             },

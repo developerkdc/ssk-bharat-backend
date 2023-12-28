@@ -48,39 +48,37 @@ const nomineeSchema = new mongoose.Schema({
                     }
                 }
             },
-            bank_details: {
-                type: bankDetailsSchema
-            }
+            bank_details: bankDetailsSchema
         }
     }
 })
 
 const insuranceSchema = new mongoose.Schema({
-    policy_no:{
+    policy_no: {
         type: String,
         trim: true,
         default: null
     },
-    policy_image:{
+    policy_image: {
         type: String,
         trim: true,
         default: null
     },
-    policy_company_name:{
+    policy_company_name: {
         type: String,
         trim: true,
         default: null
     },
-    policy_date:{
+    policy_date: {
         type: Date,
         default: null
     },
-    policy_amount:{
+    policy_amount: {
         type: String,
         trim: true,
         default: null
     },
-    renewal_date:{
+    renewal_date: {
         type: Date,
         default: null
     },
@@ -92,18 +90,6 @@ const MarketExecutiveSchema = new mongoose.Schema({
             type: String,
             trim: true,
             default: null
-        },
-        gst: {
-            gst_no: {
-                type: String,
-                trim: true,
-                default: null
-            },
-            gst_image: {
-                type: String,
-                trim: true,
-                default: null
-            },
         }
     },
     contact_person_details: {
@@ -151,37 +137,89 @@ const MarketExecutiveSchema = new mongoose.Schema({
             trim: true,
             default: null,
         },
-        kyc: {
-            type: {
-                kyc_status: Boolean,
-                pan: {
-                    type: {
-                        pan_no: {
-                            type: String,
-                            trim: true,
-                            required: [true, "pan no is required"]
-                        },
-                        pan_image: {
-                            type: String,
-                            default: null
-                        }
+    },
+    account_balance:{
+        type:Number,
+        min:0,
+        // validate:{
+        //     validator:function(value){
+        //         return value >= 0
+        //     },
+        //     message:"value should be greater than 0"
+        // },
+        default:0,
+    },
+    kyc: {
+        type: {
+            kyc_status: Boolean,
+            pan: {
+                type: {
+                    pan_no: {
+                        type: String,
+                        trim: true,
+                        required: [true, "pan no is required"]
+                    },
+                    pan_image: {
+                        type: String,
+                        default: null
                     }
-                },
-                bank_details: {
-                    type: bankDetailsSchema
                 }
+            },
+            gst: {
+                type: {
+                    gst_no: {
+                        type: String,
+                        trim: true,
+                        default: null
+                    },
+                    gst_image: {
+                        type: String,
+                        trim: true,
+                        default: null
+                    },
+                }
+            },
+            aadhar: {
+                type: {
+                    aadhar_no: {
+                        type: String,
+                        trim: true,
+                        required: [true, "aadhar no is required"]
+                    },
+                    aadhar_image: {
+                        type: String,
+                        default: null
+                    }
+                }
+            },
+            bank_details: {
+                type: bankDetailsSchema
             }
-        },
+        }
     },
-    insurance:insuranceSchema,
-    nominee:{
-        type:[
-            nomineeSchema
-        ]
-    },
+    insurance: insuranceSchema,
+    nominee: [
+        nomineeSchema
+    ],
     address: addressSchema,
     approvals: userAndApprovals
 });
+
+// MarketExecutiveSchema.pre("updateOne", function (next) {
+//     // `this` refers to the query object
+//     const update = this.getUpdate();
+//     const newBalance = update["$inc"]["account_balance"];
+
+//     if (newBalance !== undefined) {
+//         // If the updated balance is less than 0, set it to 0
+//         update["$inc"]["account_balance"] = Math.max(newBalance, 0);
+//     }
+
+//     // Continue with the update
+//     next();
+// });
+
+
 
 const MarketExecutiveModel = mongoose.model("MarketExecutive", MarketExecutiveSchema);
 export default MarketExecutiveModel

@@ -6,14 +6,15 @@ import fs from "fs";
 class Branches {
     #branchSchema
     #modal
+    #refernceName
     #modalName
     #collectionName
-    constructor(modalName, collectionName) {
+    constructor(modalName, collectionName,refernceName) {
         this.#branchSchema = new mongoose.Schema({
             [`${modalName}Id`]: {
                 type: mongoose.Schema.Types.ObjectId,
                 required: [true, `${modalName} Id is required`],
-                ref:collectionName
+                ref:refernceName
             },
             branch_name: {
                 type: String,
@@ -207,6 +208,7 @@ class Branches {
             }
             next()
         });
+        this.#refernceName = refernceName
         this.#collectionName = collectionName;
         this.#modalName = modalName
         this.#modal = mongoose.model(this.#collectionName, this.#branchSchema)
@@ -227,7 +229,7 @@ class Branches {
             },
             {
                 $lookup: {
-                    from: this.#collectionName,
+                    from: this.#refernceName,
                     localField: `${this.#modalName}Id`,
                     foreignField: "_id",
                     as: `${this.#modalName}Id`
