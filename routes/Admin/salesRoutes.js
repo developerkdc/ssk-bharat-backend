@@ -4,7 +4,8 @@ import authMiddleware from "../../middlewares/adminAuth";
 import {
   createSalesOrder,
   latestSalesOrderNo,
-  fetchSalesOrders
+  fetchSalesOrders,
+  fetchConfirmSalesOrders
 } from "../../controllers/Admin/sales.controller";
 const router = express.Router();
 
@@ -24,8 +25,7 @@ router.get(
 router.get(
   "/confirmsales",
   authMiddleware,
-  rolesPermissions("sales", "view"),
-  fetchSalesOrders
+  fetchConfirmSalesOrders
 );
 
 export default router;

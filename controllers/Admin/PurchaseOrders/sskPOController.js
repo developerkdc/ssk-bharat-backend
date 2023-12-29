@@ -121,16 +121,4 @@ export const getPOBasedOnSupplierID = catchAsync(async (req, res, next) => {
   });
 });
 
-//new Order
-export const createPOForStore = catchAsync(async (req, res, next) => {
-  console.log(req.body);
-  // const po = await sskPOModel.create(req.body);
-  // if (po) {
-  //   return res.status(201).json({
-  //     statusCode: 201,
-  //     status: true,
-  //     data: po,
-  //     message: "Purchase Order Created",
-  //   });
-  // }
-});
+

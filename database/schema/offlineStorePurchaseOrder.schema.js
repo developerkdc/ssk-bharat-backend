@@ -287,10 +287,9 @@ const storePurchaseOrderSchema = new mongoose.Schema({
     enum: ["active", "cancelled", "closed"],
     default: "active",
   },
-  est_payment_date: {
-    type: Date,
-    required: [true, "Est Payment Date is required"],
-    trim: true,
+  est_payment_days: {
+    type: Number,
+    required: [true, "Est Payment Days is required"],
   },
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: Date.now },

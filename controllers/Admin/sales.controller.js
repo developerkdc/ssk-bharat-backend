@@ -112,10 +112,52 @@ export const fetchSalesOrders = catchAsync(async (req, res, next) => {
   } = req.query;
   const skip = (page - 1) * limit;
 
-  const { to, from , ...data } = req?.body?.filters || {};
+  const { to, from, ...data } = req?.body?.filters || {};
   const matchQuery = data || {};
   if (type) {
     matchQuery.order_type = type;
+  }
+
+  if (to && from) {
+    matchQuery.sales_order_date = {
+      $gte: new Date(from),
+      $lte: new Date(to),
+    };
+  }
+  const salesOrders = await SalesModel.find(matchQuery)
+    .skip(skip)
+    .limit(limit)
+    .sort({ [sortBy]: sort })
+    .exec();
+
+  const totalDocuments = await SalesModel.countDocuments(matchQuery);
+  const totalPages = Math.ceil(totalDocuments / limit);
+
+  return res.status(200).json({
+    data: salesOrders,
+    statusCode: 200,
+    status: `All ${type} Sales Orders`,
+    totalPages: totalPages,
+    currentPage: page,
+  });
+});
+
+export const fetchConfirmSalesOrders = catchAsync(async (req, res, next) => {
+  const id = "658eadee89e94e9250772c30";
+  const {
+    type,
+    page,
+    limit = 10,
+    sortBy = "sales_order_no",
+    sort = "desc",
+  } = req.query;
+  const skip = (page - 1) * limit;
+
+  const { to, from, ...data } = req?.body?.filters || {};
+  const matchQuery = data || {};
+  if (type) {
+    matchQuery.order_type = type;
+    matchQuery._id = id;
   }
 
   if (to && from) {

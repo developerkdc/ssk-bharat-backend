@@ -318,9 +318,9 @@ const salesOrder = new mongoose.Schema({
     type: Number,
     required: [true, "Total Amount is required"],
   },
-  est_payment_date: {
-    type: Date,
-    default: null,
+  est_payment_days: {
+    type: Number,
+    required:[true,"Est Payment Days is required"]
   },
   approver: userAndApprovals,
   created_at: { type: Date, default: Date.now },
