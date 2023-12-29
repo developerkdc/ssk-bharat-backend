@@ -21,5 +21,11 @@ router.get(
   rolesPermissions("sales", "view"),
   fetchSalesOrders
 );
+router.get(
+  "/confirmsales",
+  authMiddleware,
+  rolesPermissions("sales", "view"),
+  fetchSalesOrders
+);
 
 export default router;

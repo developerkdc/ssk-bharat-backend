@@ -6,7 +6,7 @@ const salesOrder = new mongoose.Schema({
   order_no: {
     type: Number,
     required: [true, "Order No is required"],
-    trim: true
+    trim: true,
   },
   sales_order_no: {
     type: Number,
@@ -98,7 +98,7 @@ const salesOrder = new mongoose.Schema({
     customer_id: {
       type: mongoose.Schema.Types.ObjectId,
       required: [true, "Customer Id is required"],
-      refPath:"order_type"
+      refPath: "order_type",
     },
     customer_name: {
       type: String,
@@ -213,6 +213,11 @@ const salesOrder = new mongoose.Schema({
 
   Items: [
     {
+      product_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "products",
+        required: [true, "product Id is required"],
+      },
       item_name: {
         type: String,
         required: [true, "Item Name is required"],
@@ -313,9 +318,9 @@ const salesOrder = new mongoose.Schema({
     type: Number,
     required: [true, "Total Amount is required"],
   },
-    est_payment_date: {
+  est_payment_date: {
     type: Date,
-    default:null
+    default: null,
   },
   approver: userAndApprovals,
   created_at: { type: Date, default: Date.now },
