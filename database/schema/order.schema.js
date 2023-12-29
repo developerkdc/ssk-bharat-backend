@@ -208,6 +208,11 @@ const orders = new mongoose.Schema({
 
   Items: [
     {
+      product_Id:{
+        type:mongoose.Schema.Types.ObjectId,
+        trim:true,
+        required:[true,"product id is required"]
+      },
       item_name: {
         type: String,
         required: [true, "Item Name is required"],
@@ -277,7 +282,6 @@ const orders = new mongoose.Schema({
           },
         },
       },
-
       total_amount: {
         type: Number,
         required: [true, "Total Amount is required"],
@@ -314,10 +318,9 @@ const orders = new mongoose.Schema({
     enum: ["active", "cancelled", "closed"],
     default: "active",
   },
-  est_payment_date: {
-    type: Date,
-    required: [true, "Est Payment Date is required"],
-    trim: true,
+  est_payment_days: {
+    type: Number,
+    default: null
   },
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: Date.now },

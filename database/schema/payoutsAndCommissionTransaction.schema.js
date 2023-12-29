@@ -16,6 +16,26 @@ const payoutAndCommissionTranSchema = new mongoose.Schema({
                     type: String,
                     required: [true, "company name is required"]
                 },
+                gstNo: {
+                    type: String,
+                    required: [true, "company name is required"]
+                },
+                firstName: {
+                    type: String,
+                    required: [true, "company name is required"]
+                },
+                lastName: {
+                    type: String,
+                    required: [true, "company name is required"]
+                },
+                email: {
+                    type: String,
+                    required: [true, "company name is required"]
+                },
+                mobileNo: {
+                    type: String,
+                    required: [true, "company name is required"]
+                },
                 companyType: {
                     type: String,
                     enum: {
@@ -31,6 +51,10 @@ const payoutAndCommissionTranSchema = new mongoose.Schema({
             salesOrderNo: {
                 type: Number,
                 required: [true, "sales order no is required"]
+            },
+            salesOrderDate: {
+                type: Date,
+                required: [true, "sales order Date is required"]
             },
             salesOrderAmount:{
                 type:Number,

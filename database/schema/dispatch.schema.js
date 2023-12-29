@@ -234,6 +234,11 @@ const dispatchOrder = new mongoose.Schema({
 
   Items: [
     {
+      product_Id:{
+        type:mongoose.Schema.Types.ObjectId,
+        trim:true,
+        required:[true,"product id is required"]
+      },
       item_name: {
         type: String,
         required: [true, "Item Name is required"],
@@ -303,7 +308,6 @@ const dispatchOrder = new mongoose.Schema({
           },
         },
       },
-
       total_amount: {
         type: Number,
         required: [true, "Total Amount is required"],

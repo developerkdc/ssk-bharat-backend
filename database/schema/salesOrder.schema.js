@@ -37,6 +37,11 @@ const salesOrder = new mongoose.Schema({
       ref: "sskcompanies",
       required: [true, "SSK Id is required"],
     },
+    ssk_name: {
+      type:String,
+      ref: "sskcompanies",
+      required: [true, "SSK Id is required"],
+    },
     branch_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "sskcompanybranches",
@@ -93,7 +98,7 @@ const salesOrder = new mongoose.Schema({
     customer_id: {
       type: mongoose.Schema.Types.ObjectId,
       required: [true, "Customer Id is required"],
-      refPath:"order_type"
+      refPath: "order_type"
     },
     customer_name: {
       type: String,
@@ -205,9 +210,13 @@ const salesOrder = new mongoose.Schema({
       address: addressSchema,
     },
   },
-
   Items: [
     {
+      product_Id:{
+        type:mongoose.Schema.Types.ObjectId,
+        trim:true,
+        required:[true,"product id is required"]
+      },
       item_name: {
         type: String,
         required: [true, "Item Name is required"],
@@ -277,7 +286,6 @@ const salesOrder = new mongoose.Schema({
           },
         },
       },
-
       total_amount: {
         type: Number,
         required: [true, "Total Amount is required"],
@@ -308,9 +316,9 @@ const salesOrder = new mongoose.Schema({
     type: Number,
     required: [true, "Total Amount is required"],
   },
-    est_payment_date: {
-    type: Date,
-    default:null
+  est_payment_days: {
+    type: Number,
+    default: null
   },
   approver: userAndApprovals,
   created_at: { type: Date, default: Date.now },

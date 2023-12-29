@@ -4,7 +4,6 @@ import categoryModel from "../../database/schema/category.schema";
 import fs from "fs";
 
 export const createCategory = catchAsync(async (req, res, next) => {
-  // Get the relative path of the uploaded image
   console.log(req.file);
   const relativeImagePath = req.file ? req.file.filename : null;
   const category = await categoryModel.create({

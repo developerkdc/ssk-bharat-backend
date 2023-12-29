@@ -167,6 +167,11 @@ const purchaseOrderSchema = new mongoose.Schema({
 
   Items: [
     {
+      product_Id:{
+        type:mongoose.Schema.Types.ObjectId,
+        trim:true,
+        required:[true,"product id is required"]
+      },
       item_name: {
         type: String,
         required: [true, "Item Name is required"],

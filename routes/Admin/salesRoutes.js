@@ -17,8 +17,8 @@ router.post(
 );
 router.get(
   "/fetch",
-  authMiddleware,
-  rolesPermissions("sales", "view"),
+  // authMiddleware,
+  // rolesPermissions("sales", "view"),
   fetchSalesOrders
 );
 
