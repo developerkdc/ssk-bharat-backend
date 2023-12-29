@@ -4,21 +4,27 @@ import userAndApprovals from "../utils/approval.schema";
 
 
 const ItemsSchema = new mongoose.Schema({
-  itemName: {type:String,required:true,trim:true},
-  category: {type:String,required:true,trim:true},
-  sku: {type:String,required:true,trim:true},
-  hsn_code: {type:String,required:true,trim:true},
-  itemsWeight: {type:Number,required:true,trim:true},
-  unit: {type:String,required:true,trim:true},
-  ratePerUnit: {type:Number,required:true,trim:true},
-  quantity: {type:Number,required:true,trim:true},
-  itemAmount: {type:Number,required:true,trim:true},
-  gstpercentage:{type:Number,required:true,trim:true},
-  gstAmount: {type:Number,required:true,trim:true},
-  totalAmount: {type:Number,required:true,trim:true},
-  receivedQuantity: {type:Number,required:true,trim:true},
-  balanceQuantity: {type:Number,trim:true},
-  
+  product_Id: {
+    type: mongoose.Schema.Types.ObjectId,
+    trim: true,
+    ref: "products",
+  },
+  itemName: { type: String, required: true, trim: true },
+  category: { type: String, required: true, trim: true },
+  sku: { type: String, required: true, trim: true },
+  hsn_code: { type: String, required: true, trim: true },
+  itemsWeight: { type: Number, required: true, trim: true },
+  unit: { type: String, required: true, trim: true },
+  ratePerUnit: { type: Number, required: true, trim: true },
+  quantity: { type: Number, required: true, trim: true },
+  itemAmount: { type: Number, required: true, trim: true },
+  gstpercentage: { type: Number, required: true, trim: true },
+  gstAmount: { type: Number, required: true, trim: true },
+  totalAmount: { type: Number, required: true, trim: true },
+  receivedQuantity: { type: Number, required: true, trim: true },
+  availableQuantity: { type: Number, trim: true },
+  balanceQuantity: { type: Number, trim: true },
+  reservedQuantity: { type: Number, trim: true },
 });
 
 const TransportDetailsSchema = new mongoose.Schema({
@@ -50,28 +56,25 @@ const TransportDetailsSchema = new mongoose.Schema({
 });
 
 const SupplierDetailsSchema = new mongoose.Schema({
-  billto: {
-    companyName: { type: String, trim: true },
-    gstNo: { type: String, trim: true },
-    firstName: { type: String, trim: true },
-    lastName: { type: String, trim: true },
-    primaryEmailID: { type: String, trim: true },
-    secondaryEmailID: { type: String, trim: true },
-    primaryMobileNo: { type: String, trim: true },
-    secondaryMobileNo: { type: String, trim: true },
-    address: addressSchema,
+  supplierCompanyName: { type: String, trim: true },
+  supplierId: {
+    type: mongoose.Schema.Types.ObjectId,
+    trim:true,
+    ref: "Supplier",
   },
-  shipto: {
-    companyName: { type: String, trim: true },
-    gstNo: { type: String, trim: true },
-    firstName: { type: String, trim: true },
-    lastName: { type: String, trim: true },
-    primaryEmailID: { type: String, trim: true },
-    secondaryEmailID: { type: String, trim: true },
-    primaryMobileNo: { type: String, trim: true },
-    secondaryMobileNo: { type: String, trim: true },
-    address: addressSchema,
+  branchId: {
+    type: mongoose.Schema.Types.ObjectId,
+    trim:true,
+    ref: "supplierBranch",
   },
+  gstNo: { type: String, trim: true },
+  firstName: { type: String, trim: true },
+  lastName: { type: String, trim: true },
+  primaryEmailID: { type: String, trim: true },
+  secondaryEmailID: { type: String, trim: true },
+  primaryMobileNo: { type: String, trim: true },
+  secondaryMobileNo: { type: String, trim: true },
+  address: addressSchema,
 });
 
 const InvoiceDetailsSchema = new mongoose.Schema({
@@ -88,11 +91,11 @@ const InvoiceDetailsSchema = new mongoose.Schema({
 });
 
 const InventorySchema = new mongoose.Schema({
-  purchaseOrderNo: { type: String,trim:true,unique:true },
-  supplierCompanyName: String,
+  purchaseOrderNo: { type:String,trim:true },
+  
   receivedDate: Date,
   supplierDetails: SupplierDetailsSchema,
-  itemsDetails: [ItemsSchema],
+  itemsDetails: ItemsSchema,
   transportDetails: TransportDetailsSchema,
   invoiceDetails: InvoiceDetailsSchema,
   approvals: userAndApprovals,
