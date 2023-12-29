@@ -64,11 +64,6 @@ const RoleSchema = new mongoose.Schema({
       edit: { type: Boolean, default: false },
       view: { type: Boolean, default: false },
     },
-    store_po: {
-      add: { type: Boolean, default: false },
-      edit: { type: Boolean, default: false },
-      view: { type: Boolean, default: false },
-    },
     new_order: {
       add: { type: Boolean, default: false },
       edit: { type: Boolean, default: false },

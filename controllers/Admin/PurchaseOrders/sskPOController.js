@@ -48,7 +48,14 @@ export const getSSKPo = catchAsync(async (req, res, next) => {
   const limit = parseInt(req.query.limit) || 10;
   const sortDirection = req.query.sort === "desc" ? -1 : 1;
   const search = req.query.search || "";
-  const filters = req.body.filters || {};
+
+  const { to, from, ...data } = req?.body?.filters || {};
+  const matchQuery = data || {};
+  if (to && from) {
+    matchQuery.purchase_order_date = { $gte: new Date(from) };
+    matchQuery.estimate_delivery_date = { $lte: new Date(to) };
+  }
+
   const totalUnits = await sskPOModel.countDocuments(filters);
   if (!totalUnits) throw new Error(new ApiError("No Data", 404));
   const totalPages = Math.ceil(totalUnits / limit);
@@ -57,7 +64,7 @@ export const getSSKPo = catchAsync(async (req, res, next) => {
   const sortField = req.query.sortBy || "purchase_order_no";
 
   const purchaseOrder = await sskPOModel
-    .find(filters)
+    .find(matchQuery)
     .sort({ [sortField]: sortDirection })
     .skip(skip)
     .limit(limit);

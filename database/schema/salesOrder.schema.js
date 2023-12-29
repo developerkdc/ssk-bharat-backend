@@ -37,6 +37,11 @@ const salesOrder = new mongoose.Schema({
       ref: "sskcompanies",
       required: [true, "SSK Id is required"],
     },
+    ssk_name: {
+      type: String,
+      required: [true, "SSK Name is required"],
+      trim: true,
+    },
     branch_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "sskcompanybranches",

@@ -2,25 +2,26 @@ import express from "express";
 import { MulterFunction } from "../../Utils/MulterFunction";
 import CompanyMaster from "../../controllers/Admin/SupplierMaster/Company.class";
 import Branches from "../../controllers/Admin/SupplierMaster/Branches.class";
+import { createRetailerPO, getRetailerPo, latestRetailerPONo } from "../../controllers/Admin/PurchaseOrders/retailerPOController";
+import authMiddleware from "../../middlewares/adminAuth";
+import rolesPermissions from "../../middlewares/rolesPermissionAuth";
 const retailerRouter = express.Router();
 
 const retailer = new CompanyMaster("retailer", "retailers");
 const branch = new Branches("retailer", "retailerbranches", "retailers");
 
-// retailerRouter.post(
-//   "/create/PO",
-//   authMiddleware,
-//   rolesPermissions("retailer_po", "add"),
-//   createOfflineStorePO
-// );
+retailerRouter.post(
+  "/create/PO",
+  authMiddleware,
+  createRetailerPO
+);
 
-// retailerRouter.get("/latestRetailerPoNo", authMiddleware, latestStorePONo);
-// retailerRouter.get(
-//   "/fetch",
-//   authMiddleware,
-//   rolesPermissions("retailer_po", "view"),
-//   getStorePo
-// );
+retailerRouter.get("/latestRetailerPoNo", authMiddleware, latestRetailerPONo);
+retailerRouter.get(
+  "/fetch",
+  authMiddleware,
+  getRetailerPo
+);
 
 retailerRouter.route("/").get(retailer.GetCompany).post(retailer.AddCompany);
 

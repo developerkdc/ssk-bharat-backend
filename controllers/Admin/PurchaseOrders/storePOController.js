@@ -102,7 +102,14 @@ export const getStorePo = catchAsync(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const sortDirection = req.query.sort === "desc" ? -1 : 1;
-  const filters = req.body.filters || {};
+
+  const { to, from, ...data } = req?.body?.filters || {};
+  const matchQuery = data || {};
+  if (to && from) {
+    matchQuery.purchase_order_date = { $gte: new Date(from) };
+    matchQuery.estimate_delivery_date = { $lte: new Date(to) };
+  }
+
 
   const totalUnits = await storePOModel.countDocuments(filters);
   if (!totalUnits) throw new Error(new ApiError("No Data", 404));
@@ -112,7 +119,7 @@ export const getStorePo = catchAsync(async (req, res, next) => {
   const sortField = req.query.sortBy || "purchase_order_no";
 
   const purchaseOrder = await storePOModel
-    .find(filters)
+    .find(matchQuery)
     .sort({ [sortField]: sortDirection })
     .skip(skip)
     .limit(limit);
@@ -126,7 +133,7 @@ export const getStorePo = catchAsync(async (req, res, next) => {
         totalPages: totalPages,
         currentPage: validPage,
       },
-      message: "All Purchase Order",
+      message: "All Offline Store Purchase Order",
     });
   }
 });

@@ -12,14 +12,12 @@ const offlineStoreRouter = express.Router();
 offlineStoreRouter.post(
     "/create/PO",
     authMiddleware,
-    rolesPermissions("store_po", "add"),
     createOfflineStorePO
     );
     offlineStoreRouter.get("/latestStorePoNo", authMiddleware, latestStorePONo);
     offlineStoreRouter.get(
         "/fetch",
         authMiddleware,
-        rolesPermissions("store_po", "view"),
         getStorePo
         );  
     
