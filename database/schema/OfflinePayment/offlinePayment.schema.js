@@ -91,9 +91,13 @@ const offlinePaymentSchema = new mongoose.Schema({
                     type:Date,
                     default:null
                 },
+                paymentAmount:{
+                    type:Number,
+                    required:[true,"payment amount is required"]
+                },
                 remark:{
                     type: String,
-                    required: [true, "upi Id is required"]
+                    required: [true, "remark is required"]
                 }
             }
         ],

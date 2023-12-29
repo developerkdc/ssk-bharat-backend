@@ -27,6 +27,7 @@ import offlineStoreRouter from "./routes/Admin/OfflineStore.routes.js";
 import retailerRouter from "./routes/Admin/Retailer.routes.js";
 import marketExecutiveCommissionRouter from "./routes/Admin/marketExectiveCommission.route.js";
 import payoutAndCommissionRouter from "./routes/Admin/payoutAndCommission.route.js";
+import offlinePaymentRouter from "./routes/Admin/OfflinePayments/offlinePayment.route.js";
 const app = express();
 
 const port = process.env.PORT || 4001;
@@ -60,6 +61,8 @@ app.group("/api/v1/admin", (router) => {
   router.use("/MECommission", marketExecutiveCommissionRouter);
   router.use("/payoutAndCommission", payoutAndCommissionRouter);
   router.use("/tds", tdsRouter);
+  router.use("/offlinePayment", offlinePaymentRouter);
+
 });
 
 app.all("*", (req, res, next) => {
