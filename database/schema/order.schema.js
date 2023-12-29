@@ -32,6 +32,11 @@ const orders = new mongoose.Schema({
       ref: "sskcompanies",
       required: [true, "SSK Id is required"],
     },
+    ssk_name: {
+      type: String,
+      required: [true, "SSK Name is required"],
+      trim: true,
+    },
     branch_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "sskcompanybranches",
@@ -88,6 +93,7 @@ const orders = new mongoose.Schema({
     customer_id: {
       type: mongoose.Schema.Types.ObjectId,
       required: [true, "Customer Id is required"],
+      refPath: "order_type",
     },
     customer_name: {
       type: String,
@@ -305,8 +311,13 @@ const orders = new mongoose.Schema({
   approver: userAndApprovals,
   status: {
     type: String,
-    enum: ["Active", "Cancelled", "Closed"],
-    default: "Active",
+    enum: ["active", "cancelled", "closed"],
+    default: "active",
+  },
+  est_payment_date: {
+    type: Date,
+    required: [true, "Est Payment Date is required"],
+    trim: true,
   },
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: Date.now },

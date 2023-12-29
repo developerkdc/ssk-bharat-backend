@@ -78,7 +78,7 @@ const storePurchaseOrderSchema = new mongoose.Schema({
   store_details: {
     store_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "StorePurchaseOrder",
+      ref: "offlinestores",
       required: [true, "Store Id is required"], //random  id pasing api is not created for store user
     },
     store_name: {
@@ -279,8 +279,13 @@ const storePurchaseOrderSchema = new mongoose.Schema({
   approver: userAndApprovals,
   status: {
     type: String,
-    enum: ["Active", "Cancelled", "Closed"],
-    default: "Active",
+    enum: ["active", "cancelled", "closed"],
+    default: "active",
+  },
+  est_payment_date: {
+    type: Date,
+    required: [true, "Est Payment Date is required"],
+    trim: true,
   },
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: Date.now },

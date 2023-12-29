@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import addressSchema from "../utils/address.schema";
 import userAndApprovals from "../utils/approval.schema";
 
-const purchaseOrderSchema = new mongoose.Schema({
+const retailerPurchaseOrderSchema = new mongoose.Schema({
   purchase_order_no: {
     type: Number,
     required: [true, "Purchase Order No is required"],
@@ -20,10 +20,10 @@ const purchaseOrderSchema = new mongoose.Schema({
     trim: true,
   },
 
-  supplier_details: {
+  ssk_details: {
     supplier_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "suppliers",
+      ref: "Supplier",
       required: true,
     },
     supplier_name: {
@@ -32,7 +32,7 @@ const purchaseOrderSchema = new mongoose.Schema({
     },
     branch_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "supplierbranches",
+      ref: "sskcompanybranches",
       required: true,
     },
     company_name: {
@@ -74,11 +74,21 @@ const purchaseOrderSchema = new mongoose.Schema({
     secondary_mobile_no: { type: String, default: null },
     address: addressSchema,
   },
-  ssk_details: {
+
+  retailer_details: {
+    retailer_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "retailers",
+      required: [true, "Retailer Id is required"], //random  id pasing api is not created for store user
+    },
+    retailer_name: {
+      type: String,
+      required: [true, "Retailer name is required"],
+    },
     bill_to: {
       branch_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "sskcompanybranches",
+        ref: "offlinestorebranches",
         required: true,
       },
       company_name: {
@@ -122,7 +132,7 @@ const purchaseOrderSchema = new mongoose.Schema({
     ship_to: {
       branch_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "sskcompanybranches",
+        ref: "offlinestorebranches",
         required: true,
       },
       company_name: {
@@ -277,5 +287,8 @@ const purchaseOrderSchema = new mongoose.Schema({
   deleted_at: { type: Date, default: null },
 });
 
-const sskPOModel = mongoose.model("SSKPurchaseOrder", purchaseOrderSchema);
-export default sskPOModel;
+const retailerPOModel = mongoose.model(
+  "retailerpurchaseorder",
+  retailerPurchaseOrderSchema
+);
+export default retailerPOModel;

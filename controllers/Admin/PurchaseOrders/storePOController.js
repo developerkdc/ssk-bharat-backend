@@ -8,15 +8,18 @@ export const createOfflineStorePO = catchAsync(async (req, res, next) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const { purchase_order_date,ssk_details:poData,store_details} = req.body;
+    const {
+      purchase_order_date,
+      ssk_details: poData,
+      store_details,
+    } = req.body;
 
     // Create a new order
     const storePO = await storePOModel.create([req.body], { session });
-console.log(storePO,"storee")
+    console.log(storePO, "storee");
     // Create a new store purchase order
     let latestOrderNo = 1;
-    const OrderNo = await OrdersModel
-      .findOne()
+    const OrderNo = await OrdersModel.findOne()
       .sort({ created_at: -1 })
       .select("order_no")
       .session(session);
@@ -31,12 +34,17 @@ console.log(storePO,"storee")
         {
           ...req.body,
           order_no: latestOrderNo,
-          order_type:"Store",
+          order_type: "Store",
           order_date: purchase_order_date,
-          ssk_details: { ...poData, ssk_id: poData.supplier_id },
+          ssk_details: {
+            ...poData,
+            ssk_id: poData.supplier_id,
+            ssk_name: poData.supplier_name,
+          },
           customer_details: {
             ...store_details,
             customer_id: store_details.store_id,
+            customer_name: store_details.store_name,
           },
         },
       ],
@@ -122,5 +130,3 @@ export const getStorePo = catchAsync(async (req, res, next) => {
     });
   }
 });
-
-

@@ -32,10 +32,15 @@ export const createNewOrder = catchAsync(async (req, res, next) => {
           ...req.body,
           purchase_order_no: latestPoNo,
           purchase_order_date: order_date,
-          ssk_details: { ...sskData, supplier_id: sskData.ssk_id },
+          ssk_details: {
+            ...sskData,
+            supplier_id: sskData.ssk_id,
+            supplier_name: sskData.ssk_name,
+          },
           store_details: {
             ...customer_details,
             store_id: customer_details.customer_id,
+            store_name: customer_details.customer_name,
           },
         },
       ],
@@ -98,15 +103,15 @@ export const fetchOrders = catchAsync(async (req, res, next) => {
   } = req.query;
   const skip = (page - 1) * limit;
 
-  const {to,from,...data} = req?.body?.filters || {}
+  const { to, from, ...data } = req?.body?.filters || {};
   const matchQuery = data || {};
-  if(type){
-    matchQuery.order_type = type
+  if (type) {
+    matchQuery.order_type = type;
   }
 
-  if(to && from){
-      matchQuery.order_date = { $gte: new Date(from) }
-      matchQuery.estimate_delivery_date = { $lte: new Date(to) }
+  if (to && from) {
+    matchQuery.order_date = { $gte: new Date(from) };
+    matchQuery.estimate_delivery_date = { $lte: new Date(to) };
   }
 
   const orders = await OrdersModel.find(matchQuery)
