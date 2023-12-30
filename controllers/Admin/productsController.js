@@ -1,5 +1,6 @@
 import ApiError from "../../Utils/ApiError";
 import catchAsync from "../../Utils/catchAsync";
+import { dynamicSearch } from "../../Utils/dynamicSearch";
 import productModel from "../../database/schema/product.schema";
 import fs from "fs";
 
@@ -30,33 +31,30 @@ export const createProduct = catchAsync(async (req, res, next) => {
 });
 
 export const getProducts = catchAsync(async (req, res, next) => {
-  console.log("iuhrgiuh");
+  const { string, boolean, numbers } = req?.body?.searchFields;
 
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const sortDirection = req.query.sort === "desc" ? -1 : 1;
   const search = req.query.search || "";
-  console.log(typeof search, "typeee");
-  const searchQuery = search
-    ? {
-      $or: [
-        { "category.category_name": { $regex: search, $options: "i" } },
-        { product_name: { $regex: search, $options: "i" } },
-        { status: { $regex: search, $options: "i" } },
-        { show_in_website: { $regex: search, $options: "i" } },
-        { show_in_retailer: { $regex: search, $options: "i" } },
-        { show_in_offline_store: { $regex: search, $options: "i" } },
-        { "prices.retailer_sales_price": parseInt(search) },
-        { "prices.website_sales_price": parseInt(search) },
-        {
-          "prices.offline_store_sales_price": parseInt(search),
+
+  let searchQuery = {};
+  if (search != "") {
+    const searchdata = dynamicSearch(search, boolean, numbers, string);
+    if (searchdata?.length == 0) {
+      return res.status(404).json({
+        statusCode: 404,
+        status: false,
+        data: {
+          tds: [],
+          // totalPages: 1,
+          // currentPage: 1,
         },
-        { mrp: parseInt(search) },
-        { item_weight: parseInt(search) },
-        { "unit.unit_symbol": { $regex: search, $options: "i" } },
-      ],
+        message: "Results Not Found",
+      });
     }
-    : {};
+    searchQuery = searchdata;
+  }
   const totalProduct = await productModel.countDocuments(searchQuery);
   if (!totalProduct) return next(new ApiError("No Data", 404));
   const totalPages = Math.ceil(totalProduct / limit);
@@ -117,8 +115,12 @@ export const getProducts = catchAsync(async (req, res, next) => {
 
 export const updateProduct = catchAsync(async (req, res, next) => {
   const { id } = req.params;
-  const {product_images,...data} = req.body
-  const updatedProduct = await productModel.findByIdAndUpdate(id,{ ...data, updated_at: Date.now() },{ new: true });
+  const { product_images, ...data } = req.body;
+  const updatedProduct = await productModel.findByIdAndUpdate(
+    id,
+    { ...data, updated_at: Date.now() },
+    { new: true }
+  );
 
   return res.status(200).json({
     statusCode: 200,
@@ -128,48 +130,61 @@ export const updateProduct = catchAsync(async (req, res, next) => {
   });
 });
 
-export const updateProductImage = catchAsync(async (req,res,next)=>{
-  const {id,imageName} = req.params;
-  const updatedProductImage = await productModel.updateOne({_id:id,product_images:imageName},{
-    $set:{
-      "product_images.$[e]":req.file.filename
+export const updateProductImage = catchAsync(async (req, res, next) => {
+  const { id, imageName } = req.params;
+  const updatedProductImage = await productModel.updateOne(
+    { _id: id, product_images: imageName },
+    {
+      $set: {
+        "product_images.$[e]": req.file.filename,
+      },
+    },
+    {
+      arrayFilters: [{ e: imageName }],
     }
-  },{
-    arrayFilters:[{e:imageName}]
-  });
+  );
 
-  if(updatedProductImage.acknowledged && updatedProductImage.modifiedCount > 0){
-    if(fs.existsSync(`./uploads/admin/products/${imageName}`)){
-      fs.unlinkSync(`./uploads/admin/products/${imageName}`)
+  if (
+    updatedProductImage.acknowledged &&
+    updatedProductImage.modifiedCount > 0
+  ) {
+    if (fs.existsSync(`./uploads/admin/products/${imageName}`)) {
+      fs.unlinkSync(`./uploads/admin/products/${imageName}`);
     }
   }
-  
+
   return res.status(200).json({
     statusCode: 200,
     status: "updated",
     data: updatedProductImage,
     message: "Product images Updated",
   });
-})
+});
 
-export const deleteProductImage = catchAsync(async (req,res,next)=>{
-  const {id,imageName} = req.params;
-  const deletedProductImage = await productModel.updateOne({_id:id,product_images:imageName},{
-    $pull:{
-      product_images:imageName
+export const deleteProductImage = catchAsync(async (req, res, next) => {
+  const { id, imageName } = req.params;
+  const deletedProductImage = await productModel.updateOne(
+    { _id: id, product_images: imageName },
+    {
+      $pull: {
+        product_images: imageName,
+      },
     }
-  });
+  );
 
-  if(deletedProductImage.acknowledged && deletedProductImage.modifiedCount > 0){
-    if(fs.existsSync(`./uploads/admin/products/${imageName}`)){
-      fs.unlinkSync(`./uploads/admin/products/${imageName}`)
+  if (
+    deletedProductImage.acknowledged &&
+    deletedProductImage.modifiedCount > 0
+  ) {
+    if (fs.existsSync(`./uploads/admin/products/${imageName}`)) {
+      fs.unlinkSync(`./uploads/admin/products/${imageName}`);
     }
   }
-  
+
   return res.status(200).json({
     statusCode: 200,
     status: "deleted",
     data: deletedProductImage,
     message: "Product images deleted",
   });
-})
+});

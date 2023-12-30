@@ -1,5 +1,6 @@
 import ApiError from "../../Utils/ApiError";
 import catchAsync from "../../Utils/catchAsync";
+import { dynamicSearch } from "../../Utils/dynamicSearch";
 import storePOModel from "../../database/schema/offlineStorePurchaseOrder.schema";
 import OrdersModel from "../../database/schema/order.schema";
 import mongoose from "mongoose";
@@ -94,6 +95,8 @@ export const latestOrderNo = catchAsync(async (req, res, next) => {
 });
 
 export const fetchOrders = catchAsync(async (req, res, next) => {
+  const { string, boolean, numbers } = req?.body?.searchFields;
+
   const {
     type,
     page,
@@ -102,6 +105,26 @@ export const fetchOrders = catchAsync(async (req, res, next) => {
     sort = "desc",
   } = req.query;
   const skip = (page - 1) * limit;
+
+  const search = req.query.search || "";
+
+  let searchQuery = {};
+  if (search != "") {
+    const searchdata = dynamicSearch(search, boolean, numbers, string);
+    if (searchdata?.length == 0) {
+      return res.status(404).json({
+        statusCode: 404,
+        status: false,
+        data: {
+          data: [],
+          // totalPages: 1,
+          // currentPage: 1,
+        },
+        message: "Results Not Found",
+      });
+    }
+    searchQuery = searchdata;
+  }
 
   const { to, from, ...data } = req?.body?.filters || {};
   const matchQuery = data || {};
@@ -114,13 +137,13 @@ export const fetchOrders = catchAsync(async (req, res, next) => {
     matchQuery.estimate_delivery_date = { $lte: new Date(to) };
   }
 
-  const orders = await OrdersModel.find(matchQuery)
+  const orders = await OrdersModel.find({...matchQuery,...searchQuery})
     .skip(skip)
     .limit(limit)
     .sort({ [sortBy]: sort })
     .exec();
 
-  const totalDocuments = await OrdersModel.countDocuments(matchQuery);
+  const totalDocuments = await OrdersModel.countDocuments({...matchQuery,...searchQuery});
   const totalPages = Math.ceil(totalDocuments / limit);
 
   return res.status(200).json({

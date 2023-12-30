@@ -1,5 +1,6 @@
 import ApiError from "../../Utils/ApiError";
 import catchAsync from "../../Utils/catchAsync";
+import { dynamicSearch } from "../../Utils/dynamicSearch";
 import hsnCodeModel from "../../database/schema/hsnCode.schema";
 
 export const createHSN = catchAsync(async (req, res, next) => {
@@ -15,18 +16,31 @@ export const createHSN = catchAsync(async (req, res, next) => {
 });
 
 export const getHSNCode = catchAsync(async (req, res, next) => {
+  const { string, boolean, numbers } = req?.body?.searchFields;
+
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const sortDirection = req.query.sort === "desc" ? -1 : 1;
   const search = req.query.search || "";
-  const searchQuery = search
-    ? {
-        $or: [
-          { gst_percentage: parseInt(search) },
-          { hsn_code: parseInt(search) },
-        ],
-      }
-    : {};
+
+  let searchQuery = {};
+  if (search != "") {
+    const searchdata = dynamicSearch(search, boolean, numbers, string);
+
+    if (searchdata?.length == 0) {
+      return res.status(404).json({
+        statusCode: 404,
+        status: false,
+        data: {
+          gst: [],
+          // totalPages: 1,
+          // currentPage: 1,
+        },
+        message: "Results Not Found",
+      });
+    }
+    searchQuery = searchdata;
+  }
   const totalGst = await hsnCodeModel.countDocuments(searchQuery);
   if (!totalGst) throw new Error(new ApiError("No Data", 404));
   const totalPages = Math.ceil(totalGst / limit);
@@ -40,9 +54,12 @@ export const getHSNCode = catchAsync(async (req, res, next) => {
     .sort({ [sortField]: sortDirection })
     .skip(skip)
     .limit(limit)
-    .populate([{
-        path:"gst_percentage",select:"_id gst_percentage"
-    }])
+    .populate([
+      {
+        path: "gst_percentage",
+        select: "_id gst_percentage",
+      },
+    ]);
 
   if (gst) {
     return res.status(200).json({
@@ -63,8 +80,8 @@ export const getHSNCodeList = catchAsync(async (req, res, next) => {
     {
       $project: {
         _id: 1,
-        hsn_code:1,
-        gst_percentage: 1
+        hsn_code: 1,
+        gst_percentage: 1,
       },
     },
   ]);

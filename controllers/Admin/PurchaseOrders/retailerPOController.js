@@ -3,6 +3,7 @@ import ApiError from "../../../Utils/ApiError";
 import catchAsync from "../../../Utils/catchAsync";
 import retailerPOModel from "../../../database/schema/retailerPurchaseOder.schema";
 import OrdersModel from "../../../database/schema/order.schema";
+import { dynamicSearch } from "../../../Utils/dynamicSearch";
 
 export const createRetailerPO = catchAsync(async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -106,10 +107,30 @@ export const latestRetailerPONo = catchAsync(async (req, res, next) => {
 });
 
 export const getRetailerPo = catchAsync(async (req, res, next) => {
+  const { string, boolean, numbers } = req?.body?.searchFields;
+
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const sortDirection = req.query.sort === "desc" ? -1 : 1;
+  const search = req.query.search || "";
 
+  let searchQuery = {};
+  if (search != "") {
+    const searchdata = dynamicSearch(search, boolean, numbers, string);
+    if (searchdata?.length == 0) {
+      return res.status(404).json({
+        statusCode: 404,
+        status: false,
+        data: {
+          purchaseOrder: [],
+          // totalPages: 1,
+          // currentPage: 1,
+        },
+        message: "Results Not Found",
+      });
+    }
+    searchQuery = searchdata;
+  }
   const { to, from, ...data } = req?.body?.filters || {};
   const matchQuery = data || {};
   if (to && from) {
@@ -117,14 +138,14 @@ export const getRetailerPo = catchAsync(async (req, res, next) => {
     matchQuery.estimate_delivery_date = { $lte: new Date(to) };
   }
 
-  const totalUnits = await retailerPOModel.countDocuments(matchQuery);
+  const totalUnits = await retailerPOModel.countDocuments({...matchQuery,...searchQuery});
   const totalPages = Math.ceil(totalUnits / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
   const skip = (validPage - 1) * limit;
   const sortField = req.query.sortBy || "purchase_order_no";
 
   const purchaseOrder = await retailerPOModel
-    .find(matchQuery)
+    .find({...matchQuery,...searchQuery})
     .sort({ [sortField]: sortDirection })
     .skip(skip)
     .limit(limit);

@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import payoutAndCommissionTransModel from "../../database/schema/payoutsAndCommissionTransaction.schema";
 import marketExectiveCommissionModel from "../../database/schema/marketExectiveCommission.schema";
 import MarketExecutiveModel from "../../database/schema/MarketExecutive.schema";
+import { dynamicSearch } from "../../Utils/dynamicSearch";
 
 export const latestSalesOrderNo = catchAsync(async (req, res, next) => {
   try {
@@ -103,6 +104,8 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
 });
 
 export const fetchSalesOrders = catchAsync(async (req, res, next) => {
+  const { string, boolean, numbers } = req?.body?.searchFields;
+
   const {
     type,
     page,
@@ -111,6 +114,10 @@ export const fetchSalesOrders = catchAsync(async (req, res, next) => {
     sort = "desc",
   } = req.query;
   const skip = (page - 1) * limit;
+  const search = req.query.search || "";
+
+ 
+
 
   const { to, from, ...data } = req?.body?.filters || {};
   const matchQuery = data || {};
@@ -124,13 +131,33 @@ export const fetchSalesOrders = catchAsync(async (req, res, next) => {
       $lte: new Date(to),
     };
   }
-  const salesOrders = await SalesModel.find(matchQuery)
+
+  let searchQuery = {};
+  if (search != "") {
+    const searchdata = dynamicSearch(search, boolean, numbers, string);
+    if (searchdata?.length == 0) {
+      return res.status(404).json({
+        statusCode: 404,
+        status: false,
+        data: {
+          data: [],
+          // totalPages: 1,
+          // currentPage: 1,
+        },
+        message: "Results Not Found",
+      });
+    }
+    searchQuery = searchdata;
+  }
+
+  
+  const salesOrders = await SalesModel.find({...matchQuery,...searchQuery})
     .skip(skip)
     .limit(limit)
     .sort({ [sortBy]: sort })
     .exec();
 
-  const totalDocuments = await SalesModel.countDocuments(matchQuery);
+  const totalDocuments = await SalesModel.countDocuments({...matchQuery,...searchQuery});
   const totalPages = Math.ceil(totalDocuments / limit);
 
   return res.status(200).json({

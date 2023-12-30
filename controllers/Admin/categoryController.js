@@ -30,17 +30,19 @@ export const getCategory = catchAsync(async (req, res, next) => {
   const sortDirection = req.query.sort === "desc" ? -1 : 1;
   const sortBy = req.query.sortBy || "category_name";
   const search = req.query.search || "";
+
+
   let searchQuery = {};
   if (search != "") {
     const searchdata = dynamicSearch(search, boolean, numbers, string);
-    if (Object.keys(searchQuery).length == 0) {
+      if (searchdata?.length == 0) {
       return res.status(404).json({
         statusCode: 404,
         status: false,
         data: {
           category: [],
-          totalPages: 1,
-          currentPage: 1,
+          // totalPages: 1,
+          // currentPage: 1,
         },
         message: "Results Not Found",
       });
@@ -49,9 +51,8 @@ export const getCategory = catchAsync(async (req, res, next) => {
   }
 
   const totalCategory = await categoryModel.countDocuments(searchQuery);
-  if (!totalCategory) throw new Error(new ApiError("No Data", 404));
   const totalPages = Math.ceil(totalCategory / limit);
-  if (page > totalPages) throw new Error(new ApiError("Invalid Page", 404));
+
   const validPage = Math.min(Math.max(page, 1), totalPages);
   const skip = (validPage - 1) * limit;
 

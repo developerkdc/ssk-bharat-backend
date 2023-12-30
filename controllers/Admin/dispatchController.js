@@ -3,6 +3,7 @@ import DispatchModel from "../../database/schema/dispatch.schema.js";
 import ApiError from "../../Utils/ApiError";
 import SalesModel from "../../database/schema/salesOrder.schema";
 import mongoose from "mongoose";
+import { dynamicSearch } from "../../Utils/dynamicSearch.js";
 export const latestDispatchNo = catchAsync(async (req, res, next) => {
   try {
     // Find the latest purchase order by sorting in descending order based on purchase_order_date
@@ -82,6 +83,8 @@ export const createDispatch = catchAsync(async (req, res, next) => {
 
 export const fetchDispatchBasedonDeliveryStatus = catchAsync(
   async (req, res, next) => {
+    const { string, boolean, numbers } = req?.body?.searchFields;
+
     const {
       type,
       page,
@@ -91,7 +94,27 @@ export const fetchDispatchBasedonDeliveryStatus = catchAsync(
     } = req.query;
     const skip = (page - 1) * limit;
 
-  const { to, from , ...data } = req?.body?.filters || {};
+    const search = req.query.search || "";
+
+    let searchQuery = {};
+    if (search != "") {
+      const searchdata = dynamicSearch(search, boolean, numbers, string);
+      if (searchdata?.length == 0) {
+        return res.status(404).json({
+          statusCode: 404,
+          status: false,
+          data: {
+            data: [],
+            // totalPages: 1,
+            // currentPage: 1,
+          },
+          message: "Results Not Found",
+        });
+      }
+      searchQuery = searchdata;
+    }
+
+    const { to, from, ...data } = req?.body?.filters || {};
     const matchQuery = data || {};
     if (type) {
       matchQuery.delivery_status = type;
@@ -108,22 +131,21 @@ export const fetchDispatchBasedonDeliveryStatus = catchAsync(
           $gte: new Date(from),
           $lte: new Date(to),
         };
-      }
-      else if (type == "delivered") {
-        matchQuery["tracking_date.delivered"]= {
+      } else if (type == "delivered") {
+        matchQuery["tracking_date.delivered"] = {
           $gte: new Date(from),
           $lte: new Date(to),
         };
       }
     }
 
-    const dispatchOrders = await DispatchModel.find(matchQuery)
+    const dispatchOrders = await DispatchModel.find({...matchQuery,...searchQuery})
       .skip(skip)
       .limit(limit)
       .sort({ [sortBy]: sort })
       .exec();
 
-    const totalDocuments = await DispatchModel.countDocuments(matchQuery);
+    const totalDocuments = await DispatchModel.countDocuments({...matchQuery,...searchQuery});
     const totalPages = Math.ceil(totalDocuments / limit);
 
     return res.status(200).json({

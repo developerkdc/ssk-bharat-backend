@@ -1,5 +1,6 @@
 import ApiError from "../../Utils/ApiError";
 import catchAsync from "../../Utils/catchAsync";
+import { dynamicSearch } from "../../Utils/dynamicSearch";
 import paymentTermDaysModel from "../../database/schema/paymentTermDays.schema";
 
 export const createTermDays = catchAsync(async (req, res, next) => {
@@ -15,19 +16,29 @@ export const createTermDays = catchAsync(async (req, res, next) => {
 });
 
 export const getPaymentTermDays = catchAsync(async (req, res, next) => {
+  const { string, boolean, numbers } = req?.body?.searchFields;
+
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const sortDirection = req.query.sort === "desc" ? -1 : 1;
   const search = req.query.search || "";
-  const searchQuery = search ? {
-    $expr: {
-      $regexMatch: {
-        input: { $toString: "$payment_term_days" },
-        regex: new RegExp(search.toString()),
-        options: "i",
-      },
-    },
-  } : {};
+  let searchQuery = {};
+  if (search != "") {
+    const searchdata = dynamicSearch(search, boolean, numbers, string);
+    if (searchdata?.length == 0) {
+      return res.status(404).json({
+        statusCode: 404,
+        status: false,
+        data: {
+          payment_term_days: [],
+          // totalPages: 1,
+          // currentPage: 1,
+        },
+        message: "Results Not Found",
+      });
+    }
+    searchQuery = searchdata;
+  }
   const totalTerm = await paymentTermDaysModel.countDocuments(searchQuery);
   const totalPages = Math.ceil(totalTerm / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);

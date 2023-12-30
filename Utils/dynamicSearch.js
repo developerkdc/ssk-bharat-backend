@@ -1,9 +1,4 @@
-export const dynamicSearch = (
-  search,
-  boolean,
-  numbers,
-  string
-) => {
+export const dynamicSearch = (search, boolean, numbers, string) => {
   let searchFields = [];
 
   if (search === "true" || search === "false") {
@@ -21,13 +16,11 @@ export const dynamicSearch = (
       };
     } else if (/\d/.test(search)) {
       return {
-        [field]: {
-          $expr: {
-            $regexMatch: {
-              input: { $toString: `$${field}` },
-              regex: new RegExp(search.toString()),
-              options: "i",
-            },
+        $expr: {
+          $regexMatch: {
+            input: { $toString: `$${field}` },
+            regex: new RegExp(search.toString()),
+            options: "i",
           },
         },
       };
@@ -39,7 +32,7 @@ export const dynamicSearch = (
   });
 
   const searchQuery =
-    dynamicSearchQueries?.length > 0 ? { $or: dynamicSearchQueries } : {};
-  
+    dynamicSearchQueries?.length > 0 ? { $or: dynamicSearchQueries } : [];
+
   return searchQuery;
 };

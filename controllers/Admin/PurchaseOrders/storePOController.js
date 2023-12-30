@@ -3,6 +3,7 @@ import ApiError from "../../../Utils/ApiError";
 import catchAsync from "../../../Utils/catchAsync";
 import storePOModel from "../../../database/schema/offlineStorePurchaseOrder.schema";
 import OrdersModel from "../../../database/schema/order.schema";
+import { dynamicSearch } from "../../../Utils/dynamicSearch";
 
 export const createOfflineStorePO = catchAsync(async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -99,9 +100,30 @@ export const latestStorePONo = catchAsync(async (req, res, next) => {
 });
 
 export const getStorePo = catchAsync(async (req, res, next) => {
+  const { string, boolean, numbers } = req?.body?.searchFields;
+
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const sortDirection = req.query.sort === "desc" ? -1 : 1;
+  const search = req.query.search || "";
+
+  let searchQuery = {};
+  if (search != "") {
+    const searchdata = dynamicSearch(search, boolean, numbers, string);
+    if (searchdata?.length == 0) {
+      return res.status(404).json({
+        statusCode: 404,
+        status: false,
+        data: {
+          purchaseOrder: [],
+          // totalPages: 1,
+          // currentPage: 1,
+        },
+        message: "Results Not Found",
+      });
+    }
+    searchQuery = searchdata;
+  }
 
   const { to, from, ...data } = req?.body?.filters || {};
   const matchQuery = data || {};
@@ -111,7 +133,7 @@ export const getStorePo = catchAsync(async (req, res, next) => {
   }
 
 
-  const totalUnits = await storePOModel.countDocuments(filters);
+  const totalUnits = await storePOModel.countDocuments({...matchQuery,...searchQuery});
   if (!totalUnits) throw new Error(new ApiError("No Data", 404));
   const totalPages = Math.ceil(totalUnits / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
@@ -119,7 +141,7 @@ export const getStorePo = catchAsync(async (req, res, next) => {
   const sortField = req.query.sortBy || "purchase_order_no";
 
   const purchaseOrder = await storePOModel
-    .find(matchQuery)
+    .find({...matchQuery,...searchQuery})
     .sort({ [sortField]: sortDirection })
     .skip(skip)
     .limit(limit);
