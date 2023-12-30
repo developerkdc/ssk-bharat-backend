@@ -30,15 +30,22 @@ export const getCategory = catchAsync(async (req, res, next) => {
   const sortDirection = req.query.sort === "desc" ? -1 : 1;
   const sortBy = req.query.sortBy || "category_name";
   const search = req.query.search || "";
-  
-  const searchQuery = dynamicSearch(search, boolean, numbers, string);
-  if (Object.keys(searchQuery).length==0) {
-    return res.status(404).json({
-      statusCode: 404,
-      status: false,
-      data: {category:[]},
-      message: "Result Not Found",
-    });
+  let searchQuery = {};
+  if (search != "") {
+    const searchdata = dynamicSearch(search, boolean, numbers, string);
+    if (Object.keys(searchQuery).length == 0) {
+      return res.status(404).json({
+        statusCode: 404,
+        status: false,
+        data: {
+          category: [],
+          totalPages: 1,
+          currentPage: 1,
+        },
+        message: "Results Not Found",
+      });
+    }
+    searchQuery=searchdata
   }
 
   const totalCategory = await categoryModel.countDocuments(searchQuery);
