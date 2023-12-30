@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import jwt from "jsonwebtoken";
 
 const UserSchema = new mongoose.Schema({
   employee_id: { type: Number, min: 1, max: 25, indexedDB: true, trim: true },
@@ -13,7 +14,7 @@ const UserSchema = new mongoose.Schema({
   },
   secondary_email_id: { type: String, min: 5, max: 50, trim: true },
   password: { type: String, required: true, trim: true },
-  primary_mobile_no: { type: Number, min: 10, trim: true },
+  primary_mobile_no: { type: Number, min: 10,unique:true, trim: true },
   secondary_mobile_no: { type: Number, min: 10, trim: true },
   profile_pic: { type: String, max: 150, default: null },
   status: { type: Boolean, default: true },
@@ -66,6 +67,7 @@ const UserSchema = new mongoose.Schema({
       },
     },
   },
+  otp: { type: String, trim: true },
   approver_one: {
     type: {
       user_id: mongoose.Schema.Types.ObjectId,
@@ -115,6 +117,14 @@ const UserSchema = new mongoose.Schema({
   updated_at: { type: Date, default: Date.now },
   deleted_at: { type: Date, default: null },
 });
+
+UserSchema.methods.jwtToken = function(next){
+  return jwt.sign(
+    { userId: this._id, username: this.first_name,primaryEmailId:this.primary_email_id },
+    secretKey,
+    { expiresIn: process.env.JWT_EXPIRES }
+  );
+}
 
 const userModel = mongoose.model("Users", UserSchema);
 export default userModel;

@@ -1,5 +1,8 @@
 import mongoose from "mongoose"
 import catchAsync from "../../../Utils/catchAsync"
+import crypto from "crypto";
+import bcrypt from "bcrypt"
+import userAndApprovals from "../../../database/utils/approval.schema";
 
 class CompanyMaster {
     #Schema
@@ -28,90 +31,12 @@ class CompanyMaster {
                 type: Boolean,
                 default: false
             },
-            created_by: {
-                type: {
-                    user_id: {
-                        type: mongoose.Schema.Types.ObjectId,
-                        required: [true, "user id is required"]
-                    },
-                    name: {
-                        type: String,
-                        trim: true,
-                        default: null
-                    },
-                    email: {
-                        type: String,
-                        trim: true,
-                        validate: {
-                            validator: function (value) {
-                                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
-                            },
-                            message: "invalid email Id"
-                        }
-                    },
-                    employee_id: {
-                        type: String,
-                        trim: true,
-                        required: [true, "employee id is required"]
-                    },
-                },
-                required: [true, "created by is required"]
-            },
-            approver_one: {
-                type: {
-                    user_id: {
-                        type: mongoose.Schema.Types.ObjectId,
-                        ref: "Users"
-                    },
-                    name: {
-                        type: String,
-                        trim: true,
-                    },
-                    email_id: {
-                        type: String,
-                        validate: {
-                            validator: function (value) {
-                                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
-                            },
-                            message: "approver one invalid email Id"
-                        }
-                    },
-                    employee_id: String,
-                    isApprove: {
-                        type: Boolean,
-                        default: false
-                    }
-                },
-                default: null,
-            },
-            approver_two: {
-                type: {
-                    user_id: {
-                        type: mongoose.Schema.Types.ObjectId,
-                        ref: "Users"
-                    },
-                    name: String,
-                    email_id: {
-                        type: String,
-                        validate: {
-                            validator: function (value) {
-                                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
-                            },
-                            message: "approver two invalid email Id"
-                        }
-                    },
-                    employee_id: String,
-                    isApprove: {
-                        type: Boolean,
-                        default: false
-                    }
-                },
-                default: null,
-            },
+            approval: userAndApprovals,
             created_at: {
                 type: Date,
                 default: Date.now
-            }
+            },
+            updated_at: { type: Date, default: Date.now },
         });
         this.#collectionName = collectionName;
         this.#modalName = modalName
@@ -130,7 +55,7 @@ class CompanyMaster {
         })
     })
     GetCompanyById = catchAsync(async (req, res, next) => {
-        const modalName = await this.#modal.findOne({ _id: req.params.id});
+        const modalName = await this.#modal.findOne({ _id: req.params.id });
         return res.status(201).json({
             statusCode: 200,
             status: "Success",
@@ -140,7 +65,15 @@ class CompanyMaster {
         })
     })
     AddCompany = catchAsync(async (req, res, next) => {
-        const addData = await this.#modal.create(req.body);
+        
+        let protectedPassword;
+
+        if(!req.baseUrl.endsWith("sskcompany") && !req.baseUrl.endsWith("suppliers")){
+            let Password = crypto.randomBytes(8).toString("hex");
+            protectedPassword = bcrypt.hashSync(Password, 12);
+        }
+
+        const addData = await this.#modal.create({ ...req.body, password: protectedPassword });
         return res.status(201).json({
             statusCode: 201,
             status: "Success",
@@ -160,6 +93,7 @@ class CompanyMaster {
                 onboarding_date,
                 "approver_one.isApprove": approver_one?.isApprove,
                 "approver_two.isApprove": approver_two?.isApprove,
+                updated_at:Date.now()
             }
         }, { new: true });
 
