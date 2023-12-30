@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import ApiError from "../../../Utils/ApiError";
 
 const offlinePaymentSchema = new mongoose.Schema({
     salesOrderId: {
@@ -45,35 +46,41 @@ const offlinePaymentSchema = new mongoose.Schema({
     },
     totalSalesAmount: {
         type: Number,
+        get: (value) => parseFloat(value).toFixed(2),
+        set: (value) => parseFloat(value).toFixed(2),
         required: [true, "total sales amount is required"]
     },
     recievedAmount: {
         type: Number,
+        get: (value) => parseFloat(value).toFixed(2),
+        set: (value) => parseFloat(value).toFixed(2),
         default: 0
     },
     balanceAmount: {
         type: Number,
-        default: function(){
+        get: (value) => parseFloat(value).toFixed(2),
+        set: (value) => parseFloat(value).toFixed(2),
+        default: function () {
             return this.totalSalesAmount - this.recievedAmount
         }
     },
     dueDate: {
         type: Date,
-        default:null
+        default: null
     },
     OverdueDays: {
         type: String,
-        default:null
+        default: null
     },
-    paymentStatus:{
-        type:String,
-        enum:{
-            values:["pending","partailly paid","fully paid"]
+    paymentStatus: {
+        type: String,
+        enum: {
+            values: ["pending", "partailly paid", "fully paid"]
         },
-        default:"pending"
+        default: "pending"
     },
     payments: {
-        type:[
+        type: [
             {
                 paymentType: {
                     type: String,
@@ -87,34 +94,58 @@ const offlinePaymentSchema = new mongoose.Schema({
                     type: String,
                     required: [true, "upi Id is required"]
                 },
-                followUpDate:{
-                    type:Date,
-                    default:null
+                followUpDate: {
+                    type: Date,
+                    default: null
                 },
-                paymentAmount:{
-                    type:Number,
-                    required:[true,"payment amount is required"]
+                paymentAmount: {
+                    type: Number,
+                    get: (value) => parseFloat(value).toFixed(2),
+                    set: (value) => parseFloat(value).toFixed(2),
+                    required: [true, "payment amount is required"]
                 },
-                remark:{
+                remark: {
                     type: String,
                     required: [true, "remark is required"]
                 }
             }
         ],
-        default:null
+        default: null
     },
-    followUp:{
-        type:[{
-            followUpDate:{
-                type:Date,
-                default:null
+    followUp: {
+        type: [{
+            followUpDate: {
+                type: Date,
+                default: null
             },
-            remark:{
+            remark: {
                 type: String,
                 required: [true, "upi Id is required"]
             }
         }],
-        default:null
+        default: null
+    }
+})
+
+offlinePaymentSchema.pre("findOneAndUpdate", async function (next) {
+    try {
+        const updatingData = this.getUpdate();
+        const paymentData = await this.model.findOne(this.getQuery(), { recievedAmount: 1, balanceAmount: 1, totalSalesAmount: 1 })
+        if (!paymentData) return next(new ApiError("payment hass not be added", 404))
+
+        const receivedAmount = Number(updatingData["$inc"].recievedAmount) + Number(paymentData.recievedAmount);
+        const balanceAmount = Number(paymentData.balanceAmount) - Number(updatingData["$inc"].balanceAmount);
+
+        console.log(receivedAmount, balanceAmount, paymentData.totalSalesAmount, this.getUpdate())
+        if (receivedAmount >= Number(paymentData.totalSalesAmount) || balanceAmount <= 0) {
+            return next(new ApiError(`invalid payment Amount of ${updatingData["$push"].payments.paymentAmount}`, 422))
+        }
+        if (receivedAmount === Number(paymentData.totalSalesAmount)) {
+            updatingData["$set"] = { paymentStatus: "fully paid" }
+        }
+        next()
+    } catch (error) {
+        next(error)
     }
 })
 

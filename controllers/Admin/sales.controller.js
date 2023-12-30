@@ -61,7 +61,7 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
             email: sales[0].customer_details.bill_to.primary_email_id,
             mobileNo: sales[0].customer_details.bill_to.primary_mobile_no
           },
-          totalSalesAmount: sales[0].total_amount,
+          totalSalesAmount: Number(sales[0].total_amount).toFixed(2),
           dueDate: dueDate,
         }
       ], { session })
@@ -90,7 +90,7 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
               salesOrderId: sales[0]._id,
               salesOrderNo: sales[0].sales_order_no,
               salesOrderDate: sales[0].sales_order_date,
-              salesOrderAmount: sales[0].total_amount,
+              salesOrderAmount: Number(sales[0].total_amount).toFixed(2),
               commissionPercentage: marketExec.commissionPercentage,
               commissionAmount: Number(
                 (sales[0].total_amount / 100) * marketExec.commissionPercentage
