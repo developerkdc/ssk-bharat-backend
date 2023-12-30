@@ -3,9 +3,14 @@ import userAndApprovals from "../utils/approval.schema";
 
 
 const sampleOutward = new mongoose.Schema({
-  deliveryChallanNo: String,
+  deliveryChallanNo: { type: String, trim: true, required: true },
   items: [
     {
+      product_Id: {
+        type: mongoose.Schema.Types.ObjectId,
+        trim: true,
+        ref: "products",
+      },
       itemName: { type: String, trim: true },
       category: { type: String, trim: true },
       sku: { type: String },
@@ -35,6 +40,9 @@ const sampleOutward = new mongoose.Schema({
   },
 
   approver: userAndApprovals,
+  created_at: { type: Date, default: Date.now },
+  updated_at: { type: Date, default: Date.now },
+  deleted_at: { type: Date, default: null },
 });
 
 const sampleOut = mongoose.model("SampleOutward", sampleOutward);

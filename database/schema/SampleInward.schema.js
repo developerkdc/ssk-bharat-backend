@@ -7,35 +7,42 @@ const SampleInwardSchema = new Schema({
     required: true,
     trim: true,
   },
-  item: [{
-    name: {
-      type: String,
-      required: true,
-      trim: true,
+  item: [
+    {
+      product_Id: {
+        type: mongoose.Schema.Types.ObjectId,
+        trim: true,
+        ref: "products",
+      },
+      name: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+      category: {
+        type: String,
+        required: true,
+      },
+      sku: {
+        type: String,
+        required: true,
+      },
+      sentQuantity: {
+        type: Number,
+        required: true,
+      },
+      receivedQuantity: {
+        type: Number,
+        required: true,
+        trim: true,
+      },
+      itemWeight: {
+        type: Number,
+        required: true,
+        trim: true,
+      },
     },
-    category: {
-      type: String,
-      required: true,
-    },
-    sku: {
-      type: String,
-      required: true,
-    },
-    sentQuantity: {
-      type: Number,
-      required: true,
-    },
-    receivedQuantity: {
-      type: Number,
-      required: true,
-      trim: true,
-    },
-    itemWeight: {
-      type: Number,
-      required: true,
-      trim: true,
-    },
-  }],
+  ],
   receiveDate: {
     type: Date,
     required: true,
