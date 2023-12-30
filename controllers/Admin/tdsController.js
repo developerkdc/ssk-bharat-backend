@@ -26,7 +26,7 @@ export const getTDS = catchAsync(async (req, res, next) => {
     const totalGst = await tdsModel.countDocuments(searchQuery);
     const totalPages = Math.ceil(totalGst / limit);
     const validPage = Math.min(Math.max(page, 1), totalPages);
-    const skip = (validPage - 1) * limit;
+    const skip = Math.max((validPage - 1) * limit, 0);
   
     const tds = await tdsModel
       .find(searchQuery)

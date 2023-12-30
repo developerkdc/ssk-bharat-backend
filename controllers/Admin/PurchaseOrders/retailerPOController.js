@@ -2,19 +2,75 @@ import mongoose from "mongoose";
 import ApiError from "../../../Utils/ApiError";
 import catchAsync from "../../../Utils/catchAsync";
 import retailerPOModel from "../../../database/schema/retailerPurchaseOder.schema";
+import OrdersModel from "../../../database/schema/order.schema";
 
 export const createRetailerPO = catchAsync(async (req, res, next) => {
-  console.log(req.body,"bodyyyy")
-  const po = await retailerPOModel.create(req.body);
-  if (po) {
-    return res.status(201).json({
-      statusCode: 201,
-      status: true,
-      data: po,
-      message: "Retailer Purchase Order Created",
-    });
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const {
+      purchase_order_date,
+      ssk_details: poData,
+      retailer_details,
+    } = req.body;
+
+    // Create a new order
+    const retailerPO = await retailerPOModel.create([req.body], { session });
+
+    // Create a new store purchase order
+    let latestOrderNo = 1;
+    const OrderNo = await OrdersModel.findOne()
+      .sort({ created_at: -1 })
+      .select("order_no")
+      .session(session);
+
+    if (OrderNo) {
+      latestOrderNo = OrderNo.order_no + 1;
+    } else {
+      latestOrderNo = 1;
+    }
+    const addNewOrder = await OrdersModel.create(
+      [
+        {
+          ...req.body,
+          order_no: latestOrderNo,
+          order_type: "retailers",
+          order_date: purchase_order_date,
+          ssk_details: {
+            ...poData,
+            ssk_id: poData.supplier_id,
+            ssk_name: poData.supplier_name,
+          },
+          customer_details: {
+            ...retailer_details,
+            customer_id: retailer_details.retailer_id,
+            customer_name: retailer_details.retailer_name,
+          },
+        },
+      ],
+      { session }
+    );
+
+    // Commit the transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    if (addNewOrder && retailerPO) {
+      return res.status(201).json({
+        statusCode: 201,
+        status: true,
+        data: retailerPO,
+        message: "Retailer Purchase Order Created",
+      });
+    }
+  } catch (error) {
+    // If an error occurs, abort the transaction
+    await session.abortTransaction();
+    session.endSession();
+    next(new ApiError(error.message, 400));
   }
 });
+
 
 export const latestRetailerPONo = catchAsync(async (req, res, next) => {
   try {

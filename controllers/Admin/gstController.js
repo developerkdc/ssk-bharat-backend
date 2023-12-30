@@ -27,7 +27,7 @@ export const getGST = catchAsync(async (req, res, next) => {
     if(!totalGst) throw new Error (new ApiError("No Data",404))
     const totalPages = Math.ceil(totalGst / limit);
     const validPage = Math.min(Math.max(page, 1), totalPages);
-    const skip = (validPage - 1) * limit;
+    const skip = Math.max((validPage - 1) * limit, 0);
   
     const gst = await gstModel
       .find(searchQuery)
