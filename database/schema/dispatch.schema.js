@@ -308,7 +308,6 @@ const dispatchOrder = new mongoose.Schema({
           },
         },
       },
-
       total_amount: {
         type: Number,
         required: [true, "Total Amount is required"],

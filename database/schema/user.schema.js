@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import jwt from "jsonwebtoken";
 
 const UserSchema = new mongoose.Schema({
   employee_id: { type: Number, min: 1, max: 25, indexedDB: true, trim: true },
@@ -116,6 +117,14 @@ const UserSchema = new mongoose.Schema({
   updated_at: { type: Date, default: Date.now },
   deleted_at: { type: Date, default: null },
 });
+
+UserSchema.methods.jwtToken = function(next){
+  return jwt.sign(
+    { userId: this._id, username: this.first_name,primaryEmailId:this.primary_email_id },
+    secretKey,
+    { expiresIn: process.env.JWT_EXPIRES }
+  );
+}
 
 const userModel = mongoose.model("Users", UserSchema);
 export default userModel;

@@ -17,8 +17,9 @@ const marketExectiveCommissionSchema = new mongoose.Schema({
         type:String,
         enum:{
             values:["retailers","offlinestores"],
-            message:"company type must contain retailers or offlinestores"
-        }
+            message:"company type must contain retailers or offlinestores rather than {VALUE}"
+        },
+        required:[true,"company type is required"]
     },
     onBoardingDate:{
         type:Date,

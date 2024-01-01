@@ -282,7 +282,6 @@ const orders = new mongoose.Schema({
           },
         },
       },
-
       total_amount: {
         type: Number,
         required: [true, "Total Amount is required"],
@@ -321,7 +320,7 @@ const orders = new mongoose.Schema({
   },
   est_payment_days: {
     type: Number,
-    required: [true, "Est Payment Days is required"],
+    default: null
   },
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: Date.now },

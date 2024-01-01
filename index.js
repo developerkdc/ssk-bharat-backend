@@ -28,6 +28,7 @@ import retailerRouter from "./routes/Admin/Retailer.routes.js";
 import marketExecutiveCommissionRouter from "./routes/Admin/marketExectiveCommission.route.js";
 import payoutAndCommissionRouter from "./routes/Admin/payoutAndCommission.route.js";
 import paymentTermDays from "./routes/Admin/paymentTermDaysRoutes.js";
+import offlinePaymentRouter from "./routes/Admin/OfflinePayments/offlinePayment.route.js";
 import InventoryRouter from "./routes/Admin/InventoryRoutes.js";
 import SampleRouter from "./routes/Admin/sampleRoutes.js";
 const app = express();
@@ -37,7 +38,6 @@ const port = process.env.PORT || 4001;
 //Middlewares
 app.use(express.static(__dirname));
 app.use(express.json());
-
 connect();
 // Routes for Admin Portal
 app.group("/api/v1/admin", (router) => {
@@ -64,6 +64,8 @@ app.group("/api/v1/admin", (router) => {
   router.use("/payoutAndCommission", payoutAndCommissionRouter);
   router.use("/tds", tdsRouter);
   router.use("/termDays", paymentTermDays);
+  router.use("/offlinePayment", offlinePaymentRouter);
+
    router.use('/ssk/inventory',InventoryRouter)
    router.use('/sample',SampleRouter)
 });
