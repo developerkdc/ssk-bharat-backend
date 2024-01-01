@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import ApiError from "../Utils/ApiError";
+import userModel from "../database/schema/user.schema";
 
 // export default async (req, res, next) => {
 //     try {
@@ -67,19 +68,20 @@ import ApiError from "../Utils/ApiError";
 //     next();
 //   });
 // };
-const authMiddleware = (req, res, next) => {
+const authMiddleware = async (req, res, next) => {
   const token = req.headers.authorization;
   if (!token) {
     return next(new ApiError("Token not provided", 401));
   }
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) {
-      return next(new ApiError("Unauthorized - Invalid token", 401));
-    }
-    
-    req.userId = decoded.userId;
-    next();
-  });
+  const userId = jwt.verify(token, process.env.JWT_SECRET);
+  if (!userId) return next(new ApiError("userId not found", 400));
+
+  const user = await userModel.findById(userId.userId).populate("role_id");
+  if (!user) {
+    return next(new ApiError("User Not Found", 404));
+  }
+  req.user = user;
+  next()
 };
 
 

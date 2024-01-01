@@ -15,4 +15,9 @@ router.get("/getGST", authMiddleware,rolesPermissions("gst", "view"), getGST);
 router.get("/gstList", authMiddleware,getGstList);
 router.patch("/updateGst/:id",authMiddleware, rolesPermissions("gst", "edit"), updateGst);
 
+// router.post("/createGst", createGst);
+// router.get("/getGST", getGST);
+// router.get("/gstList",getGstList);
+// router.patch("/updateGst/:id", updateGst);
+
 export default router;

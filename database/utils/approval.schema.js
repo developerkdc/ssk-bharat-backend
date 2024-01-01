@@ -12,7 +12,7 @@ const userAndApprovals = new mongoose.Schema({
                 trim: true,
                 default: null
             },
-            email: {
+            email_id: {
                 type: String,
                 trim: true,
                 validate: {
@@ -34,11 +34,13 @@ const userAndApprovals = new mongoose.Schema({
         type: {
             user_id: {
                 type: mongoose.Schema.Types.ObjectId,
-                ref: "Users"
+                ref: "Users",
+                required:[true,"user_id for approvar one is required"]
             },
             name: {
                 type: String,
                 trim: true,
+                required:[true,"name for approvar one is required"]
             },
             email_id: {
                 type: String,
@@ -47,9 +49,11 @@ const userAndApprovals = new mongoose.Schema({
                         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
                     },
                     message: "approver one invalid email Id"
-                }
+                },
+                required:[true,"email id for approvar one is required"]
             },
             employee_id: String,
+            remarks:String,
             isApprove: {
                 type: Boolean,
                 default: false
@@ -61,9 +65,14 @@ const userAndApprovals = new mongoose.Schema({
         type: {
             user_id: {
                 type: mongoose.Schema.Types.ObjectId,
-                ref: "Users"
+                ref: "Users",
+                required:[true,"user_id for approvar two is required"]
             },
-            name: String,
+            name: {
+                type: String,
+                trim: true,
+                required:[true,"name for approvar two is required"]
+            },
             email_id: {
                 type: String,
                 validate: {
@@ -71,9 +80,11 @@ const userAndApprovals = new mongoose.Schema({
                         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
                     },
                     message: "approver two invalid email Id"
-                }
+                },
+                required:[true,"email id for approvar two is required"]
             },
             employee_id: String,
+            remarks:String,
             isApprove: {
                 type: Boolean,
                 default: false

@@ -30,6 +30,7 @@ import payoutAndCommissionRouter from "./routes/Admin/payoutAndCommission.route.
 import offlinePaymentRouter from "./routes/Admin/OfflinePayments/offlinePayment.route.js";
 import InventoryRouter from "./routes/Admin/InventoryRoutes.js";
 import SampleRouter from "./routes/Admin/sampleRoutes.js";
+import approvalRouter from "./routes/Approval/getPendingApprovalList.route.js";
 const app = express();
 
 const port = process.env.PORT || 4001;
@@ -63,9 +64,9 @@ app.group("/api/v1/admin", (router) => {
   router.use("/payoutAndCommission", payoutAndCommissionRouter);
   router.use("/tds", tdsRouter);
   router.use("/offlinePayment", offlinePaymentRouter);
-
-   router.use('/ssk/inventory',InventoryRouter)
-   router.use('/sample',SampleRouter)
+  router.use('/ssk/inventory', InventoryRouter);
+  router.use('/sample', SampleRouter);
+  router.use('/approval',approvalRouter);
 });
 
 app.all("*", (req, res, next) => {
