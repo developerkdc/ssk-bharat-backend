@@ -19,11 +19,7 @@ export const LoginUser = catchAsync(async (req, res, next) => {
     return res.status(401).json({ message: "Invalid Password" });
   }
 
-  const token = jwt.sign(
-    { userId: user._id, username: user.first_name },
-    secretKey,
-    { expiresIn: process.env.JWT_EXPIRES }
-  );
+  const token = user.jwtToken(next)
 
   return res.status(200).cookie("token", token).cookie("userId", user.id).json({
     statusCode: 200,

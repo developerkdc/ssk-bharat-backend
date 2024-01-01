@@ -119,11 +119,15 @@ const UserSchema = new mongoose.Schema({
 });
 
 UserSchema.methods.jwtToken = function(next){
-  return jwt.sign(
-    { userId: this._id, username: this.first_name,primaryEmailId:this.primary_email_id },
-    secretKey,
-    { expiresIn: process.env.JWT_EXPIRES }
-  );
+  try {
+    return jwt.sign(
+      { userId: this._id, username: this.first_name,primaryEmailId:this.primary_email_id },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES }
+    );
+  } catch (error) {
+    return next(error)
+  }
 }
 
 const userModel = mongoose.model("Users", UserSchema);
