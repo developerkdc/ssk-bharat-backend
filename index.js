@@ -3,34 +3,34 @@ dotenv.config();
 import express from "express";
 import expressGroupRoutes from "express-group-routes";
 import connect from "./database/mongo.service.js";
-import usersRouter from "./routes/Admin/UserRoutes.js";
-import rolesRouter from "./routes/Admin/RolesRoutes.js";
-import categoryRouter from "./routes/Admin/categoryRoutes.js";
-import unitRouter from "./routes/Admin/unitsRoutes.js";
-import gstRouter from "./routes/Admin/gstRoutes.js";
-import tdsRouter from "./routes/Admin/tdsRoutes.js";
-import hsnRouter from "./routes/Admin/hsnRoutes.js";
-import productRouter from "./routes/Admin/productRoutes.js";
-import authRouter from "./routes/Admin/authRoutes.js";
+import usersRouter from "./routes/Admin/Users/UserRoutes.js";
+import rolesRouter from "./routes/Admin/Master/Roles/RolesRoutes.js";
+import categoryRouter from "./routes/Admin/Master/Category/categoryRoutes.js";
+import unitRouter from "./routes/Admin/Master/Units/unitsRoutes.js";
+import gstRouter from "./routes/Admin/Master/GST/gstRoutes.js";
+import tdsRouter from "./routes/Admin/Master/TDS/tdsRoutes.js";
+import hsnRouter from "./routes/Admin/Master/HSN/hsnRoutes.js";
+import productRouter from "./routes/Admin/Master/Products/productRoutes.js";
+import authRouter from "./routes/Admin/Auth/authRoutes.js";
 import ApiError from "./Utils/ApiError.js";
 import { globalErrorHandler } from "./Utils/GlobalErrorHandler.js";
-import SupplierRouter from "./routes/Admin/Supplier.routes.js";
-import marketExecutiveRouter from "./routes/Admin/marketExecutive.routes.js";
-import sskCompanyRouter from "./routes/Admin/SSkCompany.routes.js";
-import sskPoRouter from "./routes/Admin/sskPurchaseOrderRoutes.js";
-import ordersRouter from "./routes/Admin/ordersRoute.js";
-import storeRouter from "./routes/Admin/OfflineStore.routes.js";
-import salesRouter from "./routes/Admin/salesRoutes.js";
-import refundRoute from "./routes/Admin/refundRoutes.js";
-import dispatchRoute from "./routes/Admin/dispatchRoutes.js";
-import offlineStoreRouter from "./routes/Admin/OfflineStore.routes.js";
-import retailerRouter from "./routes/Admin/Retailer.routes.js";
-import marketExecutiveCommissionRouter from "./routes/Admin/marketExectiveCommission.route.js";
-import payoutAndCommissionRouter from "./routes/Admin/payoutAndCommission.route.js";
-import paymentTermDays from "./routes/Admin/paymentTermDaysRoutes.js";
-import offlinePaymentRouter from "./routes/Admin/OfflinePayments/offlinePayment.route.js";
-import InventoryRouter from "./routes/Admin/InventoryRoutes.js";
-import SampleRouter from "./routes/Admin/sampleRoutes.js";
+import SupplierRouter from "./routes/Admin/Master/Suppliers/Supplier.routes.js";
+import marketExecutiveRouter from "./routes/Admin/MET/marketExecutive.routes.js";
+import sskCompanyRouter from "./routes/Admin/Master/SSK/SSkCompany.routes.js";
+import sskPoRouter from "./routes/Admin/SSKPO/sskPurchaseOrderRoutes.js";
+import ordersRouter from "./routes/Admin/Orders/ordersRoute.js";
+import storeRouter from "./routes/Admin/OfflineStore/OfflineStore.routes.js";
+import salesRouter from "./routes/Admin/SalesOrders/salesRoutes.js";
+import refundRoute from "./routes/Admin/SalesOrders/refundRoutes.js";
+import dispatchRoute from "./routes/Admin/Dispatch/dispatchRoutes.js";
+import offlineStoreRouter from "./routes/Admin/OfflineStore/OfflineStore.routes.js";
+import retailerRouter from "./routes/Admin/Master/Retailers/Retailer.routes.js";
+import marketExecutiveCommissionRouter from "./routes/Admin/MET/marketExectiveCommission.route.js";
+import payoutAndCommissionRouter from "./routes/Admin/PayoutAndCommission/payoutAndCommission.route.js";
+import paymentTermDays from "./routes/Admin/Master/PaymentTerms/paymentTermDaysRoutes.js";
+import offlinePaymentRouter from "./routes/Admin/OfflinePayment/offlinePayment.route.js";
+import InventoryRouter from "./routes/Admin/Inventory/InventoryRoutes.js";
+import SampleRouter from "./routes/Admin/Samples/sampleRoutes.js";
 const app = express();
 
 const port = process.env.PORT || 4001;
@@ -66,8 +66,8 @@ app.group("/api/v1/admin", (router) => {
   router.use("/termDays", paymentTermDays);
   router.use("/offlinePayment", offlinePaymentRouter);
 
-   router.use('/ssk/inventory',InventoryRouter)
-   router.use('/sample',SampleRouter)
+  router.use("/ssk/inventory", InventoryRouter);
+  router.use("/sample", SampleRouter);
 });
 
 app.all("*", (req, res, next) => {

@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import ApiError from "../../../Utils/ApiError";
 import catchAsync from "../../../Utils/catchAsync";
-import sskPOModel from "../../../database/schema/SSKPurchaseOrder.schema";
+import sskPOModel from "../../../database/schema/PurchaseOrders/SSKPurchaseOrder.schema";
 import { dynamicSearch } from "../../../Utils/dynamicSearch";
 
 export const createSSKPO = catchAsync(async (req, res, next) => {
@@ -76,7 +76,10 @@ export const getSSKPo = catchAsync(async (req, res, next) => {
     matchQuery.estimate_delivery_date = { $lte: new Date(to) };
   }
 
-  const totalUnits = await sskPOModel.countDocuments({...matchQuery,...searchQuery});
+  const totalUnits = await sskPOModel.countDocuments({
+    ...matchQuery,
+    ...searchQuery,
+  });
   if (!totalUnits) throw new Error(new ApiError("No Data", 404));
   const totalPages = Math.ceil(totalUnits / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
@@ -84,7 +87,7 @@ export const getSSKPo = catchAsync(async (req, res, next) => {
   const sortField = req.query.sortBy || "purchase_order_no";
 
   const purchaseOrder = await sskPOModel
-    .find({...matchQuery,...searchQuery})
+    .find({ ...matchQuery, ...searchQuery })
     .sort({ [sortField]: sortDirection })
     .skip(skip)
     .limit(limit);
@@ -140,5 +143,3 @@ export const getPOBasedOnSupplierID = catchAsync(async (req, res, next) => {
     message: "SSK Purchased Order Based on Supplier",
   });
 });
-
-

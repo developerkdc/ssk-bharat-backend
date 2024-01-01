@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 import ApiError from "../../../Utils/ApiError";
 import catchAsync from "../../../Utils/catchAsync";
-import retailerPOModel from "../../../database/schema/retailerPurchaseOder.schema";
-import OrdersModel from "../../../database/schema/order.schema";
+import retailerPOModel from "../../../database/schema/PurchaseOrders/retailerPurchaseOder.schema";
+import OrdersModel from "../../../database/schema/Orders/order.schema";
 import { dynamicSearch } from "../../../Utils/dynamicSearch";
 
 export const createRetailerPO = catchAsync(async (req, res, next) => {

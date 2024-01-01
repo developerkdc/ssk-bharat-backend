@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 import ApiError from "../../../Utils/ApiError";
 import catchAsync from "../../../Utils/catchAsync";
-import storePOModel from "../../../database/schema/offlineStorePurchaseOrder.schema";
-import OrdersModel from "../../../database/schema/order.schema";
+import storePOModel from "../../../database/schema/PurchaseOrders/offlineStorePurchaseOrder.schema";
+import OrdersModel from "../../../database/schema/Orders/order.schema";
 import { dynamicSearch } from "../../../Utils/dynamicSearch";
 
 export const createOfflineStorePO = catchAsync(async (req, res, next) => {
@@ -132,8 +132,10 @@ export const getStorePo = catchAsync(async (req, res, next) => {
     matchQuery.estimate_delivery_date = { $lte: new Date(to) };
   }
 
-
-  const totalUnits = await storePOModel.countDocuments({...matchQuery,...searchQuery});
+  const totalUnits = await storePOModel.countDocuments({
+    ...matchQuery,
+    ...searchQuery,
+  });
   if (!totalUnits) throw new Error(new ApiError("No Data", 404));
   const totalPages = Math.ceil(totalUnits / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
@@ -141,7 +143,7 @@ export const getStorePo = catchAsync(async (req, res, next) => {
   const sortField = req.query.sortBy || "purchase_order_no";
 
   const purchaseOrder = await storePOModel
-    .find({...matchQuery,...searchQuery})
+    .find({ ...matchQuery, ...searchQuery })
     .sort({ [sortField]: sortDirection })
     .skip(skip)
     .limit(limit);
