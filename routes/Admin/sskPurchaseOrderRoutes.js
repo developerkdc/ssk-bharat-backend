@@ -32,13 +32,6 @@ router.patch(
   rolesPermissions("ssk_po", "edit"),
   updatePOStatus
 );
-
-router.post(
-  "/create/newOrder",
-  authMiddleware,
-  rolesPermissions("new_order", "add"),
-  createSSKPO
-);
 // router.patch("/updateSSK/PO/:id",authMiddleware, rolesPermissions("ssk_po", "edit"), updateGst);
 
 export default router;

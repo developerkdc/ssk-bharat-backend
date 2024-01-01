@@ -1,7 +1,13 @@
 import mongoose from "mongoose";
 
 const RoleSchema = new mongoose.Schema({
-  role_name: { type: String, min: 2, max: 25, required: [true,"Role Name is required"],unique:true},
+  role_name: {
+    type: String,
+    min: 2,
+    max: 25,
+    required: [true, "Role Name is required"],
+    unique: true,
+  },
   permissions: {
     user: {
       add: { type: Boolean, default: false },
@@ -9,7 +15,7 @@ const RoleSchema = new mongoose.Schema({
       view: { type: Boolean, default: false },
     },
     roles: {
-      add: { type: Boolean, default: false }, 
+      add: { type: Boolean, default: false },
       edit: { type: Boolean, default: false },
       view: { type: Boolean, default: false },
     },
@@ -43,7 +49,7 @@ const RoleSchema = new mongoose.Schema({
       edit: { type: Boolean, default: false },
       view: { type: Boolean, default: false },
     },
-    hsnCode: {
+    hsn_code: {
       add: { type: Boolean, default: false },
       edit: { type: Boolean, default: false },
       view: { type: Boolean, default: false },
@@ -58,12 +64,38 @@ const RoleSchema = new mongoose.Schema({
       edit: { type: Boolean, default: false },
       view: { type: Boolean, default: false },
     },
-    store_po: {
+    new_order: {
       add: { type: Boolean, default: false },
       edit: { type: Boolean, default: false },
       view: { type: Boolean, default: false },
     },
-    new_order: {
+    product: {
+      add: { type: Boolean, default: false },
+      edit: { type: Boolean, default: false },
+      view: { type: Boolean, default: false },
+    },
+    
+    sales: {
+      add: { type: Boolean, default: false },
+      edit: { type: Boolean, default: false },
+      view: { type: Boolean, default: false },
+    },
+    refund: {
+      add: { type: Boolean, default: false },
+      edit: { type: Boolean, default: false },
+      view: { type: Boolean, default: false },
+    },
+    dispatch: {
+      add: { type: Boolean, default: false },
+      edit: { type: Boolean, default: false },
+      view: { type: Boolean, default: false },
+    },
+    tds: {
+      add: { type: Boolean, default: false },
+      edit: { type: Boolean, default: false },
+      view: { type: Boolean, default: false },
+    },
+    term_days: {
       add: { type: Boolean, default: false },
       edit: { type: Boolean, default: false },
       view: { type: Boolean, default: false },

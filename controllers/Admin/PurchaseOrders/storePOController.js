@@ -2,16 +2,73 @@ import mongoose from "mongoose";
 import ApiError from "../../../Utils/ApiError";
 import catchAsync from "../../../Utils/catchAsync";
 import storePOModel from "../../../database/schema/offlineStorePurchaseOrder.schema";
+import OrdersModel from "../../../database/schema/order.schema";
+import { dynamicSearch } from "../../../Utils/dynamicSearch";
 
-export const createStorePO = catchAsync(async (req, res, next) => {
-  const po = await storePOModel.create(req.body);
-  if (po) {
-    return res.status(201).json({
-      statusCode: 201,
-      status: true,
-      data: po,
-      message: "Store Purchase Order Created",
-    });
+export const createOfflineStorePO = catchAsync(async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const {
+      purchase_order_date,
+      ssk_details: poData,
+      store_details,
+    } = req.body;
+
+    // Create a new order
+    const storePO = await storePOModel.create([req.body], { session });
+    console.log(storePO, "storee");
+    // Create a new store purchase order
+    let latestOrderNo = 1;
+    const OrderNo = await OrdersModel.findOne()
+      .sort({ created_at: -1 })
+      .select("order_no")
+      .session(session);
+
+    if (OrderNo) {
+      latestOrderNo = OrderNo.order_no + 1;
+    } else {
+      latestOrderNo = 1;
+    }
+    const addNewOrder = await OrdersModel.create(
+      [
+        {
+          ...req.body,
+          order_no: latestOrderNo,
+          order_type: "Store",
+          order_date: purchase_order_date,
+          ssk_details: {
+            ...poData,
+            ssk_id: poData.supplier_id,
+            ssk_name: poData.supplier_name,
+          },
+          customer_details: {
+            ...store_details,
+            customer_id: store_details.store_id,
+            customer_name: store_details.store_name,
+          },
+        },
+      ],
+      { session }
+    );
+
+    // Commit the transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    if (addNewOrder && storePO) {
+      return res.status(201).json({
+        statusCode: 201,
+        status: true,
+        data: storePO,
+        message: "Purchase Order Created",
+      });
+    }
+  } catch (error) {
+    // If an error occurs, abort the transaction
+    await session.abortTransaction();
+    session.endSession();
+    next(new ApiError(error.message, 400));
   }
 });
 
@@ -42,23 +99,49 @@ export const latestStorePONo = catchAsync(async (req, res, next) => {
   }
 });
 
-export const getSSKPo = catchAsync(async (req, res, next) => {
+export const getStorePo = catchAsync(async (req, res, next) => {
+  const { string, boolean, numbers } = req?.body?.searchFields;
+
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const sortDirection = req.query.sort === "desc" ? -1 : 1;
   const search = req.query.search || "";
-  const filters = req.body.filters || {};
-  const searchQuery = buildSearchQuery(search);
 
-  const totalUnits = await sskPOModel.countDocuments(searchQuery);
+  let searchQuery = {};
+  if (search != "") {
+    const searchdata = dynamicSearch(search, boolean, numbers, string);
+    if (searchdata?.length == 0) {
+      return res.status(404).json({
+        statusCode: 404,
+        status: false,
+        data: {
+          purchaseOrder: [],
+          // totalPages: 1,
+          // currentPage: 1,
+        },
+        message: "Results Not Found",
+      });
+    }
+    searchQuery = searchdata;
+  }
+
+  const { to, from, ...data } = req?.body?.filters || {};
+  const matchQuery = data || {};
+  if (to && from) {
+    matchQuery.purchase_order_date = { $gte: new Date(from) };
+    matchQuery.estimate_delivery_date = { $lte: new Date(to) };
+  }
+
+
+  const totalUnits = await storePOModel.countDocuments({...matchQuery,...searchQuery});
   if (!totalUnits) throw new Error(new ApiError("No Data", 404));
   const totalPages = Math.ceil(totalUnits / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
   const skip = (validPage - 1) * limit;
   const sortField = req.query.sortBy || "purchase_order_no";
 
-  const purchaseOrder = await sskPOModel
-    .find(filters)
+  const purchaseOrder = await storePOModel
+    .find({...matchQuery,...searchQuery})
     .sort({ [sortField]: sortDirection })
     .skip(skip)
     .limit(limit);
@@ -72,53 +155,7 @@ export const getSSKPo = catchAsync(async (req, res, next) => {
         totalPages: totalPages,
         currentPage: validPage,
       },
-      message: "All Purchase Order",
+      message: "All Offline Store Purchase Order",
     });
   }
 });
-
-// Function to build search query
-function buildSearchQuery(search) {
-  const searchQuery = {};
-  if (search) {
-    searchQuery.$or = [
-      { purchase_order_no: parseInt(search) },
-      // Add more fields to search as needed
-    ];
-  }
-  return searchQuery;
-}
-
-export const updatePOStatus = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-  console.log(req.body, "req.body");
-  const updatePO = await sskPOModel.findOneAndUpdate(
-    { _id: id }, // Assuming 'id' is the unique identifier field
-    { $set: { status: req.body.status } },
-    { new: true } // This option returns the updated document
-  );
-  if (!updatePO) return next(new ApiError("Purchase Order Not Found", 404));
-  return res.status(200).json({
-    statusCode: 200,
-    status: true,
-    data: updatePO,
-    message: "Status Updated",
-  });
-});
-
-export const getPOBasedOnSupplierID=catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-  console.log(req.body, "req.body");
-  const poDetails = await sskPOModel.aggregate([
-    {$match:{"supplier_details.supplier_id":new mongoose.Types.ObjectId(id)}}
-  ])
-
-  if (poDetails.length==0) return next(new ApiError("Purchase Order Not Found", 404));
-  return res.status(200).json({
-    statusCode: 200,
-    status: true,
-    data: poDetails,
-    message: "SSK Purchased Order Based on Supplier",
-  });
-});
-

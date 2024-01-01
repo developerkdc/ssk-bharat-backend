@@ -1,5 +1,6 @@
 import ApiError from "../../Utils/ApiError";
 import catchAsync from "../../Utils/catchAsync";
+import { dynamicSearch } from "../../Utils/dynamicSearch";
 import storePOModel from "../../database/schema/offlineStorePurchaseOrder.schema";
 import OrdersModel from "../../database/schema/order.schema";
 import mongoose from "mongoose";
@@ -26,18 +27,22 @@ export const createNewOrder = catchAsync(async (req, res, next) => {
     } else {
       latestPoNo = 1;
     }
-
     const storePO = await storePOModel.create(
       [
         {
+          ...req.body,
           purchase_order_no: latestPoNo,
           purchase_order_date: order_date,
-          ssk_details: { ...sskData, supplier_id: sskData.ssk_id },
+          ssk_details: {
+            ...sskData,
+            supplier_id: sskData.ssk_id,
+            supplier_name: sskData.ssk_name,
+          },
           store_details: {
             ...customer_details,
             store_id: customer_details.customer_id,
+            store_name: customer_details.customer_name,
           },
-          ...req.body,
         },
       ],
       { session }
@@ -71,46 +76,75 @@ export const latestOrderNo = catchAsync(async (req, res, next) => {
       .select("order_no");
     if (latestOrder) {
       return res.status(200).json({
-        latest_order_number: latestOrder.order_no + 1,
+        order_no: latestOrder.order_no + 1,
         statusCode: 200,
         status: "Latest Order Number",
       });
     } else {
       // Handle the case where no purchase orders exist
       return res.status(200).json({
-        latest_order_number: 1,
+        order_no: 1,
         statusCode: 200,
         status: "Latest Order Number",
       });
     }
   } catch (error) {
-    console.error("Error getting latest purchase order number:", error);
+    console.error("Error getting latest order number:", error);
     throw error;
   }
 });
 
 export const fetchOrders = catchAsync(async (req, res, next) => {
-  const { type } = req.query;
-  const { page = 1, limit = 10 } = req.query;
+  const { string, boolean, numbers } = req?.body?.searchFields;
 
+  const {
+    type,
+    page,
+    limit = 10,
+    sortBy = "order_no",
+    sort = "desc",
+  } = req.query;
   const skip = (page - 1) * limit;
 
-  const matchQuery = {
-    order_type: type,
-    ...(req.body.filters || {}),
-  };
+  const search = req.query.search || "";
 
-  const orders = await OrdersModel.find(matchQuery)
+  let searchQuery = {};
+  if (search != "") {
+    const searchdata = dynamicSearch(search, boolean, numbers, string);
+    if (searchdata?.length == 0) {
+      return res.status(404).json({
+        statusCode: 404,
+        status: false,
+        data: {
+          data: [],
+          // totalPages: 1,
+          // currentPage: 1,
+        },
+        message: "Results Not Found",
+      });
+    }
+    searchQuery = searchdata;
+  }
+
+  const { to, from, ...data } = req?.body?.filters || {};
+  const matchQuery = data || {};
+  if (type) {
+    matchQuery.order_type = type;
+  }
+
+  if (to && from) {
+    matchQuery.order_date = { $gte: new Date(from) };
+    matchQuery.estimate_delivery_date = { $lte: new Date(to) };
+  }
+
+  const orders = await OrdersModel.find({...matchQuery,...searchQuery})
     .skip(skip)
     .limit(limit)
+    .sort({ [sortBy]: sort })
     .exec();
 
-  const totalDocuments = await OrdersModel.countDocuments(matchQuery);
+  const totalDocuments = await OrdersModel.countDocuments({...matchQuery,...searchQuery});
   const totalPages = Math.ceil(totalDocuments / limit);
-
-  if (orders.length === 0) {
-    return next(new ApiError("No Data Found", 404));
-  }
 
   return res.status(200).json({
     data: orders,
@@ -120,4 +154,3 @@ export const fetchOrders = catchAsync(async (req, res, next) => {
     currentPage: page,
   });
 });
-

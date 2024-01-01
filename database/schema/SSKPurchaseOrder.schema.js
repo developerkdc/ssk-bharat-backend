@@ -23,7 +23,16 @@ const purchaseOrderSchema = new mongoose.Schema({
   supplier_details: {
     supplier_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Supplier",
+      ref: "suppliers",
+      required: true,
+    },
+    supplier_name: {
+      type: String,
+      required: [true, "supplier name is required"],
+    },
+    branch_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "supplierbranches",
       required: true,
     },
     company_name: {
@@ -67,6 +76,11 @@ const purchaseOrderSchema = new mongoose.Schema({
   },
   ssk_details: {
     bill_to: {
+      branch_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "sskcompanybranches",
+        required: true,
+      },
       company_name: {
         type: String,
         // required: [true, "Company Name is required"],
@@ -106,6 +120,11 @@ const purchaseOrderSchema = new mongoose.Schema({
       address: addressSchema,
     },
     ship_to: {
+      branch_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "sskcompanybranches",
+        required: true,
+      },
       company_name: {
         type: String,
         // required: [true, "Company Name is required"],
@@ -148,6 +167,11 @@ const purchaseOrderSchema = new mongoose.Schema({
 
   Items: [
     {
+      product_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "products",
+        required: [true, "product Id is required"],
+      },
       item_name: {
         type: String,
         required: [true, "Item Name is required"],
@@ -250,8 +274,8 @@ const purchaseOrderSchema = new mongoose.Schema({
   approver: userAndApprovals,
   status: {
     type: String,
-    enum: ["Active", "Cancelled", "Closed"],
-    default: "Active",
+    enum: ["active", "cancelled", "closed"],
+    default: "active",
   },
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: Date.now },

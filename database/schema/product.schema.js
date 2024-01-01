@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import userAndApprovals from "../utils/approval.schema";
 
 const ProductSchema = new mongoose.Schema({
   category: {
@@ -36,6 +37,15 @@ const ProductSchema = new mongoose.Schema({
     minlength: 20,
     maxlength: 500,
   },
+  hsn_code: {
+    type: String,
+    required: [true, "Hsn Code is required"],
+  },
+  gst:{
+    type:mongoose.Schema.Types.ObjectId,
+    ref:"gst",
+    required:[true,"GST is required"]
+  },
   status: { type: Boolean, default: true },
   show_in_website: { type: Boolean, default: false },
   show_in_retailer: { type: Boolean, default: false },
@@ -69,57 +79,7 @@ const ProductSchema = new mongoose.Schema({
     ref: "units",
     required: [true, "Unit is Required"],
   },
-  approver_one: {
-    type: {
-      user_id: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "users",
-      },
-      name: {
-        type: String,
-        trim: true,
-      },
-      email_id: {
-        type: String,
-        validate: {
-          validator: function (value) {
-            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-          },
-          message: "approver one invalid email Id",
-        },
-      },
-      employee_id: String,
-      isApprove: {
-        type: Boolean,
-        default: false,
-      },
-    },
-    default: null,
-  },
-  approver_two: {
-    type: {
-      user_id: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Users",
-      },
-      name: String,
-      email_id: {
-        type: String,
-        validate: {
-          validator: function (value) {
-            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-          },
-          message: "approver two invalid email Id",
-        },
-      },
-      employee_id: String,
-      isApprove: {
-        type: Boolean,
-        default: false,
-      },
-    },
-    default: null,
-  },
+  approver: userAndApprovals,
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: Date.now },
   deleted_at: { type: Date, default: null },

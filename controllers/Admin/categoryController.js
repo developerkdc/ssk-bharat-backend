@@ -1,5 +1,6 @@
 import ApiError from "../../Utils/ApiError";
 import catchAsync from "../../Utils/catchAsync";
+import { dynamicSearch } from "../../Utils/dynamicSearch";
 import categoryModel from "../../database/schema/category.schema";
 import fs from "fs";
 
@@ -22,25 +23,42 @@ export const createCategory = catchAsync(async (req, res, next) => {
 });
 
 export const getCategory = catchAsync(async (req, res, next) => {
-  console.log("iuhrgiuh");
+  const { string, boolean, numbers } = req?.body?.searchFields;
 
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const sortDirection = req.query.sort === "desc" ? -1 : 1;
+  const sortBy = req.query.sortBy || "category_name";
   const search = req.query.search || "";
-  const searchQuery = search
-    ? { category_name: { $regex: search, $options: "i" } }
-    : {};
+
+
+  let searchQuery = {};
+  if (search != "") {
+    const searchdata = dynamicSearch(search, boolean, numbers, string);
+      if (searchdata?.length == 0) {
+      return res.status(404).json({
+        statusCode: 404,
+        status: false,
+        data: {
+          category: [],
+          // totalPages: 1,
+          // currentPage: 1,
+        },
+        message: "Results Not Found",
+      });
+    }
+    searchQuery=searchdata
+  }
+
   const totalCategory = await categoryModel.countDocuments(searchQuery);
-  if(!totalCategory) throw new Error (new ApiError("No Data",404))
   const totalPages = Math.ceil(totalCategory / limit);
-  if (page > totalPages) throw new Error(new ApiError("Invalid Page", 404));
+
   const validPage = Math.min(Math.max(page, 1), totalPages);
   const skip = (validPage - 1) * limit;
 
   const category = await categoryModel
     .find(searchQuery)
-    .sort({ category_name: sortDirection })
+    .sort({ [sortBy]: sortDirection })
     .skip(skip)
     .limit(limit);
 
@@ -52,7 +70,7 @@ export const getCategory = catchAsync(async (req, res, next) => {
         category: category,
         totalPages: totalPages,
         currentPage: validPage,
-        imagePath:`${process.env.IMAGE_PATH}/admin/category/`
+        imagePath: `${process.env.IMAGE_PATH}/admin/category/`,
       },
       message: "All Categories",
     });
@@ -92,7 +110,7 @@ export const updateCategory = catchAsync(async (req, res, next) => {
 
   relativeImagePath = oldCategory.category_image;
   if (req.file) {
-    fs.unlinkSync(`./uploads/admin/category/${oldCategory.category_image}`)
+    fs.unlinkSync(`./uploads/admin/category/${oldCategory.category_image}`);
     console.log("File deleted successfully");
     relativeImagePath = req.file.filename;
   }
