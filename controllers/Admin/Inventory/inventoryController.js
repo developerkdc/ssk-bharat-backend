@@ -295,7 +295,10 @@ export const reseverdQuantity = catchAsync(async (req, res) => {
   let productId = req.params.productId;
   let qty = req.query.qty;
   let products = await inventoryModel
-    .find({ "itemsDetails.product_Id": productId })
+      .find({
+      "itemsDetails.product_Id": productId,
+      "itemsDetails.balanceQuantity": { $gt: 0 },
+    })
     .sort({ receivedDate: 1 });
   for (const product of products) {
     const availableQty = product.itemsDetails.availableQuantity;
