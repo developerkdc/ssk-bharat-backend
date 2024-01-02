@@ -16,19 +16,22 @@ export const createTds = catchAsync(async (req, res, next) => {
 });
 
 export const getTDS = catchAsync(async (req, res, next) => {
-  const { string, boolean, numbers } = req?.body?.searchFields;
+  const { string, boolean, numbers } = req?.body?.searchFields || {};
 
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const sortDirection = req.query.sort === "desc" ? -1 : 1;
   const search = req.query.search || "";
+  const sortField = req.query.sortBy || "tds_percentage";
+
+  //search functionality
   let searchQuery = {};
-  if (search != "") {
+  if (search != "" && req?.body?.searchFields) {
     const searchdata = dynamicSearch(search, boolean, numbers, string);
     if (searchdata?.length == 0) {
       return res.status(404).json({
         statusCode: 404,
-        status: false,
+        status: "failed",
         data: {
           tds: [],
           // totalPages: 1,
@@ -39,6 +42,8 @@ export const getTDS = catchAsync(async (req, res, next) => {
     }
     searchQuery = searchdata;
   }
+
+  //total pages
   const totalGst = await tdsModel.countDocuments(searchQuery);
   const totalPages = Math.ceil(totalGst / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
@@ -46,14 +51,14 @@ export const getTDS = catchAsync(async (req, res, next) => {
 
   const tds = await tdsModel
     .find(searchQuery)
-    .sort({ tds_percentage: sortDirection })
+    .sort({ [sortField]: sortDirection })
     .skip(skip)
     .limit(limit);
 
   if (tds) {
     return res.status(200).json({
       statusCode: 200,
-      status: true,
+      status: "success",
       data: {
         tds: tds,
         totalPages: totalPages,
@@ -76,7 +81,7 @@ export const getTDSList = catchAsync(async (req, res, next) => {
   if (tds) {
     return res.status(200).json({
       statusCode: 200,
-      status: true,
+      status: "success",
       data: tds,
       message: "All TDS List",
     });
@@ -96,7 +101,7 @@ export const updateTds = catchAsync(async (req, res, next) => {
   );
   return res.status(200).json({
     statusCode: 200,
-    status: true,
+    status: "success",
     data: updatedtds,
     message: "TDS Updated",
   });

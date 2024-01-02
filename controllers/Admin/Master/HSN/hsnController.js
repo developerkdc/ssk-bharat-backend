@@ -8,7 +8,7 @@ export const createHSN = catchAsync(async (req, res, next) => {
   if (hsnCode) {
     return res.status(201).json({
       statusCode: 201,
-      status: true,
+      status: "success",
       data: hsnCode,
       message: "HSN Code Created",
     });
@@ -16,21 +16,23 @@ export const createHSN = catchAsync(async (req, res, next) => {
 });
 
 export const getHSNCode = catchAsync(async (req, res, next) => {
-  const { string, boolean, numbers } = req?.body?.searchFields;
+  const { string, boolean, numbers } = req?.body?.searchFields || {};
 
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const sortDirection = req.query.sort === "desc" ? -1 : 1;
   const search = req.query.search || "";
+  const sortField = req.query.sortBy || "hsn_code";
+
 
   let searchQuery = {};
-  if (search != "") {
+  if (search != "" && req?.body?.searchFields) {
     const searchdata = dynamicSearch(search, boolean, numbers, string);
 
     if (searchdata?.length == 0) {
       return res.status(404).json({
         statusCode: 404,
-        status: false,
+        status: "failed",
         data: {
           gst: [],
           // totalPages: 1,
@@ -46,8 +48,6 @@ export const getHSNCode = catchAsync(async (req, res, next) => {
   const totalPages = Math.ceil(totalGst / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
   const skip = (validPage - 1) * limit;
-  const sortField =
-    req.query.sortBy === "gst_percentage" ? "gst_percentage" : "hsn_code";
 
   const gst = await hsnCodeModel
     .find(searchQuery)
@@ -57,20 +57,20 @@ export const getHSNCode = catchAsync(async (req, res, next) => {
     .populate([
       {
         path: "gst_percentage",
-        select: "_id gst_percentage",
+        select: "_id current_data.gst_percentage",
       },
     ]);
 
   if (gst) {
     return res.status(200).json({
       statusCode: 200,
-      status: true,
+      status: "success",
       data: {
         gst: gst,
         totalPages: totalPages,
         currentPage: validPage,
       },
-      message: "All GST",
+      message: "All HSN Code",
     });
   }
 });
@@ -88,7 +88,7 @@ export const getHSNCodeList = catchAsync(async (req, res, next) => {
   if (hsnCode) {
     return res.status(200).json({
       statusCode: 200,
-      status: true,
+      status: "success",
       data: hsnCode,
       message: "All HSN Code List",
     });
@@ -108,7 +108,7 @@ export const updateHsnCode = catchAsync(async (req, res, next) => {
   );
   return res.status(200).json({
     statusCode: 200,
-    status: true,
+    status: "success",
     data: updatedHsnCode,
     message: "HSN Code Updated",
   });

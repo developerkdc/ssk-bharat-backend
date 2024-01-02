@@ -3,20 +3,21 @@ import fs from "fs";
 import MarketExecutiveModel from "../../../database/schema/MET/MarketExecutive.schema";
 import ApiError from "../../../Utils/ApiError";
 import mongoose from "mongoose";
+import { dynamicSearch } from "../../../Utils/dynamicSearch";
 
 export const getMarketExecutive = catchAsync(async (req, res, next) => {
-  const { string, boolean, numbers } = req?.body?.searchFields;
+  const { string, boolean, numbers } = req?.body?.searchFields || {};
   const search = req.query.search || "";
   const { filters = {} } = req.body;
-  const { page = 1, limit = 10 } = req.query;
+  const { page = 1, limit = 10,sortBy= "company_details.companyName", sort = "desc" } = req.query;
 
   let searchQuery = {};
-  if (search != "") {
+  if (search != "" && req?.body?.searchFields) {
     const searchdata = dynamicSearch(search, boolean, numbers, string);
     if (searchdata?.length == 0) {
       return res.status(404).json({
         statusCode: 404,
-        status: false,
+        status: "failed",
         data: {
           data: [],
           // totalPages: 1,
@@ -30,20 +31,25 @@ export const getMarketExecutive = catchAsync(async (req, res, next) => {
 
   //total pages
   const totalDocuments = await MarketExecutiveModel.countDocuments({
-    ...filters,...searchQuery
+    ...filters,
+    ...searchQuery,
   });
   const totalPages = Math.ceil(totalDocuments / limit);
 
   const marketExec = await MarketExecutiveModel.aggregate([
     {
-      $match: {...filters,...searchQuery},
+      $match: { ...filters, ...searchQuery },
+    },
+    {
+      $sort: {
+        [sortBy]: sort == "desc" ? -1 :1,
+      },
     },
     {
       $limit: Number(limit),
     },
     {
-      $skip: Number(page)
- * limit - Number(limit),
+      $skip: Number(page) * limit - Number(limit),
     },
   ]);
 
