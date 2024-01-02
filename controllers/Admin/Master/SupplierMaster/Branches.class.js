@@ -233,13 +233,16 @@ class Branches {
         {
           $lookup: {
             from: this.#refernceName,
-            localField: `${this.#modalName}Id`,
+            localField: `current_data.${this.#modalName}Id`,
             foreignField: "_id",
-            as: `${this.#modalName}Id`,
+            as: `current_data.${this.#modalName}Id`,
           },
         },
         {
-          $unwind: `$${this.#modalName}Id`,
+          $unwind: {
+            path:`$current_data.${this.#modalName}Id`,
+            preserveNullAndEmptyArrays:true
+          },
         },
       ])
       .sort(req.query.sort || "-created_at");

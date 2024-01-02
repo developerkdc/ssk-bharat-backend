@@ -46,6 +46,7 @@ export const Approved = catchAsync(async (req, res, next) => {
             $set: {
                 "approver.approver_one.isApprove": isApprove,
                 "approver.approver_one.remarks": remark,
+                "proposed_changes.status":true,
                 current_data:Object.assign(data.proposed_changes,{status:true})
             },
         });
@@ -67,6 +68,7 @@ export const Approved = catchAsync(async (req, res, next) => {
             $set: {
                 "approver.approver_two.isApprove": isApprove,
                 "approver.approver_two.remarks": remark,
+                "proposed_changes.status":true,
                 current_data:Object.assign(data.proposed_changes,{status:true}),
             }
         })
