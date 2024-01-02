@@ -59,7 +59,7 @@ export const createRetailerPO = catchAsync(async (req, res, next) => {
     if (addNewOrder && retailerPO) {
       return res.status(201).json({
         statusCode: 201,
-        status: true,
+        status: "success",
         data: retailerPO,
         message: "Retailer Purchase Order Created",
       });
@@ -80,13 +80,13 @@ export const latestRetailerPONo = catchAsync(async (req, res, next) => {
       .findOne()
       .sort({ created_at: -1 })
       .select("purchase_order_no");
-      console.log(latestPurchaseOrder,"lateeestt")
+
     if (latestPurchaseOrder) {
       return res.status(200).json({
         latest_po_number: latestPurchaseOrder.purchase_order_no + 1,
         statusCode: 200,
         message: "Latest Retailer PO Number",
-        status: true,
+        status: "success",
       });
     } else {
       // Handle the case where no purchase orders exist
@@ -94,7 +94,7 @@ export const latestRetailerPONo = catchAsync(async (req, res, next) => {
         latest_po_number: 1,
         statusCode: 200,
         message: "Latest Retailer PO Number",
-        status: true,
+        status: "success",
       });
     }
   } catch (error) {
@@ -107,7 +107,7 @@ export const latestRetailerPONo = catchAsync(async (req, res, next) => {
 });
 
 export const getRetailerPo = catchAsync(async (req, res, next) => {
-  const { string, boolean, numbers } = req?.body?.searchFields;
+  const { string, boolean, numbers } = req?.body?.searchFields || {};
 
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
@@ -115,16 +115,14 @@ export const getRetailerPo = catchAsync(async (req, res, next) => {
   const search = req.query.search || "";
 
   let searchQuery = {};
-  if (search != "") {
+  if (search != "" && req?.body?.searchFields ) {
     const searchdata = dynamicSearch(search, boolean, numbers, string);
     if (searchdata?.length == 0) {
       return res.status(404).json({
         statusCode: 404,
-        status: false,
+        status: "failed",
         data: {
           purchaseOrder: [],
-          // totalPages: 1,
-          // currentPage: 1,
         },
         message: "Results Not Found",
       });
@@ -151,9 +149,9 @@ export const getRetailerPo = catchAsync(async (req, res, next) => {
     .limit(limit);
 
   if (purchaseOrder) {
-    return res.status(200).json({
+    return res.status(200).json({ 
       statusCode: 200,
-      status: true,
+      status: "success",
       data: {
         purchaseOrder: purchaseOrder,
         totalPages: totalPages,

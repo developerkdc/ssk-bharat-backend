@@ -14,14 +14,16 @@ export const latestDispatchNo = catchAsync(async (req, res, next) => {
       return res.status(200).json({
         dispatch_no: latestDispatch.dispatch_no + 1,
         statusCode: 200,
-        status: "Latest Dispatch Number",
+        status:"success",
+        message: "Latest Dispatch Number",
       });
     } else {
       // Handle the case where no purchase orders exist
       return res.status(200).json({
         dispatch_no: 1,
         statusCode: 200,
-        status: "Latest Dispatch Number",
+        status:"success",
+        message: "Latest Dispatch Number",
       });
     }
   } catch (error) {
@@ -32,10 +34,6 @@ export const latestDispatchNo = catchAsync(async (req, res, next) => {
 
 export const createDispatch = catchAsync(async (req, res, next) => {
   const salesOrderData = await SalesModel.findById(req.body.sales_order_id);
-  console.log(salesOrderData);
-  if (!salesOrderData) {
-    return next(new ApiError("No Sales Order Found", 404));
-  }
   const {
     sales_order_no,
     total_amount,
@@ -74,7 +72,7 @@ export const createDispatch = catchAsync(async (req, res, next) => {
   if (dispatch) {
     return res.status(201).json({
       statusCode: 201,
-      status: true,
+      status: "success",
       data: dispatch,
       message: "Dispatch Created",
     });
@@ -83,7 +81,7 @@ export const createDispatch = catchAsync(async (req, res, next) => {
 
 export const fetchDispatchBasedonDeliveryStatus = catchAsync(
   async (req, res, next) => {
-    const { string, boolean, numbers } = req?.body?.searchFields;
+    const { string, boolean, numbers } = req?.body?.searchFields  || {};
 
     const {
       type,
@@ -97,7 +95,7 @@ export const fetchDispatchBasedonDeliveryStatus = catchAsync(
     const search = req.query.search || "";
 
     let searchQuery = {};
-    if (search != "") {
+    if (search != ""  && req?.body?.searchFields) {
       const searchdata = dynamicSearch(search, boolean, numbers, string);
       if (searchdata?.length == 0) {
         return res.status(404).json({
@@ -157,7 +155,8 @@ export const fetchDispatchBasedonDeliveryStatus = catchAsync(
     return res.status(200).json({
       data: dispatchOrders,
       statusCode: 200,
-      status: `All ${type} Orders`,
+      status:"success",
+      message: `All ${type} Orders`,
       totalPages: totalPages,
       currentPage: page,
     });
@@ -212,7 +211,7 @@ export const outForDelivery = catchAsync(async (req, res, next) => {
   if (updateData) {
     return res.status(200).json({
       statusCode: 200,
-      status: true,
+      status:"success",
       data: updateData,
       message: "Out For Delivery Successful",
     });
@@ -242,7 +241,7 @@ export const delivered = catchAsync(async (req, res, next) => {
 
   return res.status(200).json({
     statusCode: 200,
-    status: true,
+    status:"success",
     data: updateData,
     message: "Delivered Successfully",
   });

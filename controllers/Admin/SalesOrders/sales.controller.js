@@ -128,7 +128,7 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
     if (sales) {
       return res.status(201).json({
         statusCode: 201,
-        status: true,
+        status: "success",
         data: sales,
         message: "Sales Order Created",
       });
@@ -141,7 +141,7 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
 });
 
 export const fetchSalesOrders = catchAsync(async (req, res, next) => {
-  const { string, boolean, numbers } = req?.body?.searchFields;
+  const { string, boolean, numbers } = req?.body?.searchFields  || {};
 
   const {
     type,
@@ -166,16 +166,14 @@ export const fetchSalesOrders = catchAsync(async (req, res, next) => {
   }
 
   let searchQuery = {};
-  if (search != "") {
+  if (search != ""  && req?.body?.searchFields) {
     const searchdata = dynamicSearch(search, boolean, numbers, string);
     if (searchdata?.length == 0) {
       return res.status(404).json({
         statusCode: 404,
-        status: false,
+        status: "failed",
         data: {
           data: [],
-          // totalPages: 1,
-          // currentPage: 1,
         },
         message: "Results Not Found",
       });
@@ -198,9 +196,9 @@ export const fetchSalesOrders = catchAsync(async (req, res, next) => {
   return res.status(200).json({
     data: salesOrders,
     statusCode: 200,
-    status: `All ${type} Sales Orders`,
+    status: "success",
+    message: `All ${type} Sales Orders`,
     totalPages: totalPages,
-    currentPage: page,
   });
 });
 
@@ -240,8 +238,8 @@ export const fetchConfirmSalesOrders = catchAsync(async (req, res, next) => {
   return res.status(200).json({
     data: salesOrders,
     statusCode: 200,
-    status: `All ${type} Sales Orders`,
+    status: "success",
+    message: `All ${type} Sales Orders`,
     totalPages: totalPages,
-    currentPage: page,
   });
 });

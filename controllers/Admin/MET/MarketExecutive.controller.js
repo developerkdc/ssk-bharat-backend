@@ -20,8 +20,6 @@ export const getMarketExecutive = catchAsync(async (req, res, next) => {
         status: "failed",
         data: {
           data: [],
-          // totalPages: 1,
-          // currentPage: 1,
         },
         message: "Results Not Found",
       });
