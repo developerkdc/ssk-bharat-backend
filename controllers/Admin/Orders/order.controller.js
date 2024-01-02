@@ -55,7 +55,7 @@ export const createNewOrder = catchAsync(async (req, res, next) => {
     if (newOrder && storePO) {
       return res.status(201).json({
         statusCode: 201,
-        status: true,
+        status: "success",
         data: newOrder,
         message: "Order Created",
       });
@@ -95,7 +95,7 @@ export const latestOrderNo = catchAsync(async (req, res, next) => {
 });
 
 export const fetchOrders = catchAsync(async (req, res, next) => {
-  const { string, boolean, numbers } = req?.body?.searchFields;
+  const { string, boolean, numbers } = req?.body?.searchFields || {};
 
   const {
     type,
@@ -109,7 +109,7 @@ export const fetchOrders = catchAsync(async (req, res, next) => {
   const search = req.query.search || "";
 
   let searchQuery = {};
-  if (search != "") {
+  if (search != "" && req?.body?.searchFields) {
     const searchdata = dynamicSearch(search, boolean, numbers, string);
     if (searchdata?.length == 0) {
       return res.status(404).json({
@@ -117,8 +117,6 @@ export const fetchOrders = catchAsync(async (req, res, next) => {
         status: false,
         data: {
           data: [],
-          // totalPages: 1,
-          // currentPage: 1,
         },
         message: "Results Not Found",
       });
@@ -137,23 +135,23 @@ export const fetchOrders = catchAsync(async (req, res, next) => {
     matchQuery.estimate_delivery_date = { $lte: new Date(to) };
   }
 
-  const orders = await OrdersModel.find({ ...matchQuery, ...searchQuery })
-    .skip(skip)
-    .limit(limit)
-    .sort({ [sortBy]: sort })
-    .exec();
-
   const totalDocuments = await OrdersModel.countDocuments({
     ...matchQuery,
     ...searchQuery,
   });
   const totalPages = Math.ceil(totalDocuments / limit);
 
+  const orders = await OrdersModel.find({ ...matchQuery, ...searchQuery })
+    .skip(skip)
+    .limit(limit)
+    .sort({ [sortBy]: sort })
+    .exec();
+
   return res.status(200).json({
     data: orders,
     statusCode: 200,
-    status: `All ${type} Orders`,
+    status: "success",
+    message: `All ${type} Orders`,
     totalPages: totalPages,
-    currentPage: page,
   });
 });

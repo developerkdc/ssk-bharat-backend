@@ -76,22 +76,80 @@ export const addPayout = catchAsync(async (req, res, next) => {
 
 export const getPayoutAndCommissionTrans = catchAsync(
   async (req, res, next) => {
+    const { string, boolean, numbers } = req?.body?.searchFields || {};
+
+    const {
+      type,
+      page=1,
+      limit = 10,
+      sortBy = "createdAt",
+      sort = "desc",
+    } = req.query;
+
     const { marketExecutiveId } = req.params;
+
+
+
+    const search = req.query.search || "";
+
+    let searchQuery = {};
+    if (search != "" && req?.body?.searchFields) {
+      const searchdata = dynamicSearch(search, boolean, numbers, string);
+      if (searchdata?.length == 0) {
+        return res.status(404).json({
+          statusCode: 404,
+          status: "failed",
+          data: {
+            Transaction: [],
+          },
+          message: "Results Not Found",
+        });
+      }
+      searchQuery = searchdata;
+    }
+
+    const { to, from, ...data } = req?.body?.filters || {};
+    const matchQuery = data || {};
+
+    if (to && from) {
+      matchQuery["salesOrderDate"] = {
+        $gte: new Date(from),
+        $lte: new Date(to),
+      };
+    }
+
     const getTransaction = await payoutAndCommissionTransModel.aggregate([
       {
         $match: {
           marketExecutiveId: new mongoose.Types.ObjectId(marketExecutiveId),
+          ...matchQuery,
+          ...searchQuery,
         },
       },
       {
-        $sort: { createdAt: -1 },
+        $sort: {
+          [sortBy]: sort == "desc" ? -1 :1,
+        },
+      },
+      {
+        $limit: Number(limit),
+      },
+      {
+        $skip: Number(page) * limit - Number(limit),
       },
     ]);
+
+    const totalDocuments = await payoutAndCommissionTransModel.countDocuments({
+      ...matchQuery,
+      ...searchQuery,
+    });
+
+    const totalPages = Math.ceil(totalDocuments / limit);
 
     return res.status(200).json({
       statusCode: 200,
       status: "success",
-      length: getTransaction.length,
+      totalPages: totalPages,
       data: {
         Transaction: getTransaction,
       },

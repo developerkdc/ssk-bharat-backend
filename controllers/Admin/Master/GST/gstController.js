@@ -7,7 +7,8 @@ export const createGst = catchAsync(async (req, res, next) => {
   if (gst) {
     return res.status(201).json({
       statusCode: 201,
-      status: true,
+      status: "success",
+
       data: gst,
       message: "GST Created",
     });
@@ -15,20 +16,21 @@ export const createGst = catchAsync(async (req, res, next) => {
 });
 
 export const getGST = catchAsync(async (req, res, next) => {
-  const { string, boolean, numbers } = req?.body?.searchFields;
+  const { string, boolean, numbers } = req?.body?.searchFields || {};
 
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const sortDirection = req.query.sort === "desc" ? -1 : 1;
   const search = req.query.search || "";
+  const sortField = req.query.sortBy;
 
   let searchQuery = {};
-  if (search != "") {
+  if (search != "" && req?.body?.searchFields) {
     const searchdata = dynamicSearch(search, boolean, numbers, string);
     if (searchdata?.length == 0) {
       return res.status(404).json({
         statusCode: 404,
-        status: false,
+        status: "failed",
         data: {
           gst: [],
           // totalPages: 1,
@@ -39,22 +41,22 @@ export const getGST = catchAsync(async (req, res, next) => {
     }
     searchQuery = searchdata;
   }
+
   const totalGst = await gstModel.countDocuments(searchQuery);
-  if (!totalGst) throw new Error(new ApiError("No Data", 404));
   const totalPages = Math.ceil(totalGst / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
   const skip = Math.max((validPage - 1) * limit, 0);
 
   const gst = await gstModel
     .find(searchQuery)
-    .sort({ gst_percentage: sortDirection })
+    .sort({ [sortField]: sortDirection })
     .skip(skip)
     .limit(limit);
 
   if (gst) {
     return res.status(200).json({
       statusCode: 200,
-      status: true,
+      status: "success",
       data: {
         gst: gst,
         totalPages: totalPages,
@@ -77,7 +79,8 @@ export const getGstList = catchAsync(async (req, res, next) => {
   if (gst) {
     return res.status(200).json({
       statusCode: 200,
-      status: true,
+      status: "success",
+
       data: gst,
       message: "All GST List",
     });
@@ -97,7 +100,7 @@ export const updateGst = catchAsync(async (req, res, next) => {
   );
   return res.status(200).json({
     statusCode: 200,
-    status: true,
+    status: "success",
     data: updatedGst,
     message: "GST Updated",
   });

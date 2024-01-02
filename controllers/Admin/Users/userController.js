@@ -6,6 +6,7 @@ import userModel from "../../../database/schema/Users/user.schema.js";
 import bcrypt from "bcrypt";
 import userlogModel from "../../../database/schema/Users/userlog.schema.js";
 import ExcelJS from "exceljs";
+import { dynamicSearch } from "../../../Utils/dynamicSearch.js";
 
 const userChangeStream = userModel.watch();
 userChangeStream.on("change", async (change) => {
@@ -43,6 +44,7 @@ userChangeStream.on("change", async (change) => {
     console.log("Updated user logs:", userLog);
   }
 });
+
 export const AddUser = catchAsync(async (req, res) => {
   const userData = req.body;
   const saltRounds = 10;
@@ -120,6 +122,9 @@ export const ChangePassword = catchAsync(async (req, res) => {
 });
 
 export const FetchUsers = catchAsync(async (req, res) => {
+  const { string, boolean, numbers } = req?.body?.searchFields || {};
+  const search = req.query.search || "";
+
   const page = parseInt(req.query.page) || 1;
   const limit = 10;
   const skip = (page - 1) * limit;
@@ -137,14 +142,41 @@ export const FetchUsers = catchAsync(async (req, res) => {
   if (req.query.city) filter["address.city"] = req.query.city;
   if (req.query.area) filter["address.area"] = req.query.area;
 
+  //search  functionality
+  let searchQuery = {};
+  if (search != "" && req?.body?.searchFields) {
+    const searchdata = dynamicSearch(search, boolean, numbers, string);
+    if (searchdata?.length == 0) {
+      return res.status(404).json({
+        statusCode: 404,
+        status: false,
+        data: [],
+        message: "Results Not Found",
+      });
+    }
+    searchQuery = searchdata;
+  }
+
   // Fetching users
-  const users = await userModel.find(filter).sort(sort).skip(skip).limit(limit);
+  const users = await userModel
+    .find({ ...filter, ...searchQuery })
+    .sort(sort)
+    .skip(skip)
+    .limit(limit);
+
+  //total pages
+  const totalDocuments = await userModel.countDocuments({
+    ...filter,
+    ...searchQuery,
+  });
+  const totalPages = Math.ceil(totalDocuments / limit);
 
   return res.json({
     statusCode: 200,
     status: "Success",
     data: users,
     message: "Fetched successfully",
+    totalPages: totalPages,
   });
 });
 

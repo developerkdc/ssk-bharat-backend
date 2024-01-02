@@ -16,24 +16,23 @@ export const createUnit = catchAsync(async (req, res, next) => {
 });
 
 export const getUnits = catchAsync(async (req, res, next) => {
-  const { string, boolean, numbers } = req?.body?.searchFields;
+  const { string, boolean, numbers } = req?.body?.searchFields || {};
 
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const sortDirection = req.query.sort === "desc" ? -1 : 1;
   const search = req.query.search || "";
+  const sortField = req.query.sortBy;
 
   let searchQuery = {};
-  if (search != "") {
+  if (search != "" && req?.body?.searchFields) {
     const searchdata = dynamicSearch(search, boolean, numbers, string);
     if (searchdata?.length == 0) {
       return res.status(404).json({
         statusCode: 404,
-        status: false,
+        status: "failed",
         data: {
           units: [],
-          // totalPages: 1,
-          // currentPage: 1,
         },
         message: "Results Not Found",
       });
@@ -46,8 +45,6 @@ export const getUnits = catchAsync(async (req, res, next) => {
 
   const validPage = Math.min(Math.max(page, 1), totalPages);
   const skip = Math.max((validPage - 1) * limit, 0);
-  const sortField =
-    req.query.sortBy === "unit_symbol" ? "unit_symbol" : "unit_name";
 
   const units = await unitModel
     .find(searchQuery)
@@ -55,22 +52,23 @@ export const getUnits = catchAsync(async (req, res, next) => {
     .skip(skip)
     .limit(limit);
 
+  if (!units) next(new ApiError("Data Not Found", 404));
+
   if (units) {
     return res.status(200).json({
       statusCode: 200,
-      status: true,
+      status: "success",
       data: {
         units: units,
         totalPages: totalPages,
         currentPage: validPage,
       },
-      message: "All Categories",
+      message: "All Units",
     });
   }
 });
 
 export const getUnitList = catchAsync(async (req, res, next) => {
-  console.log("iuhrgiuh");
   const unit = await unitModel.aggregate([
     {
       $project: {
@@ -84,7 +82,7 @@ export const getUnitList = catchAsync(async (req, res, next) => {
   if (unit) {
     return res.status(200).json({
       statusCode: 200,
-      status: true,
+      status: "success",
       data: unit,
       message: "All unit List",
     });
@@ -106,7 +104,7 @@ export const updateUnit = catchAsync(async (req, res, next) => {
   );
   return res.status(200).json({
     statusCode: 200,
-    status: true,
+    status: "success",
     data: updatedUnit,
     message: "Unit Updated",
   });

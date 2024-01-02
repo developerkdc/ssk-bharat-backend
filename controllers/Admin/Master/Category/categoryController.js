@@ -14,7 +14,7 @@ export const createCategory = catchAsync(async (req, res, next) => {
   if (category) {
     return res.status(201).json({
       statusCode: 201,
-      status: true,
+      status: "success",
       data: category,
       message: "Category Created",
     });
@@ -22,7 +22,7 @@ export const createCategory = catchAsync(async (req, res, next) => {
 });
 
 export const getCategory = catchAsync(async (req, res, next) => {
-  const { string, boolean, numbers } = req?.body?.searchFields;
+  const { string, boolean, numbers } = req?.body?.searchFields || {};
 
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
@@ -30,11 +30,10 @@ export const getCategory = catchAsync(async (req, res, next) => {
   const sortBy = req.query.sortBy || "category_name";
   const search = req.query.search || "";
 
-
   let searchQuery = {};
-  if (search != "") {
+  if (search != "" && req?.body?.searchFields) {
     const searchdata = dynamicSearch(search, boolean, numbers, string);
-      if (searchdata?.length == 0) {
+    if (searchdata?.length == 0) {
       return res.status(404).json({
         statusCode: 404,
         status: false,
@@ -46,7 +45,7 @@ export const getCategory = catchAsync(async (req, res, next) => {
         message: "Results Not Found",
       });
     }
-    searchQuery=searchdata
+    searchQuery = searchdata;
   }
 
   const totalCategory = await categoryModel.countDocuments(searchQuery);
@@ -64,7 +63,7 @@ export const getCategory = catchAsync(async (req, res, next) => {
   if (category) {
     return res.status(200).json({
       statusCode: 200,
-      status: true,
+      status: "success",
       data: {
         category: category,
         totalPages: totalPages,
@@ -90,7 +89,7 @@ export const getCategoryList = catchAsync(async (req, res, next) => {
   if (category) {
     return res.status(200).json({
       statusCode: 200,
-      status: true,
+      status: "success",
       data: category,
       message: "All Category List",
     });
@@ -120,7 +119,7 @@ export const updateCategory = catchAsync(async (req, res, next) => {
   );
   return res.status(200).json({
     statusCode: 200,
-    status: true,
+    status: "success",
     data: updatedCategory,
     message: "Category Updated",
   });

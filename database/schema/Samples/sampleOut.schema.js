@@ -14,7 +14,7 @@ const sampleOutward = new mongoose.Schema({
       category: { type: String, trim: true },
       sku: { type: String },
       hsnCode: { type: String },
-      gstpercentage: { type: String },
+    gstpercentage: { type: String },
       date: { type: Date, default: Date.now },
       quantity: { type: Number },
     },

@@ -59,7 +59,7 @@ export const createOfflineStorePO = catchAsync(async (req, res, next) => {
     if (addNewOrder && storePO) {
       return res.status(201).json({
         statusCode: 201,
-        status: true,
+        status: "success",
         data: storePO,
         message: "Purchase Order Created",
       });
@@ -100,7 +100,7 @@ export const latestStorePONo = catchAsync(async (req, res, next) => {
 });
 
 export const getStorePo = catchAsync(async (req, res, next) => {
-  const { string, boolean, numbers } = req?.body?.searchFields;
+  const { string, boolean, numbers } = req?.body?.searchFields || {};
 
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
@@ -108,16 +108,14 @@ export const getStorePo = catchAsync(async (req, res, next) => {
   const search = req.query.search || "";
 
   let searchQuery = {};
-  if (search != "") {
+  if (search != ""  && req?.body?.searchFields) {
     const searchdata = dynamicSearch(search, boolean, numbers, string);
     if (searchdata?.length == 0) {
       return res.status(404).json({
         statusCode: 404,
-        status: false,
+        status: "failed",
         data: {
           purchaseOrder: [],
-          // totalPages: 1,
-          // currentPage: 1,
         },
         message: "Results Not Found",
       });
@@ -139,7 +137,7 @@ export const getStorePo = catchAsync(async (req, res, next) => {
   if (!totalUnits) throw new Error(new ApiError("No Data", 404));
   const totalPages = Math.ceil(totalUnits / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
-  const skip = (validPage - 1) * limit;
+  const skip = Math.max((validPage - 1) * limit, 0);
   const sortField = req.query.sortBy || "purchase_order_no";
 
   const purchaseOrder = await storePOModel
@@ -151,7 +149,7 @@ export const getStorePo = catchAsync(async (req, res, next) => {
   if (purchaseOrder) {
     return res.status(200).json({
       statusCode: 200,
-      status: true,
+      status: "success",
       data: {
         purchaseOrder: purchaseOrder,
         totalPages: totalPages,

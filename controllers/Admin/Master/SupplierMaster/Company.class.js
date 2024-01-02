@@ -3,6 +3,7 @@ import crypto from "crypto";
 import bcrypt from "bcrypt";
 import catchAsync from "../../../../Utils/catchAsync";
 import companyAndApprovals from "../../../../database/utils/approval.schema";
+import { dynamicSearch } from "../../../../Utils/dynamicSearch";
 
 class CompanyMaster {
   #Schema;
@@ -112,11 +113,49 @@ class CompanyMaster {
     });
   });
   GetCompany = catchAsync(async (req, res, next) => {
-    const modalName = await this.#modal.find({});
+    const { string, boolean, numbers } = req?.body?.searchFields || {};
+    const search = req.query.search || "";
+    const { filters = {} } = req.body;
+    const {
+      page = 1,
+      limit = 10,
+      sortBy = "company_name",
+      sort = "desc",
+    } = req.query;
+    const skip = (page - 1) * limit;
+
+    let searchQuery = {};
+    if (search != "" && req?.body?.searchFields) {
+      const searchdata = dynamicSearch(search, boolean, numbers, string);
+      if (searchdata?.length == 0) {
+        return res.status(404).json({
+          statusCode: 404,
+          status: "failed",
+          data: {
+            data: [],
+          },
+          message: "Results Not Found",
+        });
+      }
+      searchQuery = searchdata;
+    }
+
+    //total pages
+    const totalDocuments = await this.#modal.countDocuments({
+      ...filters,
+      ...searchQuery,
+    });
+    const totalPages = Math.ceil(totalDocuments / limit);
+
+    const modalName = await this.#modal
+      .find({ ...filters, ...searchQuery })
+      .skip(skip)
+      .limit(limit)
+      .sort({ [sortBy]: sort });
     return res.status(201).json({
       statusCode: 200,
       status: "Success",
-      length: modalName.length,
+      totalPages: totalPages,
       data: {
         [this.#modalName]: modalName,
       },

@@ -9,7 +9,7 @@ export const createSSKPO = catchAsync(async (req, res, next) => {
   if (po) {
     return res.status(201).json({
       statusCode: 201,
-      status: true,
+      status: "success",
       data: po,
       message: "Purchase Order Created",
     });
@@ -28,14 +28,16 @@ export const latestSSKPONo = catchAsync(async (req, res, next) => {
       return res.status(200).json({
         latest_po_number: latestPurchaseOrder.purchase_order_no + 1,
         statusCode: 200,
-        status: "Latest PO Number",
+        status: "success",
+        message: "Latest PO Number",
       });
     } else {
       // Handle the case where no purchase orders exist
       return res.status(200).json({
         latest_po_number: 1,
         statusCode: 200,
-        status: "Latest PO Number",
+        status: "success",
+        message: "Latest PO Number",
       });
     }
   } catch (error) {
@@ -45,7 +47,7 @@ export const latestSSKPONo = catchAsync(async (req, res, next) => {
 });
 
 export const getSSKPo = catchAsync(async (req, res, next) => {
-  const { string, boolean, numbers } = req?.body?.searchFields;
+  const { string, boolean, numbers } = req?.body?.searchFields || {};
 
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
@@ -53,7 +55,7 @@ export const getSSKPo = catchAsync(async (req, res, next) => {
   const search = req.query.search || "";
 
   let searchQuery = {};
-  if (search != "") {
+  if (search != "" && req?.body?.searchFields) {
     const searchdata = dynamicSearch(search, boolean, numbers, string);
     if (searchdata?.length == 0) {
       return res.status(404).json({
@@ -61,8 +63,6 @@ export const getSSKPo = catchAsync(async (req, res, next) => {
         status: false,
         data: {
           purchaseOrder: [],
-          // totalPages: 1,
-          // currentPage: 1,
         },
         message: "Results Not Found",
       });
@@ -80,10 +80,10 @@ export const getSSKPo = catchAsync(async (req, res, next) => {
     ...matchQuery,
     ...searchQuery,
   });
-  if (!totalUnits) throw new Error(new ApiError("No Data", 404));
+
   const totalPages = Math.ceil(totalUnits / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
-  const skip = (validPage - 1) * limit;
+  const skip = Math.max((validPage - 1) * limit, 0);
   const sortField = req.query.sortBy || "purchase_order_no";
 
   const purchaseOrder = await sskPOModel

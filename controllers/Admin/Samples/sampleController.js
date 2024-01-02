@@ -27,72 +27,51 @@ export const getItemdetails = catchAsync(async (req, res, next) => {
 });
 
 export const sampleList = catchAsync(async (req, res) => {
+  const { string, boolean, numbers } = req?.body?.searchFields || {};
+  const search = req.query.search || "";
   const page = parseInt(req.query.page) || 1;
   const limit = 10;
   const skip = (page - 1) * limit;
-  const sortField = req.query.sortField || "_id";
-  const sortOrder = req.query.sortOrder === "desc" ? -1 : 1;
-  const sortOptions = { [sortField]: sortOrder };
-  const filter = {};
-  if (req.query.deliveryChallanNo) {
-    filter.deliveryChallanNo = req.query.deliveryChallanNo;
-  }
-  if (req.query.itemName) {
-    filter["items.itemName"] = req.query.itemName;
-  }
-  if (req.query.personName) {
-    filter.personName = req.query.personName;
-  }
-  if (req.query.companyName) {
-    filter["address.companyName"] = req.query.companyName;
-  }
-  if (req.query.category) {
-    filter["address.category"] = req.query.category;
-  }
 
-  const search = req.query.search;
-  if (search) {
-    const searchRegex = new RegExp(search, "i");
-    filter.$or = [
-      { deliveryChallanNo: searchRegex },
-      { "items.itemName": searchRegex },
-      { "items.category": searchRegex },
-      { "items.sku": searchRegex },
-      { "items.hsnCode": searchRegex },
-      { "items.gstpercentage": searchRegex },
-      { personName: searchRegex },
-      { "contactDetails.email": searchRegex },
-      { "contactDetails.mobileNo": searchRegex },
-      { companyName: searchRegex },
-      { gstNo: searchRegex },
-      { "address.address": searchRegex },
-      { "address.location": searchRegex },
-      { "address.area": searchRegex },
-      { "address.city": searchRegex },
-      { "address.taluka": searchRegex },
-      { "address.district": searchRegex },
-      { "address.state": searchRegex },
-      { "address.country": searchRegex },
-      { "address.pincode": searchRegex },
-    ];
+  const sortDirection = req.query.sort === "desc" ? -1 : 1;
+  const sortField = req?.query?.sortBy || "_id";
+
+  const { to, from, ...data } = req?.body?.filters || {};
+  const matchQuery = data || {};
+ 
+
+  let searchQuery = {};
+  if (search != "" && req?.body?.searchFields) {
+    const searchdata = dynamicSearch(search, boolean, numbers, string);
+    if (searchdata?.length == 0) {
+      return res.status(404).json({
+        statusCode: 404,
+        status: false,
+        data: {
+          purchaseOrder: [],
+        },
+        message: "Results Not Found",
+      });
+    }
+    searchQuery = searchdata;
   }
+  
   const samplesList = await sampleOut
-    .find(filter)
-    .sort(sortOptions)
+    .find({...matchQuery,...searchQuery})
+    .sort({ [sortField]: sortDirection })
     .skip(skip)
-    .limit(limit);
+    .limit(limit)
 
-  const totalDocuments = await sampleOut.countDocuments(filter);
+  const totalDocuments = await sampleOut.countDocuments({...matchQuery,...searchQuery});
+  const totalPages = Math.ceil(totalDocuments / limit);
 
   return res.status(200).json({
     statusCode: 200,
     data: samplesList,
-    message: "Success",
-    meta: {
-      page,
-      limit,
-      totalDocuments,
-    },
+    totalPages:totalPages,
+    status:"success",
+    message: "Fetch Sample Data",
+   
   });
 });
 
