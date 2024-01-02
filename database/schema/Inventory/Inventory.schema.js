@@ -96,6 +96,9 @@ const InventorySchema = new mongoose.Schema({
   transportDetails: TransportDetailsSchema,
   invoiceDetails: InvoiceDetailsSchema,
   approvals: userAndApprovals,
+  created_at: { type: Date, default: Date.now },
+  updated_at: { type: Date, default: Date.now },
+  deleted_at: { type: Date, default: null },
 });
 
 const inventoryModel = mongoose.model("Inventory", InventorySchema);

@@ -6,6 +6,7 @@ import {
   EditInventory,
   InventoryList,
   ViewProductHistory,
+  reseverdQuantity,
 } from "../../../controllers/Admin/Inventory/inventoryController";
 
 const router = express.Router();
@@ -13,6 +14,7 @@ const router = express.Router();
 router.post("/addstock", AddStock);
 router.post("/sampleInward", AddSampleInward);
 router.get("/list", InventoryList);
+router.patch("/:productId", reseverdQuantity);
 router.post("/view/:id", ViewProductHistory);
 router.patch("/:id", EditInventory);
 

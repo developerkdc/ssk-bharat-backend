@@ -4,7 +4,6 @@ import catchAsync from "../../../Utils/catchAsync.js";
 import inventoryModel from "../../../database/schema/Inventory/Inventory.schema.js";
 import sampleInmodel from "../../../database/schema/Samples/SampleInward.schema.js";
 import sampleOut from "../../../database/schema/Samples/sampleOut.schema.js";
-
 export const AddStock = catchAsync(async (req, res) => {
   const items = req.body.itemsDetails;
   const inventoryArray = [];
@@ -289,5 +288,50 @@ export const ViewProductHistory = catchAsync(async (req, res) => {
     statusCode: 200,
     totalcount: result.length,
     message: "Product History fetched Successfully!",
+  });
+});
+
+export const reseverdQuantity = catchAsync(async (req, res) => {
+  let productId = req.params.productId;
+  let qty = req.query.qty;
+  let products = await inventoryModel
+    .find({ "itemsDetails.product_Id": productId })
+    .sort({ receivedDate: 1 });
+  for (const product of products) {
+    const availableQty = product.itemsDetails.availableQuantity;
+    const balanceQty = product.itemsDetails.balanceQuantity;
+    if(balanceQty!==0){
+      const newReservedQty = Math.min(availableQty, qty); // Reserve up to qty or the received quantity, whichever is smaller
+    const newBalanceQty = Math.max(balanceQty - qty, 0); // Ensure balance quantity is not negative
+    console.log(newReservedQty);
+    console.log(newBalanceQty);
+    await inventoryModel.updateOne(
+      { _id: product._id },
+      {
+        $set: {
+          "itemsDetails.reservedQuantity": newReservedQty,
+          "itemsDetails.balanceQuantity": newBalanceQty,
+        },
+      }
+    );
+    qty -= newReservedQty;
+    if (qty <= 0) {
+      break;
+    }
+    }
+    else{
+      continue;
+    }
+    
+  }
+
+  // Fetch the updated products
+  products = await inventoryModel
+    .find({ "itemsDetails.product_Id": productId })
+    .sort({ receivedDate: 1 });
+
+  return res.status(200).json({
+    statusCode: 200,
+    data: products,
   });
 });
