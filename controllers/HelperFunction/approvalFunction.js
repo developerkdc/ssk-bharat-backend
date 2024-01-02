@@ -29,12 +29,14 @@ export const approvalData = function (user) {
             user_id: A1_user_id,
             name: A1_name,
             email_id: A1_email_id,
+            isApprove:false,
             employee_id: A1_employee_id
         },
         approver_two: {
             user_id: A2_user_id,
             name: A2_name,
             email_id: A2_email_id,
+            isApprove:false,
             employee_id: A2_employee_id
         }
     }

@@ -147,6 +147,7 @@ class CompanyMaster {
       .skip(skip)
       .limit(limit)
       .sort({ [sortBy]: sort });
+
     return res.status(201).json({
       statusCode: 200,
       status: "Success",
