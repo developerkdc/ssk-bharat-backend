@@ -37,6 +37,8 @@ export const Approved = catchAsync(async (req, res, next) => {
     const model = mongoose.model(module);
     const data = await model.findOne({ _id: documentId });
 
+    if(!data) return next(new ApiError("the document does not exits",400))
+
     let approvalList;
 
     if (!data.approver.approver_two) {
@@ -44,8 +46,7 @@ export const Approved = catchAsync(async (req, res, next) => {
             $set: {
                 "approver.approver_one.isApprove": isApprove,
                 "approver.approver_one.remarks": remark,
-                ...data.proposed_changes,
-                proposed_changes:{}
+                current_data:Object.assign(data.proposed_changes,{status:true})
             },
         });
     } else if (data.approver.approver_two && !approval2) {
@@ -66,9 +67,8 @@ export const Approved = catchAsync(async (req, res, next) => {
             $set: {
                 "approver.approver_two.isApprove": isApprove,
                 "approver.approver_two.remarks": remark,
-                ...data.proposed_changes,
-                proposed_changes:{}
-            },
+                current_data:Object.assign(data.proposed_changes,{status:true}),
+            }
         })
     }
 

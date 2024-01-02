@@ -4,7 +4,11 @@ import gstModel from "../../database/schema/gst.schema";
 import { approvalData } from "../HelperFunction/approvalFunction";
 
 export const createGst = catchAsync(async (req, res, next) => {
-  const gst = await gstModel.create(req.body);
+  const {approver,...data} = req.body
+  const gst = await gstModel.create({
+    current_data:data,
+    approver
+  });
   if (gst) {
     return res.status(201).json({
       statusCode: 201,

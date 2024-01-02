@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import ApiError from "../../Utils/ApiError";
+import userAndApprovals from "../utils/approval.schema";
 
 const BranchSchema = new mongoose.Schema({
     supplierId: {
@@ -187,6 +188,7 @@ const BranchSchema = new mongoose.Schema({
             }
         }
     ],
+    approver:userAndApprovals,
     created_at:{
         type:Date,
         default:Date.now

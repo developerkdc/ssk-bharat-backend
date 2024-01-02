@@ -31,7 +31,7 @@ class CompanyMaster {
                 type: Boolean,
                 default: false
             },
-            approval: companyAndApprovals,
+            approver: companyAndApprovals,
             created_at: {
                 type: Date,
                 default: Date.now

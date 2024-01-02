@@ -1,19 +1,28 @@
 import mongoose from "mongoose";
 import userAndApprovals from "../utils/approval.schema";
 
-const GstSchema = new mongoose.Schema({
+
+const gstSchema = new mongoose.Schema({
   gst_percentage: {
     type: Number,
     required: [true, "GST Percentage is required"],
     unique: true,
   },
-  status:{
-    type:Boolean,
-    default:false
+  status: {
+    type: Boolean,
+    default: false
+  }
+})
+
+
+const GstSchema = new mongoose.Schema({
+  current_data: {
+    type: gstSchema,
+    required: true
   },
   proposed_changes: {
-    type: Object,
-    default: null
+    type: gstSchema,
+    default:function(){ return this.current_data}
   },
   approver: userAndApprovals,
   created_at: { type: Date, default: Date.now },

@@ -1,7 +1,9 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import ApiError from "../../../Utils/ApiError";
 import catchAsync from "../../../Utils/catchAsync";
 import fs from "fs";
+import userAndApprovals from "../../../database/utils/approval.schema";
+import SchemaFunction from "../../HelperFunction/SchemaFunction";
 
 class Branches {
     #branchSchema
@@ -9,12 +11,12 @@ class Branches {
     #refernceName
     #modalName
     #collectionName
-    constructor(modalName, collectionName,refernceName) {
-        this.#branchSchema = new mongoose.Schema({
+    constructor(modalName, collectionName, refernceName) {
+        this.#branchSchema = SchemaFunction(new mongoose.Schema({
             [`${modalName}Id`]: {
                 type: mongoose.Schema.Types.ObjectId,
                 required: [true, `${modalName} Id is required`],
-                ref:refernceName
+                ref: refernceName
             },
             branch_name: {
                 type: String,
@@ -25,9 +27,9 @@ class Branches {
                 type: Date,
                 default: Date.now
             },
-            branch_status:{
-                type:Boolean,
-                default:true,
+            status: {
+                type: Boolean,
+                default: true,
             },
             isPrimary: {
                 type: Boolean,
@@ -197,13 +199,9 @@ class Branches {
                     }
                 }
             ],
-            created_at: {
-                type: Date,
-                default: Date.now
-            }
-        });
+        }));
         this.#branchSchema.pre("save", function (next) {
-            if (this.contact_person.length <= 0) {
+            if (this.current_data.contact_person.length <= 0) {
                 return next(new ApiError("Atleast one contact details should be provide", 400));
             }
             next()
@@ -261,7 +259,8 @@ class Branches {
         })
     })
     addBranch = catchAsync(async (req, res, next) => {
-        const branch = await this.#modal.create(req.body);
+        const { approver, ...data } = req.body
+        const branch = await this.#modal.create({ current_data: data, approver });
         return res.status(201).json({
             statusCode: 201,
             status: "Created",
@@ -273,13 +272,33 @@ class Branches {
     });
     updateBranch = catchAsync(async (req, res, next) => {
         const { branchId } = req.query;
-        const { contact_person, ...data } = req.body;
+        const { contact_person, approver, ...data } = req.body;
         if (!branchId) {
             return next(new ApiError("branch id is required"))
         }
-        const updateBranch = await this.#modal.findByIdAndUpdate({ _id: branchId, [`${this.#modalName}Id`]: req.params.companyId }, {
-            $set: data
+        const updateBranch = await this.#modal.findByIdAndUpdate({ _id: branchId, [`proposed_changes.${this.#modalName}Id`]: req.params.companyId }, {
+            $set: {
+                "proposed_changes.branch_name": data?.branch_name,
+                "proposed_changes.kyc.pan.pan_no": data?.kyc?.pan?.pan_no,
+                "proposed_changes.kyc.gst.gst_no": data?.kyc?.gst?.gst_no,
+                "proposed_changes.kyc.bank_details.bank_name": data?.kyc?.bank_details?.bank_name,
+                "proposed_changes.kyc.bank_details.account_no": data?.kyc?.bank_details?.account_no,
+                "proposed_changes.kyc.bank_details.confirm_account_no": data?.kyc?.bank_details?.confirm_account_no,
+                "proposed_changes.kyc.bank_details.ifsc_code": data?.kyc?.bank_details?.ifsc_code,
+                "proposed_changes.branch_address.address": data?.branch_address?.address,
+                "proposed_changes.branch_address.location": data?.branch_address?.location,
+                "proposed_changes.branch_address.area": data?.branch_address?.area,
+                "proposed_changes.branch_address.district": data?.branch_address?.district,
+                "proposed_changes.branch_address.taluka": data?.branch_address?.taluka,
+                "proposed_changes.branch_address.state": data?.branch_address?.state,
+                "proposed_changes.branch_address.city": data?.branch_address?.city,
+                "proposed_changes.branch_address.country": data?.branch_address?.country,
+                "proposed_changes.branch_address.pincode": data?.branch_address?.pincode,
+                approver
+            }
         }, { new: true });
+
+        if (!updateBranch) return next(new ApiError("please check the branchId or CompanyId", 400));
 
         return res.status(200).json({
             statusCode: 200,
@@ -293,22 +312,24 @@ class Branches {
     uploadDocument = (fileName) => {
         return catchAsync(async (req, res, next) => {
             const { branchId, companyId } = req.params;
-            const branch = await this.#modal.findOne({ _id: branchId, [`${this.#modalName}Id`]: companyId });
+            // const branch = await this.#modal.findOne({ _id: branchId, [`${this.#modalName}Id`]: companyId });
             const images = {};
-            console.log(req.files)
+            // console.log(req.files)
             if (req.files) {
                 for (let i in req.files) {
                     images[i] = req.files[i][0].filename;
-                    if (fs.existsSync(`${fileName}/${i.split("_")[0] === "passbook" ? branch?.kyc?.bank_details[i] : branch?.kyc[i?.split("_")[0]][i]}`)) {
-                        fs.unlinkSync(`${fileName}/${i.split("_")[0] === "passbook" ? branch?.kyc?.bank_details[i] : branch?.kyc[i?.split("_")[0]][i]}`)
-                    }
+                    // need to change i needed proposed_changes
+                    // if (fs.existsSync(`${fileName}/${i.split("_")[0] === "passbook" ? branch?.kyc?.bank_details[i] : branch?.kyc[i?.split("_")[0]][i]}`)) {
+                    //     fs.unlinkSync(`${fileName}/${i.split("_")[0] === "passbook" ? branch?.kyc?.bank_details[i] : branch?.kyc[i?.split("_")[0]][i]}`)
+                    // }
                 }
             }
-            const updatedImages = await this.#modal.updateOne({ _id: branchId, [`${this.#modalName}Id`]: companyId }, {
+            console.log({ _id: branchId, [`proposed_changes.${this.#modalName}Id`]: companyId },images)
+            const updatedImages = await this.#modal.updateOne({ _id: branchId, [`proposed_changes.${this.#modalName}Id`]: companyId }, {
                 $set: {
-                    "kyc.pan.pan_image": images?.pan_image,
-                    "kyc.gst.gst_image": images?.gst_image,
-                    "kyc.bank_details.passbook_image": images?.passbook_image
+                    "proposed_changes.kyc.pan.pan_image": images?.pan_image,
+                    "proposed_changes.kyc.gst.gst_image": images?.gst_image,
+                    "proposed_changes.kyc.bank_details.passbook_image": images?.passbook_image
                 }
             });
 
@@ -328,9 +349,9 @@ class Branches {
         if (!companyId || !branchId) {
             return next(new ApiError("companyId or BranchId is required", 400));
         }
-        const addConatct = await this.#modal.findByIdAndUpdate({ _id: branchId, [`${this.#modalName}Id`]: companyId }, {
+        const addConatct = await this.#modal.findByIdAndUpdate({ _id: branchId, [`proposed_changes.${this.#modalName}Id`]: companyId }, {
             $push: {
-                contact_person: req.body
+                "proposed_changes.contact_person": req.body
             }
         }, { runValidators: true, new: true });
 
@@ -349,16 +370,16 @@ class Branches {
         if (!req.query.contactId) {
             return next(new ApiError("contactId is required", 400));
         }
-        const updatedContact = await this.#modal.findByIdAndUpdate({ _id: branchId, [`${this.#modalName}Id`]: companyId, "contact_person._id": req.query.contactId }, {
+        const updatedContact = await this.#modal.findByIdAndUpdate({ _id: branchId, [`proposed_changes.${this.#modalName}Id`]: companyId, "proposed_changes.contact_person._id": req.query.contactId }, {
             $set: {
-                "contact_person.$[e].first_name": first_name,
-                "contact_person.$[e].last_name": last_name,
-                "contact_person.$[e].role": role,
-                "contact_person.$[e].primary_email": primary_email,
-                "contact_person.$[e].secondary_email": secondary_email,
-                "contact_person.$[e].primary_mobile": primary_mobile,
-                "contact_person.$[e].secondary_mobile": secondary_mobile,
-                "contact_person.$[e].isPrimary": isPrimary,
+                "proposed_changes.contact_person.$[e].first_name": first_name,
+                "proposed_changes.contact_person.$[e].last_name": last_name,
+                "proposed_changes.contact_person.$[e].role": role,
+                "proposed_changes.contact_person.$[e].primary_email": primary_email,
+                "proposed_changes.contact_person.$[e].secondary_email": secondary_email,
+                "proposed_changes.contact_person.$[e].primary_mobile": primary_mobile,
+                "proposed_changes.contact_person.$[e].secondary_mobile": secondary_mobile,
+                "proposed_changes.contact_person.$[e].isPrimary": isPrimary,
             }
         }, {
             arrayFilters: [{ "e._id": req.query.contactId }],
