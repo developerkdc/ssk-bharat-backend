@@ -4,6 +4,7 @@ import catchAsync from "../../../../Utils/catchAsync";
 import fs from "fs";
 import userAndApprovals from "../../../../database/utils/approval.schema";
 import SchemaFunction from "../../../HelperFunction/SchemaFunction";
+import { dynamicSearch } from "../../../../Utils/dynamicSearch";
 
 class Branches {
   #branchSchema;
@@ -216,13 +217,43 @@ class Branches {
     this.#modal = mongoose.model(this.#collectionName, this.#branchSchema);
   }
   getAllBranchCompany = catchAsync(async (req, res, next) => {
-    const { filter = {} } = req.body;
-    let page = req.query.page || 1;
-    let limit = req.query.limit || 10;
+    const { string, boolean, numbers } = req?.body?.searchFields || {};
+    const search = req.query.search || "";
+    const { filters = {} } = req.body;
+    const {
+      page = 1,
+      limit = 10,
+      sortBy = "createdAt",
+      sort = "desc",
+    } = req.query;
+
+    let searchQuery = {};
+    if (search != "" && req?.body?.searchFields) {
+      const searchdata = dynamicSearch(search, boolean, numbers, string);
+      if (searchdata?.length == 0) {
+        return res.status(404).json({
+          statusCode: 404,
+          status: "failed",
+          data: {
+            data: [],
+          },
+          message: "Results Not Found",
+        });
+      }
+      searchQuery = searchdata;
+    }
+
+    //total pages
+    const totalDocuments = await this.#modal.countDocuments({
+      ...filters,
+      ...searchQuery,
+    });
+    const totalPages = Math.ceil(totalDocuments / limit);
+
     const data = await this.#modal
       .aggregate([
         {
-          $match: filter,
+          $match: {...filters,...searchQuery},
         },
         {
           $limit: limit,
@@ -233,20 +264,20 @@ class Branches {
         {
           $lookup: {
             from: this.#refernceName,
-            localField: `${this.#modalName}Id`,
+            localField: `current_data.${this.#modalName}Id`,
             foreignField: "_id",
-            as: `${this.#modalName}Id`,
+            as: `current_data.${this.#modalName}Id`,
           },
         },
         {
-          $unwind: `$${this.#modalName}Id`,
+          $unwind: `$current_data.${this.#modalName}Id`,
         },
       ])
-      .sort(req.query.sort || "-created_at");
+      .sort({ [sortBy]: sort });
     return res.status(200).json({
       statusCode: 200,
       status: "Success",
-      length: data.length,
+      totalPages: totalPages,
       data: {
         branch: data,
       },
