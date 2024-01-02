@@ -5,18 +5,45 @@ import ApiError from "../../../Utils/ApiError";
 import mongoose from "mongoose";
 
 export const getMarketExecutive = catchAsync(async (req, res, next) => {
+  const { string, boolean, numbers } = req?.body?.searchFields;
+  const search = req.query.search || "";
   const { filters = {} } = req.body;
   const { page = 1, limit = 10 } = req.query;
 
+  let searchQuery = {};
+  if (search != "") {
+    const searchdata = dynamicSearch(search, boolean, numbers, string);
+    if (searchdata?.length == 0) {
+      return res.status(404).json({
+        statusCode: 404,
+        status: false,
+        data: {
+          data: [],
+          // totalPages: 1,
+          // currentPage: 1,
+        },
+        message: "Results Not Found",
+      });
+    }
+    searchQuery = searchdata;
+  }
+
+  //total pages
+  const totalDocuments = await MarketExecutiveModel.countDocuments({
+    ...filters,...searchQuery
+  });
+  const totalPages = Math.ceil(totalDocuments / limit);
+
   const marketExec = await MarketExecutiveModel.aggregate([
     {
-      $match: filters,
+      $match: {...filters,...searchQuery},
     },
     {
       $limit: Number(limit),
     },
     {
-      $skip: Number(page) * limit - Number(limit),
+      $skip: Number(page)
+ * limit - Number(limit),
     },
   ]);
 
@@ -25,6 +52,7 @@ export const getMarketExecutive = catchAsync(async (req, res, next) => {
     status: "success",
     data: {
       MarketExecutive: marketExec,
+      totalPages: totalPages,
     },
   });
 });
