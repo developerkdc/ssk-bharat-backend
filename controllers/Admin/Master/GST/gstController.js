@@ -2,7 +2,6 @@ import ApiError from "../../../../Utils/ApiError";
 import catchAsync from "../../../../Utils/catchAsync";
 import { dynamicSearch } from "../../../../Utils/dynamicSearch";
 import gstModel from "../../../../database/schema/Master/GST/gst.schema";
-
 export const createGst = catchAsync(async (req, res, next) => {
   const gst = await gstModel.create(req.body);
   if (gst) {

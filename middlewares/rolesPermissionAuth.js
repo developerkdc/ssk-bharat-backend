@@ -4,11 +4,7 @@ import ApiError from "../Utils/ApiError"; // Make sure to provide the correct pa
 const rolesPermissions = (name, key) => {
   return async (req, res, next) => {
     try {
-      let userId = req.userId;
-      const user = await userModel.findById(userId).populate("role_id");
-      if (!user) {
-        return next(new ApiError("User Not Found", 404));
-      }
+      let user = req.user
 
       const isAuthorized = user.role_id.permissions[name][key];
       if (isAuthorized != true) {

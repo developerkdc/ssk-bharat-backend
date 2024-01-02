@@ -14,7 +14,7 @@ const UserSchema = new mongoose.Schema({
   },
   secondary_email_id: { type: String, min: 5, max: 50, trim: true },
   password: { type: String, required: true, trim: true },
-  primary_mobile_no: { type: Number, min: 10,unique:true, trim: true },
+  primary_mobile_no: { type: Number, min: 10, unique: true, trim: true },
   secondary_mobile_no: { type: Number, min: 10, trim: true },
   profile_pic: { type: String, max: 150, default: null },
   status: { type: Boolean, default: true },
@@ -70,46 +70,53 @@ const UserSchema = new mongoose.Schema({
   otp: { type: String, trim: true },
   approver_one: {
     type: {
-      user_id: mongoose.Schema.Types.ObjectId,
+      user_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Users",
+        required: [true, "user_id for approvar one is required"]
+      },
       name: {
         type: String,
         trim: true,
+        required: [true, "name for approvar one is required"]
       },
       email_id: {
         type: String,
         validate: {
           validator: function (value) {
-            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
           },
-          message: "approver one invalid email Id",
+          message: "approver one invalid email Id"
         },
+        required: [true, "email id for approvar one is required"]
       },
       employee_id: String,
-      isApprove: {
-        type: Boolean,
-        default: false,
-      },
     },
     default: null,
   },
   approver_two: {
     type: {
-      user_id: mongoose.Schema.Types.ObjectId,
-      name: String,
+      user_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Users",
+        required: [true, "user_id for approvar two is required"]
+      },
+      name: {
+        type: String,
+        trim: true,
+        required: [true, "name for approvar two is required"]
+      },
       email_id: {
         type: String,
         validate: {
           validator: function (value) {
-            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
           },
-          message: "approver two invalid email Id",
+          message: "approver two invalid email Id"
         },
+        required: [true, "email id for approvar two is required"]
       },
       employee_id: String,
-      isApprove: {
-        type: Boolean,
-        default: false,
-      },
     },
     default: null,
   },
@@ -118,10 +125,10 @@ const UserSchema = new mongoose.Schema({
   deleted_at: { type: Date, default: null },
 });
 
-UserSchema.methods.jwtToken = function(next){
+UserSchema.methods.jwtToken = function (next) {
   try {
     return jwt.sign(
-      { userId: this._id, username: this.first_name,primaryEmailId:this.primary_email_id },
+      { userId: this._id, username: this.first_name, primaryEmailId: this.primary_email_id },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES }
     );

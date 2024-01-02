@@ -1,12 +1,13 @@
 import express from "express";
-import rolesPermissions from "../../../../middlewares/rolesPermissionAuth";
 import authMiddleware from "../../../../middlewares/adminAuth";
+import rolesPermissions from "../../../../middlewares/rolesPermissionAuth";
 import {
-  createGst,
-  getGST,
-  getGstList,
-  updateGst,
+    createGst,
+    getGST,
+    getGstList,
+    updateGst,
 } from "../../../../controllers/Admin/Master/GST/gstController";
+
 
 const router = express.Router();
 
@@ -24,5 +25,10 @@ router.patch(
   rolesPermissions("gst", "edit"),
   updateGst
 );
+
+// router.post("/createGst", createGst);
+// router.get("/getGST", getGST);
+// router.get("/gstList",getGstList);
+// router.patch("/updateGst/:id", updateGst);
 
 export default router;

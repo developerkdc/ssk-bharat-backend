@@ -31,6 +31,7 @@ import paymentTermDays from "./routes/Admin/Master/PaymentTerms/paymentTermDaysR
 import offlinePaymentRouter from "./routes/Admin/OfflinePayment/offlinePayment.route.js";
 import InventoryRouter from "./routes/Admin/Inventory/InventoryRoutes.js";
 import SampleRouter from "./routes/Admin/Samples/sampleRoutes.js";
+import approvalRouter from "./routes/Approval/getPendingApprovalList.route.js"
 const app = express();
 
 const port = process.env.PORT || 4001;
@@ -65,9 +66,9 @@ app.group("/api/v1/admin", (router) => {
   router.use("/tds", tdsRouter);
   router.use("/termDays", paymentTermDays);
   router.use("/offlinePayment", offlinePaymentRouter);
-
-  router.use("/ssk/inventory", InventoryRouter);
-  router.use("/sample", SampleRouter);
+  router.use('/ssk/inventory', InventoryRouter);
+  router.use('/sample', SampleRouter);
+  router.use('/approval',approvalRouter);
 });
 
 app.all("*", (req, res, next) => {

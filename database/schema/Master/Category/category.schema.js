@@ -13,7 +13,7 @@ const CategorySchema = new mongoose.Schema({
     type: String,
     required: [true, "Image is required"],
   },
-  status: { type: Boolean, default: true },
+  status: { type: Boolean, default: false },
   show_in_website: { type: Boolean, default: false },
   show_in_retailer: { type: Boolean, default: false },
   show_in_offline_store: { type: Boolean, default: false },
