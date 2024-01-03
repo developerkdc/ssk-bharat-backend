@@ -17,7 +17,6 @@ const salesOrder = new mongoose.Schema({
   sales_order_date: {
     type: Date,
     required: [true, "Sales Order Date is required"],
-    trim: true,
   },
   order_date: {
     type: Date,
@@ -54,7 +53,7 @@ const salesOrder = new mongoose.Schema({
       default: null,
     },
     gst_no: {
-      type: String,
+      type: Number,
       //   required: [true, "Gst No is required"],
       trim: true,
       default: null,
@@ -149,11 +148,11 @@ const salesOrder = new mongoose.Schema({
         default: null,
       },
       primary_mobile_no: {
-        type: String,
+        type: Number,
         required: [true, "Primary Mobile Number is required"],
         trim: true,
       },
-      secondary_mobile_no: { type: String, default: null },
+      secondary_mobile_no: { type: Number, default: null },
       address: addressSchema,
     },
     ship_to: {
@@ -168,7 +167,7 @@ const salesOrder = new mongoose.Schema({
         default: null,
       },
       gst_no: {
-        type: String,
+        type: Number,
         // required: [true, "Gst No is required"],
         trim: true,
         default: null,
@@ -202,11 +201,11 @@ const salesOrder = new mongoose.Schema({
         default: null,
       },
       primary_mobile_no: {
-        type: String,
+        type: Number,
         required: [true, "Primary Mobile No is required"],
         trim: true,
       },
-      secondary_mobile_no: { type: String, default: null },
+      secondary_mobile_no: { type: Number, default: null },
       address: addressSchema,
     },
   },

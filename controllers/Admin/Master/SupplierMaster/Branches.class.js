@@ -265,9 +265,7 @@ class Branches {
           $lookup: {
             from: this.#refernceName,
             localField: `current_data.${this.#modalName}Id`,
-            localField: `current_data.${this.#modalName}Id`,
             foreignField: "_id",
-            as: `current_data.${this.#modalName}Id`,
             as: `current_data.${this.#modalName}Id`,
           },
         },
