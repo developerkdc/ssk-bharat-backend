@@ -69,19 +69,23 @@ import userModel from "../database/schema/Users/user.schema";
 //   });
 // };
 const authMiddleware = async (req, res, next) => {
-  const token = req.headers.authorization;
-  if (!token) {
-    return next(new ApiError("Token not provided", 401));
-  }
-  const userId = jwt.verify(token, process.env.JWT_SECRET);
-  if (!userId) return next(new ApiError("userId not found", 400));
+  try {
+    const token = req.headers.authorization;
+    if (!token) {
+      return next(new ApiError("Token not provided", 401));
+    }
+    const userId = jwt.verify(token, process.env.JWT_SECRET);
+    if (!userId) return next(new ApiError("userId not found", 400));
 
-  const user = await userModel.findById(userId.userId).populate("role_id");
-  if (!user) {
-    return next(new ApiError("User Not Found", 404));
+    const user = await userModel.findById(userId.userId).populate("role_id");
+    if (!user) {
+      return next(new ApiError("User Not Found", 404));
+    }
+    req.user = user;
+    next()
+  } catch (error) { 
+    return next(error)
   }
-  req.user = user;
-  next()
 };
 
 

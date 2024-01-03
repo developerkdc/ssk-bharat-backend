@@ -2,8 +2,13 @@ import ApiError from "../../../../Utils/ApiError";
 import catchAsync from "../../../../Utils/catchAsync";
 import { dynamicSearch } from "../../../../Utils/dynamicSearch";
 import gstModel from "../../../../database/schema/Master/GST/gst.schema";
+import { approvalData } from "../../../HelperFunction/approvalFunction";
 export const createGst = catchAsync(async (req, res, next) => {
-  const gst = await gstModel.create(req.body);
+  const user = req.user;
+  const gst = await gstModel.create({
+    current_data:{...req.body},
+    approver:approvalData(user)
+  });
   if (gst) {
     return res.status(201).json({
       statusCode: 201,
@@ -72,7 +77,7 @@ export const getGstList = catchAsync(async (req, res, next) => {
     {
       $project: {
         _id: 1,
-        gst_percentage: 1,
+        "current_data.gst_percentage": 1,
       },
     },
   ]);
@@ -89,15 +94,24 @@ export const getGstList = catchAsync(async (req, res, next) => {
 
 export const updateGst = catchAsync(async (req, res, next) => {
   const { id } = req.params;
-  const gst = await gstModel.findById(id);
-  if (!gst) {
-    return next(new ApiError("GST Not Found", 404));
-  }
+  const {gst_percentage,status} = req.body;
+  const user = req.user;
+
   const updatedGst = await gstModel.findByIdAndUpdate(
     id,
-    { ...req.body, updated_at: Date.now() },
+    {
+      $set:{
+        "proposed_changes.gst_percentage": gst_percentage,
+        "proposed_changes.status":false,
+        approver:approvalData(user)
+    }
+    },
     { new: true }
   );
+
+  if (!updatedGst) {
+    return next(new ApiError("GST Not Found", 404));
+  }
   return res.status(200).json({
     statusCode: 200,
     status: "success",
