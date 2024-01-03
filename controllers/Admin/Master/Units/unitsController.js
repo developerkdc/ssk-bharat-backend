@@ -2,13 +2,18 @@ import ApiError from "../../../../Utils/ApiError";
 import catchAsync from "../../../../Utils/catchAsync";
 import { dynamicSearch } from "../../../../Utils/dynamicSearch";
 import unitModel from "../../../../database/schema/Master/Units/unit.schema";
+import { approvalData } from "../../../HelperFunction/approvalFunction";
 
 export const createUnit = catchAsync(async (req, res, next) => {
-  const unit = await unitModel.create(req.body);
+  const user = req.user;
+  const unit = await unitModel.create({
+    current_data: { ...req.body },
+    approver: approvalData(user),
+  });
   if (unit) {
     return res.status(201).json({
       statusCode: 201,
-      status: true,
+      status: "success",
       data: unit,
       message: "Unit Created",
     });
@@ -22,7 +27,7 @@ export const getUnits = catchAsync(async (req, res, next) => {
   const limit = parseInt(req.query.limit) || 10;
   const sortDirection = req.query.sort === "desc" ? -1 : 1;
   const search = req.query.search || "";
-  const sortField = req.query.sortBy;
+  const sortField = req.query.sortBy || "created_at";
 
   let searchQuery = {};
   if (search != "" && req?.body?.searchFields) {
@@ -73,8 +78,10 @@ export const getUnitList = catchAsync(async (req, res, next) => {
     {
       $project: {
         _id: 1,
-        unit_name: 1,
-        unit_symbol: 1,
+        current_data: {
+          unit_name: 1,
+          unit_symbol: 1,
+        },
       },
     },
   ]);
@@ -91,17 +98,24 @@ export const getUnitList = catchAsync(async (req, res, next) => {
 
 export const updateUnit = catchAsync(async (req, res, next) => {
   const { id } = req.params;
+  const user = req.user;
 
-  const unit = await unitModel.findById(id);
-
-  if (!unit) {
-    return next(new ApiError("Unit Not Found", 404));
-  }
   const updatedUnit = await unitModel.findByIdAndUpdate(
     id,
-    { ...req.body, updated_at: Date.now() },
+    {
+      $set: {
+        "proposed_changes.unit_name": req?.body?.unit_name,
+        "proposed_changes.unit_symbol": req?.body?.unit_symbol,
+        "proposed_changes.status": false,
+        updated_at: Date.now(),
+        approver: approvalData(user),
+      },
+    },
     { new: true }
   );
+  if (!updatedUnit) {
+    return next(new ApiError("Unit Not Found", 404));
+  }
   return res.status(200).json({
     statusCode: 200,
     status: "success",

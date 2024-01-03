@@ -6,14 +6,13 @@ import { approvalData } from "../../../HelperFunction/approvalFunction";
 export const createGst = catchAsync(async (req, res, next) => {
   const user = req.user;
   const gst = await gstModel.create({
-    current_data:{...req.body},
-    approver:approvalData(user)
+    current_data: { ...req.body },
+    approver: approvalData(user),
   });
   if (gst) {
     return res.status(201).json({
       statusCode: 201,
       status: "success",
-
       data: gst,
       message: "GST Created",
     });
@@ -27,7 +26,7 @@ export const getGST = catchAsync(async (req, res, next) => {
   const limit = parseInt(req.query.limit) || 10;
   const sortDirection = req.query.sort === "desc" ? -1 : 1;
   const search = req.query.search || "";
-  const sortField = req.query.sortBy;
+  const sortField = req.query.sortBy || "created_at";
 
   let searchQuery = {};
   if (search != "" && req?.body?.searchFields) {
@@ -38,8 +37,6 @@ export const getGST = catchAsync(async (req, res, next) => {
         status: "failed",
         data: {
           gst: [],
-          // totalPages: 1,
-          // currentPage: 1,
         },
         message: "Results Not Found",
       });
@@ -94,17 +91,18 @@ export const getGstList = catchAsync(async (req, res, next) => {
 
 export const updateGst = catchAsync(async (req, res, next) => {
   const { id } = req.params;
-  const {gst_percentage,status} = req.body;
+  const { gst_percentage } = req.body;
   const user = req.user;
 
   const updatedGst = await gstModel.findByIdAndUpdate(
     id,
     {
-      $set:{
+      $set: {
         "proposed_changes.gst_percentage": gst_percentage,
-        "proposed_changes.status":false,
-        approver:approvalData(user)
-    }
+        "proposed_changes.status": false,
+        approver: approvalData(user),
+        updated_at: Date.now(),
+      },
     },
     { new: true }
   );
