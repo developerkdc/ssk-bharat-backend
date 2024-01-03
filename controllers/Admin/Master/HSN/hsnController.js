@@ -53,7 +53,7 @@ export const getHSNCode = catchAsync(async (req, res, next) => {
   const skip = (validPage - 1) * limit;
 
   const hsn = await hsnCodeModel
-    .find(searchQuery)
+    .find({...searchQuery, "current_data.status": true })
     .sort({ [sortField]: sortDirection })
     .skip(skip)
     .limit(limit)

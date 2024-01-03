@@ -54,7 +54,7 @@ export const getCategory = catchAsync(async (req, res, next) => {
   const skip = (validPage - 1) * limit;
 
   const category = await categoryModel
-    .find(searchQuery)
+    .find({ ...searchQuery, "current_data.status": true })
     .sort({ [sortBy]: sortDirection })
     .skip(skip)
     .limit(limit);

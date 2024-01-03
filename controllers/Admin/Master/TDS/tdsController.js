@@ -55,7 +55,7 @@ export const getTDS = catchAsync(async (req, res, next) => {
   const skip = Math.max((validPage - 1) * limit, 0);
 
   const tds = await tdsModel
-    .find(searchQuery)
+    .find({ ...searchQuery, "current_data.status": true })
     .sort({ [sortField]: sortDirection })
     .skip(skip)
     .limit(limit);

@@ -50,7 +50,7 @@ export const getGST = catchAsync(async (req, res, next) => {
   const skip = Math.max((validPage - 1) * limit, 0);
 
   const gst = await gstModel
-    .find(searchQuery)
+    .find({...searchQuery, "current_data.status": true })
     .sort({ [sortField]: sortDirection })
     .skip(skip)
     .limit(limit);

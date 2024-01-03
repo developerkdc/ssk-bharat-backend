@@ -65,7 +65,7 @@ export const getProducts = catchAsync(async (req, res, next) => {
   const skip = (validPage - 1) * limit;
   const sortField = req?.query?.sortBy || "created_at";
   const product = await productModel
-    .find(searchQuery)
+    .find({ ...searchQuery, "current_data.status": true })
     .sort({ [sortField]: sortDirection })
     .skip(skip)
     .limit(limit)

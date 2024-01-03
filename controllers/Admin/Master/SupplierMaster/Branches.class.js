@@ -253,7 +253,7 @@ class Branches {
     const data = await this.#modal
       .aggregate([
         {
-          $match: {...filters,...searchQuery},
+          $match: { ...filters, ...searchQuery, "current_data.status": true },
         },
         {
           $limit: limit,
@@ -271,8 +271,8 @@ class Branches {
         },
         {
           $unwind: {
-            path:`$current_data.${this.#modalName}Id`,
-            preserveNullAndEmptyArrays:true
+            path: `$current_data.${this.#modalName}Id`,
+            preserveNullAndEmptyArrays: true,
           },
         },
       ])
