@@ -72,9 +72,14 @@ export const getGST = catchAsync(async (req, res, next) => {
 export const getGstList = catchAsync(async (req, res, next) => {
   const gst = await gstModel.aggregate([
     {
+      $match: { "current_data.status": true },
+    },
+    {
       $project: {
         _id: 1,
-        "current_data.gst_percentage": 1,
+        current_data: {
+          gst_percentage: 1,
+        },
       },
     },
   ]);
@@ -82,7 +87,6 @@ export const getGstList = catchAsync(async (req, res, next) => {
     return res.status(200).json({
       statusCode: 200,
       status: "success",
-
       data: gst,
       message: "All GST List",
     });

@@ -76,6 +76,9 @@ export const getUnits = catchAsync(async (req, res, next) => {
 export const getUnitList = catchAsync(async (req, res, next) => {
   const unit = await unitModel.aggregate([
     {
+      $match: { "current_data.status": true },
+    },
+    {
       $project: {
         _id: 1,
         current_data: {

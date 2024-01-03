@@ -77,6 +77,9 @@ export const getCategory = catchAsync(async (req, res, next) => {
 export const getCategoryList = catchAsync(async (req, res, next) => {
   const category = await categoryModel.aggregate([
     {
+      $match: { "current_data.status": true },
+    },
+    {
       $project: {
         _id: 1,
         "current_data.category_name": 1,

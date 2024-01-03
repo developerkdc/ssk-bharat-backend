@@ -40,7 +40,7 @@ const storePurchaseOrderSchema = new mongoose.Schema({
       default: null,
     },
     gst_no: {
-      type: Number,
+      type: String,
       // required: [true, "Gst No is required"],
       trim: true,
       default: null,
@@ -112,7 +112,7 @@ const storePurchaseOrderSchema = new mongoose.Schema({
         default: null,
       },
       gst_no: {
-        type: Number,
+        type: String,
         // required: [true, "Gst No is required"],
         trim: true,
         default: null,
@@ -172,7 +172,7 @@ const storePurchaseOrderSchema = new mongoose.Schema({
         default: null,
       },
       gst_no: {
-        type: Number,
+        type: String,
         // required: [true, "Gst No is required"],
         trim: true,
         default: null,

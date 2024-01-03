@@ -1,17 +1,17 @@
 import mongoose from "mongoose";
-import userAndApprovals from "../../../utils/approval.schema";
+import SchemaFunction from "../../../../controllers/HelperFunction/SchemaFunction";
 
-const TdsSchema = new mongoose.Schema({
-  tds_percentage: {
-    type: Number,
-    required: [true, "TDS Percentage is required"],
-    unique: true,
-  },
-  approver:userAndApprovals,
-  created_at: { type: Date, default: Date.now },
-  updated_at: { type: Date, default: Date.now },
-  deleted_at: { type: Date, default: null },
-});
+const TdsSchema = SchemaFunction(
+  new mongoose.Schema({
+    tds_percentage: {
+      type: Number,
+      required: [true, "TDS Percentage is required"],
+      unique: true,
+    },
+  })
+);
+
+TdsSchema.index({ "current_data.tds_percentage": 1 }, { unique: true });
 
 const tdsModel = mongoose.model("tds", TdsSchema);
 export default tdsModel;
