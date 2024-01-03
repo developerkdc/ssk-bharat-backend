@@ -37,7 +37,7 @@ export const Approved = catchAsync(async (req, res, next) => {
     const model = mongoose.model(module);
     const data = await model.findOne({ _id: documentId });
 
-    if(!data) return next(new ApiError("the document does not exits",400))
+    if (!data) return next(new ApiError("the document does not exits", 400))
 
     let approvalList;
 
@@ -46,10 +46,16 @@ export const Approved = catchAsync(async (req, res, next) => {
             $set: {
                 "approver.approver_one.isApprove": isApprove,
                 "approver.approver_one.remarks": remark,
-                "proposed_changes.status":true,
-                current_data:Object.assign(data.proposed_changes,{status:true})
+                "proposed_changes.status": true,
+                current_data: Object.assign(data.proposed_changes, { status: true })
             },
         });
+        return res.status(200).json({
+            statusCode: 200,
+            status: true,
+            data: approvalList,
+            message: "Document has been Approved",
+        })
     } else if (data.approver.approver_two && !approval2) {
         approvalList = await model.updateOne({ _id: documentId, "approver.approver_one.user_id": userId, "approver.approver_one.isApprove": false }, {
             $set: {
@@ -57,6 +63,12 @@ export const Approved = catchAsync(async (req, res, next) => {
                 "approver.approver_one.remarks": remark,
             },
         });
+        return res.status(200).json({
+            statusCode: 200,
+            status: true,
+            data: approvalList,
+            message: "Approval Pending from Approval 2",
+        })
     } else if (data.approver.approver_two && approval2 === "true") {
         approvalList = await model.updateOne({
             $and: [
@@ -68,9 +80,15 @@ export const Approved = catchAsync(async (req, res, next) => {
             $set: {
                 "approver.approver_two.isApprove": isApprove,
                 "approver.approver_two.remarks": remark,
-                "proposed_changes.status":true,
-                current_data:Object.assign(data.proposed_changes,{status:true}),
+                "proposed_changes.status": true,
+                current_data: Object.assign(data.proposed_changes, { status: true }),
             }
+        })
+        return res.status(200).json({
+            statusCode: 200,
+            status: true,
+            data: approvalList,
+            message: "Document has been Approved",
         })
     }
 
@@ -78,6 +96,6 @@ export const Approved = catchAsync(async (req, res, next) => {
         statusCode: 200,
         status: true,
         data: approvalList,
-        message: "Approval Pending from your Side",
+        message: "Approval Pending",
     })
 })

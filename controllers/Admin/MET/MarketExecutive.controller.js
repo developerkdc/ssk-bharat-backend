@@ -130,6 +130,7 @@ export const updateMarketExec = catchAsync(async (req, res) => {
         "proposed_changes.address.city": data?.address?.city,
         "proposed_changes.address.country": data?.address?.country,
         "proposed_changes.address.pincode": data?.address?.pincode,
+        updated_at: Date.now()
       },
     },
     { runValidators: true }
@@ -200,6 +201,7 @@ export const uploadMarketExecImages = catchAsync(async (req, res, next) => {
         "proposed_changes.kyc.gst.gst_image": images?.gst_image,
         "proposed_changes.kyc.aadhar.aadhar_image": images?.aadhar_image,
         "proposed_changes.kyc.bank_details.passbook_image": images?.passbook_image,
+        updated_at: Date.now()
       },
     }
   );
@@ -283,6 +285,9 @@ export const addNominee = catchAsync(async (req, res, next) => {
           },
         },
       },
+      $set: {
+        updated_at: Date.now()
+      },
     },
     { new: true }
   );
@@ -327,30 +332,31 @@ export const editNominee = catchAsync(async (req, res, next) => {
   }
 
   const editNominee = await MarketExecutiveModel.updateOne(
-    { _id: req.params.id, "nominee._id": req.params.nomineeId },
+    { _id: req.params.id, "proposed_changes.nominee._id": req.params.nomineeId },
     {
       $set: {
-        "nominee.$[e].nominee_name": nominee_name,
-        "nominee.$[e].nominee_dob": nominee_dob,
-        "nominee.$[e].nominee_age": nominee_age,
-        "nominee.$[e].address.address": address,
-        "nominee.$[e].address.location": location,
-        "nominee.$[e].address.area": area,
-        "nominee.$[e].address.district": district,
-        "nominee.$[e].address.taluka": taluka,
-        "nominee.$[e].address.state": state,
-        "nominee.$[e].address.city": city,
-        "nominee.$[e].address.country": country,
-        "nominee.$[e].address.pincode": pincode,
-        "nominee.$[e].kyc.pan.pan_no": pan_no,
-        "nominee.$[e].kyc.pan.pan_image": images?.pan_image,
-        "nominee.$[e].kyc.aadhar.aadhar_no": aadhar_no,
-        "nominee.$[e].kyc.aadhar.aadhar_image": images?.aadhar_image,
-        "nominee.$[e].bank_details.bank_name": bank_name,
-        "nominee.$[e].bank_details.account_no": account_no,
-        "nominee.$[e].bank_details.confirm_account_no": confirm_account_no,
-        "nominee.$[e].bank_details.ifsc_code": ifsc_code,
-        "nominee.$[e].bank_details.passbook_image": images?.passbook_image,
+        "proposed_changes.nominee.$[e].nominee_name": nominee_name,
+        "proposed_changes.nominee.$[e].nominee_dob": nominee_dob,
+        "proposed_changes.nominee.$[e].nominee_age": nominee_age,
+        "proposed_changes.nominee.$[e].address.address": address,
+        "proposed_changes.nominee.$[e].address.location": location,
+        "proposed_changes.nominee.$[e].address.area": area,
+        "proposed_changes.nominee.$[e].address.district": district,
+        "proposed_changes.nominee.$[e].address.taluka": taluka,
+        "proposed_changes.nominee.$[e].address.state": state,
+        "proposed_changes.nominee.$[e].address.city": city,
+        "proposed_changes.nominee.$[e].address.country": country,
+        "proposed_changes.nominee.$[e].address.pincode": pincode,
+        "proposed_changes.nominee.$[e].kyc.pan.pan_no": pan_no,
+        "proposed_changes.nominee.$[e].kyc.pan.pan_image": images?.pan_image,
+        "proposed_changes.nominee.$[e].kyc.aadhar.aadhar_no": aadhar_no,
+        "proposed_changes.nominee.$[e].kyc.aadhar.aadhar_image": images?.aadhar_image,
+        "proposed_changes.nominee.$[e].kyc.bank_details.bank_name": bank_name,
+        "proposed_changes.nominee.$[e].kyc.bank_details.account_no": account_no,
+        "proposed_changes.nominee.$[e].kyc.bank_details.confirm_account_no": confirm_account_no,
+        "proposed_changes.nominee.$[e].kyc.bank_details.ifsc_code": ifsc_code,
+        "proposed_changes.nominee.$[e].kyc.bank_details.passbook_image": images?.passbook_image,
+        updated_at:Date.now()
       },
     },
     { arrayFilters: [{ "e._id": req.params.nomineeId }] }
