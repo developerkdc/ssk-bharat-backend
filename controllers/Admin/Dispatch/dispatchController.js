@@ -4,6 +4,8 @@ import ApiError from "../../../Utils/ApiError.js";
 import SalesModel from "../../../database/schema/SalesOrders/salesOrder.schema.js";
 import mongoose from "mongoose";
 import { dynamicSearch } from "../../../Utils/dynamicSearch.js";
+
+
 export const latestDispatchNo = catchAsync(async (req, res, next) => {
   try {
     // Find the latest purchase order by sorting in descending order based on purchase_order_date
