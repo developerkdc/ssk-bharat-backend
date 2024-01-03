@@ -1,6 +1,7 @@
 import mongoose from "mongoose"
+import SchemaFunction from "../../../controllers/HelperFunction/SchemaFunction";
 
-const payoutAndCommissionTranSchema = new mongoose.Schema({
+const payoutAndCommissionTranSchema = SchemaFunction(new mongoose.Schema({
     marketExecutiveId: {
         type: mongoose.Schema.Types.ObjectId,
         required: [true, "market executive is required"]
@@ -99,17 +100,13 @@ const payoutAndCommissionTranSchema = new mongoose.Schema({
             }
         },
         default:null
-    },
-    createdAt:{
-        type:Date,
-        default:Date.now
     }
-})
+}))
 
 payoutAndCommissionTranSchema.pre("save",function(next){
-    const {payouts:{payoutAmount,tdsPercentage}} = this;
-    this.payouts.tdsAmount = (payoutAmount/100)*tdsPercentage;
-    this.payouts.amountPaid = this.payouts.payoutAmount - this.payouts.tdsAmount;
+    const {payouts:{payoutAmount,tdsPercentage}} = this.current_data;
+    this.current_data.payouts.tdsAmount = (payoutAmount/100)*tdsPercentage;
+    this.current_data.payouts.amountPaid = this.current_data.payouts.payoutAmount - this.current_data.payouts.tdsAmount;
     next()
 })
 

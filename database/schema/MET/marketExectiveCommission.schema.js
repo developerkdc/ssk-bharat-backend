@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
+import SchemaFunction from "../../../controllers/HelperFunction/SchemaFunction";
 
-const marketExectiveCommissionSchema = new mongoose.Schema({
+const marketExectiveCommissionSchema = SchemaFunction(new mongoose.Schema({
     companyId:{
         type:mongoose.Schema.Types.ObjectId,
         trim:true,
@@ -29,7 +30,7 @@ const marketExectiveCommissionSchema = new mongoose.Schema({
         type:Number,
         default:0
     }
-});
+}));
 
 const marketExectiveCommissionModel = mongoose.model('marketExectiveCommission',marketExectiveCommissionSchema);
 export default marketExectiveCommissionModel;
