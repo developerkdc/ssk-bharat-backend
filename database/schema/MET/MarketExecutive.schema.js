@@ -142,6 +142,7 @@ const MarketExecutiveSchema = SchemaFunction(new mongoose.Schema({
       trim: true,
       default: null,
     },
+    otp: { type: String, trim: true,default:null },
   },
   account_balance: {
     type: Number,
@@ -198,7 +199,6 @@ const MarketExecutiveSchema = SchemaFunction(new mongoose.Schema({
       },
     },
   },
-  otp: { type: String, trim: true },
   insurance: insuranceSchema,
   nominee: [nomineeSchema],
   address: addressSchema

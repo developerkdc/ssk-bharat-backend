@@ -1,4 +1,3 @@
-
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import METModel from "../../database/schema/MET/MarketExecutive.schema.js";
@@ -10,38 +9,52 @@ const saltRounds = 10;
 export const METLoginUser = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
   const secretKey = process.env.JWT_SECRET;
-  const met = await METModel.findOne({ "current_data.contact_person_details.primary_email_id": email });
+  const met = await METModel.findOne({
+    "current_data.contact_person_details.primary_email_id": email,
+  });
   if (!met) {
     return res.status(401).json({ message: "Invalid credentials" });
   }
-  const passwordMatch = await bcrypt.compare(password, met.current_data.contact_person_details.password);
+  const passwordMatch = await bcrypt.compare(
+    password,
+    met.current_data.contact_person_details.password
+  );
 
+  console.log(passwordMatch,"passsss")
   if (!passwordMatch) {
     return res.status(401).json({ message: "Invalid Password" });
   }
 
   const token = met.jwtToken(next);
 
-  return res.status(200).cookie("token", token).cookie("metUserId", met.id).json({
-    statusCode: 200,
-    token: token,
-    message: "Login success",
-  });
+  return res
+    .status(200)
+    .cookie("token", token)
+    .cookie("metUserId", met.id)
+    .json({
+      statusCode: 200,
+      token: token,
+      message: "Login success",
+    });
 });
 
 export const METSendOTP = catchAsync(async (req, res) => {
   const { email } = req.body;
   let otp = Math.floor(Math.random() * 100000);
-  const metUser = await METModel.findOne({ "current_data.contact_person_details.primary_email_id": email });
+  const metUser = await METModel.findOne({
+    "current_data.contact_person_details.primary_email_id": email,
+  });
 
-  if(!metUser){
+  if (!metUser) {
     return res.status(400).json({
       success: "failed",
       message: `User Does not Exist`,
     });
   }
-  metUser.otp = otp;
-  const updatedUser = await metUser.save();
+  const met = new METModel(metUser);
+  console.log(met,"meetttt")
+  met.current_data.contact_person_details.otp = otp;
+  const updatedUser = await met.save();
   const message = `
    <!DOCTYPE html>
 <html>
@@ -129,7 +142,7 @@ export const METSendOTP = catchAsync(async (req, res) => {
 </body>
 </html>
   `;
-console.log(updatedUser)
+
   await sendEmail({
     email: email,
     subject: "OTP",
@@ -145,18 +158,25 @@ console.log(updatedUser)
 export const METVerifyOTPAndUpdatePassword = catchAsync(async (req, res) => {
   const { email, otp, newPassword } = req.body;
 
-  const metUser = await METModel.findOne({ "current_data.contact_person_details.primary_email_id": email });
-  console.log(metUser);
-  if (!otp || otp !== metUser.otp) {
+  const metUser = await METModel.findOne({
+    "current_data.contact_person_details.primary_email_id": email,
+  });
+
+  if (!otp || otp !== metUser.current_data.contact_person_details.otp) {
     return res.status(400).json({
       success: false,
       message: "Invalid OTP",
     });
   }
+
   const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
-  metUser.password = hashedPassword;
-  metUser.otp = null;
-  const updatedUser = await metUser.save();
+
+  const met = new METModel(metUser);
+
+  met.current_data.contact_person_details.password = hashedPassword;
+  met.current_data.contact_person_details.otp = null;
+
+  const updatedUser = await met.save(); // Fixed this line
   return res.status(200).json({
     statusCode: 200,
     status: "Success",
@@ -166,3 +186,4 @@ export const METVerifyOTPAndUpdatePassword = catchAsync(async (req, res) => {
     message: "Password updated successfully",
   });
 });
+
