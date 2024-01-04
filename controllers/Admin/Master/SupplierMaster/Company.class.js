@@ -20,6 +20,15 @@ class CompanyMaster {
         trim: true,
         required: [true, "Company name is required"],
       },
+      company_type: {
+        type: String,
+        required: [true, "Sales Order Type is required"],
+        enum: {
+          values:["retailers", "offlinestores","suppliers","sskcompanies"],
+          message:"invalid {VALUE}"
+        },
+        trim: true,
+      },
       onboarding_date: {
         type: Date,
         default: Date.now,
@@ -29,9 +38,15 @@ class CompanyMaster {
         trim: true,
         default: null,
       },
-      status: {
-        type: Boolean,
-        default: false,
+      inventorySchema: {
+        type: String,
+        default: function () {
+          if(this.company_type === "retailers" || this.company_type === "offlinestores"){
+            return `${this.company_type}_${this.company_name}_${this._id.toString().slice(-5)}`
+          }else{
+            return null
+          }
+        }
       },
     }))
     this.#Schema.methods.jwtToken = function (next) {
@@ -169,7 +184,7 @@ class CompanyMaster {
     });
   });
   AddCompany = catchAsync(async (req, res, next) => {
-    const {approver,...data} = req.body;
+    const { approver, ...data } = req.body;
     let protectedPassword;
 
     if (
@@ -181,7 +196,7 @@ class CompanyMaster {
     }
 
     const addData = await this.#modal.create({
-      current_data:{...data,password: protectedPassword},
+      current_data: { ...data, password: protectedPassword },
       approver
     });
     return res.status(201).json({
@@ -207,9 +222,9 @@ class CompanyMaster {
       { _id: id },
       {
         $set: {
-          "proposed_changes.company_name":company_name,
-          "proposed_changes.company_status":company_status,
-          "proposed_changes.onboarding_date":onboarding_date,
+          "proposed_changes.company_name": company_name,
+          "proposed_changes.company_status": company_status,
+          "proposed_changes.onboarding_date": onboarding_date,
           approver,
           updated_at: Date.now(),
         },

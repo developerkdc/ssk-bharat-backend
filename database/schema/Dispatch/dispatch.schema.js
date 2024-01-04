@@ -120,6 +120,7 @@ const dispatchOrder = new mongoose.Schema({
   customer_details: {
     customer_id: {
       type: mongoose.Schema.Types.ObjectId,
+      refPath:"order_type",
       required: [true, "Customer Id is required"],
     },
     customer_name: {
@@ -234,7 +235,6 @@ const dispatchOrder = new mongoose.Schema({
       address: addressSchema,
     },
   },
-
   Items: [
     {
       product_Id: {
