@@ -107,6 +107,13 @@ const dispatchOrder = new mongoose.Schema({
     secondary_email_id: {
       type: String,
       default: null,
+      trim: true,
+      validate: {
+        validator: function (value) {
+          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+        },
+        message: "invalid email Id",
+      },
     },
     primary_mobile_no: {
       type: String,
@@ -168,13 +175,20 @@ const dispatchOrder = new mongoose.Schema({
       secondary_email_id: {
         type: String,
         default: null,
+        trim: true,
+        validate: {
+          validator: function (value) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+          },
+          message: "invalid email Id",
+        },
       },
       primary_mobile_no: {
-        type: String,
+        type: Number,
         required: [true, "Primary Mobile Number is required"],
         trim: true,
       },
-      secondary_mobile_no: { type: String, default: null },
+      secondary_mobile_no: { type: Number, default: null },
       address: addressSchema,
     },
     ship_to: {
@@ -221,13 +235,20 @@ const dispatchOrder = new mongoose.Schema({
       secondary_email_id: {
         type: String,
         default: null,
+        trim: true,
+        validate: {
+          validator: function (value) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+          },
+          message: "invalid email Id",
+        },
       },
       primary_mobile_no: {
-        type: String,
+        type: Number,
         required: [true, "Primary Mobile No is required"],
         trim: true,
       },
-      secondary_mobile_no: { type: String, default: null },
+      secondary_mobile_no: { type: Number, default: null },
       address: addressSchema,
     },
   },

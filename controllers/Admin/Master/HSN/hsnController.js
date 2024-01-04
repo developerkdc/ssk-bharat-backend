@@ -2,9 +2,15 @@ import ApiError from "../../../../Utils/ApiError";
 import catchAsync from "../../../../Utils/catchAsync";
 import { dynamicSearch } from "../../../../Utils/dynamicSearch";
 import hsnCodeModel from "../../../../database/schema/Master/HSN/hsnCode.schema";
+import { approvalData } from "../../../HelperFunction/approvalFunction";
 
 export const createHSN = catchAsync(async (req, res, next) => {
-  const hsnCode = await hsnCodeModel.create(req.body);
+  const user = req.user;
+
+  const hsnCode = await hsnCodeModel.create({
+    current_data: { ...req.body },
+    approver: approvalData(user),
+  });
   if (hsnCode) {
     return res.status(201).json({
       statusCode: 201,
@@ -22,8 +28,7 @@ export const getHSNCode = catchAsync(async (req, res, next) => {
   const limit = parseInt(req.query.limit) || 10;
   const sortDirection = req.query.sort === "desc" ? -1 : 1;
   const search = req.query.search || "";
-  const sortField = req.query.sortBy || "hsn_code";
-
+  const sortField = req.query.sortBy || "created_at";
 
   let searchQuery = {};
   if (search != "" && req?.body?.searchFields) {
@@ -34,9 +39,7 @@ export const getHSNCode = catchAsync(async (req, res, next) => {
         statusCode: 404,
         status: "failed",
         data: {
-          gst: [],
-          // totalPages: 1,
-          // currentPage: 1,
+          hsnCode: [],
         },
         message: "Results Not Found",
       });
@@ -49,24 +52,24 @@ export const getHSNCode = catchAsync(async (req, res, next) => {
   const validPage = Math.min(Math.max(page, 1), totalPages);
   const skip = (validPage - 1) * limit;
 
-  const gst = await hsnCodeModel
-    .find(searchQuery)
+  const hsn = await hsnCodeModel
+    .find({...searchQuery, "current_data.status": true })
     .sort({ [sortField]: sortDirection })
     .skip(skip)
     .limit(limit)
     .populate([
       {
-        path: "gst_percentage",
+        path: "current_data.gst_percentage",
         select: "_id current_data.gst_percentage",
       },
     ]);
 
-  if (gst) {
+  if (hsn) {
     return res.status(200).json({
       statusCode: 200,
       status: "success",
       data: {
-        gst: gst,
+        hsnCode: hsn,
         totalPages: totalPages,
         currentPage: validPage,
       },
@@ -78,13 +81,33 @@ export const getHSNCode = catchAsync(async (req, res, next) => {
 export const getHSNCodeList = catchAsync(async (req, res, next) => {
   const hsnCode = await hsnCodeModel.aggregate([
     {
+      $match: { "current_data.status": true },
+    },
+    {
+      $lookup: {
+        from: "gsts",
+        foreignField: "_id",
+        localField: "current_data.gst_percentage",
+        as: "current_data.gst_percentage",
+      },
+    },
+    {
+      $unwind: "$current_data.gst_percentage",
+    },
+    {
       $project: {
         _id: 1,
-        hsn_code: 1,
-        gst_percentage: 1,
+        current_data: {
+          hsn_code: 1,
+          gst_percentage: {
+            _id: 1,
+            "current_data.gst_percentage": 1,
+          },
+        },
       },
     },
   ]);
+
   if (hsnCode) {
     return res.status(200).json({
       statusCode: 200,
@@ -97,13 +120,23 @@ export const getHSNCodeList = catchAsync(async (req, res, next) => {
 
 export const updateHsnCode = catchAsync(async (req, res, next) => {
   const { id } = req.params;
+  const user = req.user;
+
   const hsnCode = await hsnCodeModel.findById(id);
   if (!hsnCode) {
     return next(new ApiError("HSN Code Not Found", 404));
   }
   const updatedHsnCode = await hsnCodeModel.findByIdAndUpdate(
     id,
-    { ...req.body, updated_at: Date.now() },
+    {
+      $set: {
+        "proposed_changes.hsn_code": req?.body?.hsn_code,
+        "proposed_changes.gst_percentage": req?.body?.gst_percentage,
+        "proposed_changes.status": false,
+        updated_at: Date.now(),
+        approver: approvalData(user),
+      },
+    },
     { new: true }
   );
   return res.status(200).json({

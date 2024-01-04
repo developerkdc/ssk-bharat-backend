@@ -11,8 +11,6 @@ export const dynamicSearch = (search, boolean, numbers, string) => {
 
   const dynamicSearchQueries = searchFields?.map((field) => {
     if (search === "true" || search === "false") {
-
-
       return {
         [field]: search,
       };
@@ -25,10 +23,10 @@ export const dynamicSearch = (search, boolean, numbers, string) => {
         //     options: "i",
         //   },
         // },
+
         [field]: { $eq: parseInt(search, 10) }
       };
     } else if (typeof search === "string") {
-
       return {
         [field]: { $regex: search, $options: "i" },
       };

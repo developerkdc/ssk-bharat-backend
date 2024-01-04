@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import addressSchema from "../../utils/address.schema";
-import userAndApprovals from "../../utils/approval.schema";
 import bankDetailsSchema from "../../utils/bankDetails.schema";
+import SchemaFunction from "../../../controllers/HelperFunction/SchemaFunction";
 
 const nomineeSchema = new mongoose.Schema({
   nominee_name: {
@@ -84,7 +84,7 @@ const insuranceSchema = new mongoose.Schema({
   },
 });
 
-const MarketExecutiveSchema = new mongoose.Schema({
+const MarketExecutiveSchema = SchemaFunction(new mongoose.Schema({
   company_details: {
     companyName: {
       type: String,
@@ -195,9 +195,8 @@ const MarketExecutiveSchema = new mongoose.Schema({
   },
   insurance: insuranceSchema,
   nominee: [nomineeSchema],
-  address: addressSchema,
-  approvals: userAndApprovals,
-});
+  address: addressSchema
+}));
 
 // MarketExecutiveSchema.pre("updateOne", function (next) {
 //     // `this` refers to the query object

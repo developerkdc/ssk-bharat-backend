@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import catchAsync from "../../../../Utils/catchAsync";
 import companyAndApprovals from "../../../../database/utils/approval.schema";
 import { dynamicSearch } from "../../../../Utils/dynamicSearch";
+import SchemaFunction from "../../../HelperFunction/SchemaFunction";
 
 class CompanyMaster {
   #Schema;
@@ -11,7 +12,7 @@ class CompanyMaster {
   #modalName;
   #modal;
   constructor(modalName, collectionName) {
-    this.#Schema = new mongoose.Schema({
+    this.#Schema = SchemaFunction(new mongoose.Schema({
       company_name: {
         type: String,
         minlength: [2, "Length should be greater than two"],
@@ -28,17 +29,11 @@ class CompanyMaster {
         trim: true,
         default: null,
       },
-      company_status: {
+      status: {
         type: Boolean,
         default: false,
       },
-      approver: companyAndApprovals,
-      created_at: {
-        type: Date,
-        default: Date.now,
-      },
-      updated_at: { type: Date, default: Date.now },
-    });
+    }))
     this.#Schema.methods.jwtToken = function (next) {
       try {
         return jwt.sign(
@@ -152,6 +147,7 @@ class CompanyMaster {
       .skip(skip)
       .limit(limit)
       .sort({ [sortBy]: sort });
+
     return res.status(201).json({
       statusCode: 200,
       status: "Success",
@@ -173,6 +169,7 @@ class CompanyMaster {
     });
   });
   AddCompany = catchAsync(async (req, res, next) => {
+    const {approver,...data} = req.body;
     let protectedPassword;
 
     if (
@@ -184,8 +181,8 @@ class CompanyMaster {
     }
 
     const addData = await this.#modal.create({
-      ...req.body,
-      password: protectedPassword,
+      current_data:{...data,password: protectedPassword},
+      approver
     });
     return res.status(201).json({
       statusCode: 201,
@@ -203,17 +200,17 @@ class CompanyMaster {
       company_status,
       approver_one,
       approver_two,
+      approver
     } = req.body;
     const { id } = req.params;
     const updateData = await this.#modal.findByIdAndUpdate(
       { _id: id },
       {
         $set: {
-          company_name,
-          company_status,
-          onboarding_date,
-          "approver_one.isApprove": approver_one?.isApprove,
-          "approver_two.isApprove": approver_two?.isApprove,
+          "proposed_changes.company_name":company_name,
+          "proposed_changes.company_status":company_status,
+          "proposed_changes.onboarding_date":onboarding_date,
+          approver,
           updated_at: Date.now(),
         },
       },

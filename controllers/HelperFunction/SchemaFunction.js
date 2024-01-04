@@ -1,7 +1,13 @@
-import mongoose from "mongoose"
-import userAndApprovals from "../../database/utils/approval.schema"
+import mongoose from "mongoose";
+import userAndApprovals from "../../database/utils/approval.schema";
 
 const SchemaFunction = function (Schema) {
+    Schema.add({
+        status: {
+            type: Boolean,
+            default: false
+        }
+    });
     return new mongoose.Schema({
         current_data: {
             type: Schema,

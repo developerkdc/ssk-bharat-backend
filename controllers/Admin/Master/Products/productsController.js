@@ -3,9 +3,11 @@ import catchAsync from "../../../../Utils/catchAsync";
 import { dynamicSearch } from "../../../../Utils/dynamicSearch";
 import productModel from "../../../../database/schema/Master/Products/product.schema";
 import fs from "fs";
+import { approvalData } from "../../../HelperFunction/approvalFunction";
 
 export const createProduct = catchAsync(async (req, res, next) => {
   // Get the relative path of the uploaded image
+  const user = req.user;
   let relativeImagePath = [];
   for (let file of req.files) {
     relativeImagePath.push(file.filename);
@@ -16,9 +18,12 @@ export const createProduct = catchAsync(async (req, res, next) => {
     offline_store_sales_price: req?.body?.offline_store_sales_price || 0,
   };
   const product = await productModel.create({
-    ...req.body,
-    prices: prices,
-    product_images: relativeImagePath,
+    current_data: {
+      ...req.body,
+      prices: prices,
+      product_images: relativeImagePath,
+    },
+    approver: approvalData(user),
   });
   if (product) {
     return res.status(201).json({
@@ -47,8 +52,6 @@ export const getProducts = catchAsync(async (req, res, next) => {
         status: "success",
         data: {
           tds: [],
-          // totalPages: 1,
-          // currentPage: 1,
         },
         message: "Results Not Found",
       });
@@ -60,9 +63,9 @@ export const getProducts = catchAsync(async (req, res, next) => {
   const totalPages = Math.ceil(totalProduct / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
   const skip = (validPage - 1) * limit;
-  const sortField = req?.query?.sortBy || "product_name";
+  const sortField = req?.query?.sortBy || "created_at";
   const product = await productModel
-    .find(searchQuery)
+    .find({ ...searchQuery, "current_data.status": true })
     .sort({ [sortField]: sortDirection })
     .skip(skip)
     .limit(limit)
@@ -144,14 +147,14 @@ export const updateProductImage = catchAsync(async (req, res, next) => {
     }
   );
 
-  if (
-    updatedProductImage.acknowledged &&
-    updatedProductImage.modifiedCount > 0
-  ) {
-    if (fs.existsSync(`./uploads/admin/products/${imageName}`)) {
-      fs.unlinkSync(`./uploads/admin/products/${imageName}`);
-    }
-  }
+  // if (
+  //   updatedProductImage.acknowledged &&
+  //   updatedProductImage.modifiedCount > 0
+  // ) {
+  //   if (fs.existsSync(`./uploads/admin/products/${imageName}`)) {
+  //     fs.unlinkSync(`./uploads/admin/products/${imageName}`);
+  //   }
+  // }
 
   return res.status(200).json({
     statusCode: 200,

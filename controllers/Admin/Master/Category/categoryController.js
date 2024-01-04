@@ -3,13 +3,14 @@ import catchAsync from "../../../../Utils/catchAsync";
 import { dynamicSearch } from "../../../../Utils/dynamicSearch";
 import categoryModel from "../../../../database/schema/Master/Category/category.schema";
 import fs from "fs";
+import { approvalData } from "../../../HelperFunction/approvalFunction";
 
 export const createCategory = catchAsync(async (req, res, next) => {
-  console.log(req.file);
+  const user = req.user;
   const relativeImagePath = req.file ? req.file.filename : null;
   const category = await categoryModel.create({
-    ...req.body,
-    category_image: relativeImagePath,
+    current_data: { ...req.body, category_image: relativeImagePath },
+    approver: approvalData(user),
   });
   if (category) {
     return res.status(201).json({
@@ -27,7 +28,7 @@ export const getCategory = catchAsync(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const sortDirection = req.query.sort === "desc" ? -1 : 1;
-  const sortBy = req.query.sortBy || "category_name";
+  const sortBy = req.query.sortBy || "created_at";
   const search = req.query.search || "";
 
   let searchQuery = {};
@@ -39,8 +40,6 @@ export const getCategory = catchAsync(async (req, res, next) => {
         status: false,
         data: {
           category: [],
-          // totalPages: 1,
-          // currentPage: 1,
         },
         message: "Results Not Found",
       });
@@ -55,7 +54,7 @@ export const getCategory = catchAsync(async (req, res, next) => {
   const skip = (validPage - 1) * limit;
 
   const category = await categoryModel
-    .find(searchQuery)
+    .find({ ...searchQuery, "current_data.status": true })
     .sort({ [sortBy]: sortDirection })
     .skip(skip)
     .limit(limit);
@@ -76,12 +75,14 @@ export const getCategory = catchAsync(async (req, res, next) => {
 });
 
 export const getCategoryList = catchAsync(async (req, res, next) => {
-  console.log("iuhrgiuh");
   const category = await categoryModel.aggregate([
+    {
+      $match: { "current_data.status": true },
+    },
     {
       $project: {
         _id: 1,
-        category_name: 1,
+        "current_data.category_name": 1,
       },
     },
   ]);
@@ -98,23 +99,29 @@ export const getCategoryList = catchAsync(async (req, res, next) => {
 
 export const updateCategory = catchAsync(async (req, res, next) => {
   const { id } = req.params;
+  const user = req.user;
+
   let relativeImagePath;
-  // Step 1: Retrieve the old category
-  const oldCategory = await categoryModel.findById(id);
-
-  if (!oldCategory) {
-    return next(new ApiError("Category Not Found", 404));
-  }
-
   relativeImagePath = oldCategory.category_image;
   if (req.file) {
-    fs.unlinkSync(`./uploads/admin/category/${oldCategory.category_image}`);
-    console.log("File deleted successfully");
+    // fs.unlinkSync(`./uploads/admin/category/${oldCategory.category_image}`);
     relativeImagePath = req.file.filename;
   }
   const updatedCategory = await categoryModel.findByIdAndUpdate(
     id,
-    { ...req.body, category_image: relativeImagePath, updated_at: Date.now() },
+    {
+      $set: {
+        "proposed_changes.category_name": req?.body?.category_name,
+        "proposed_changes.category_image": relativeImagePath,
+        "proposed_changes.status": false,
+        "proposed_changes.show_in_website": req?.body?.show_in_website,
+        "proposed_changes.show_in_retailer": req?.body?.show_in_retailer,
+        "proposed_changes.show_in_offline_store":
+          req?.body?.show_in_offline_store,
+        updated_at: Date.now(),
+        approver: approvalData(user),
+      },
+    },
     { new: true }
   );
   return res.status(200).json({

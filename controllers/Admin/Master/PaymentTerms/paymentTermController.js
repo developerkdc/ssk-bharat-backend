@@ -2,9 +2,15 @@ import ApiError from "../../../../Utils/ApiError";
 import catchAsync from "../../../../Utils/catchAsync";
 import { dynamicSearch } from "../../../../Utils/dynamicSearch";
 import paymentTermDaysModel from "../../../../database/schema/Master/PaymentTerms/paymentTermDays.schema";
+import { approvalData } from "../../../HelperFunction/approvalFunction";
 
 export const createTermDays = catchAsync(async (req, res, next) => {
-  const termDays = await paymentTermDaysModel.create(req.body);
+  const user = req.user;
+  const termDays = await paymentTermDaysModel.create({
+    current_data: { ...req.body },
+    approver: approvalData(user),
+  });
+
   if (termDays) {
     return res.status(201).json({
       statusCode: 201,
@@ -21,7 +27,7 @@ export const getPaymentTermDays = catchAsync(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const sortDirection = req.query.sort === "desc" ? -1 : 1;
-  const sortField = req.query.sortBy || "payment_term_days";
+  const sortField = req.query.sortBy || "created_at";
 
   const search = req.query.search || "";
   let searchQuery = {};
@@ -33,8 +39,6 @@ export const getPaymentTermDays = catchAsync(async (req, res, next) => {
         status: "failed",
         data: {
           payment_term_days: [],
-          // totalPages: 1,
-          // currentPage: 1,
         },
         message: "Results Not Found",
       });
@@ -47,7 +51,7 @@ export const getPaymentTermDays = catchAsync(async (req, res, next) => {
   const skip = Math.max((validPage - 1) * limit, 0);
 
   const termDays = await paymentTermDaysModel
-    .find(searchQuery)
+    .find({ ...searchQuery, "current_data.status": true })
     .sort({ [sortField]: sortDirection })
     .skip(skip)
     .limit(limit);
@@ -69,9 +73,14 @@ export const getPaymentTermDays = catchAsync(async (req, res, next) => {
 export const getPaymentTermList = catchAsync(async (req, res, next) => {
   const termDays = await paymentTermDaysModel.aggregate([
     {
+      $match: { "current_data.status": true },
+    },
+    {
       $project: {
         _id: 1,
-        payment_term_days: 1,
+        current_data: {
+          payment_term_days: 1,
+        },
       },
     },
   ]);
@@ -87,10 +96,18 @@ export const getPaymentTermList = catchAsync(async (req, res, next) => {
 
 export const updatePaymentTerm = catchAsync(async (req, res, next) => {
   const { id } = req.params;
+  const { payment_term_days } = req.body;
 
   const updatedTermDays = await paymentTermDaysModel.findByIdAndUpdate(
     id,
-    { ...req.body, updated_at: Date.now() },
+    {
+      $set: {
+        "proposed_changes.payment_term_days": payment_term_days,
+        "proposed_changes.status": false,
+        approver: approvalData(user),
+        updated_at: Date.now(),
+      },
+    },
     { new: true }
   );
   if (!updatedTermDays) {

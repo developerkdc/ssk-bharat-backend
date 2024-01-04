@@ -2,13 +2,18 @@ import ApiError from "../../../../Utils/ApiError";
 import catchAsync from "../../../../Utils/catchAsync";
 import { dynamicSearch } from "../../../../Utils/dynamicSearch";
 import tdsModel from "../../../../database/schema/Master/TDS/tds.schema";
+import { approvalData } from "../../../HelperFunction/approvalFunction";
 
 export const createTds = catchAsync(async (req, res, next) => {
-  const tds = await tdsModel.create(req.body);
+  const user = req.user;
+  const tds = await tdsModel.create({
+    current_data: { ...req.body },
+    approver: approvalData(user),
+  });
   if (tds) {
     return res.status(201).json({
       statusCode: 201,
-      status: true,
+      status: "success",
       data: tds,
       message: "GST Created",
     });
@@ -22,7 +27,7 @@ export const getTDS = catchAsync(async (req, res, next) => {
   const limit = parseInt(req.query.limit) || 10;
   const sortDirection = req.query.sort === "desc" ? -1 : 1;
   const search = req.query.search || "";
-  const sortField = req.query.sortBy || "tds_percentage";
+  const sortField = req.query.sortBy || "created_at";
 
   //search functionality
   let searchQuery = {};
@@ -50,7 +55,7 @@ export const getTDS = catchAsync(async (req, res, next) => {
   const skip = Math.max((validPage - 1) * limit, 0);
 
   const tds = await tdsModel
-    .find(searchQuery)
+    .find({ ...searchQuery, "current_data.status": true })
     .sort({ [sortField]: sortDirection })
     .skip(skip)
     .limit(limit);
@@ -72,9 +77,14 @@ export const getTDS = catchAsync(async (req, res, next) => {
 export const getTDSList = catchAsync(async (req, res, next) => {
   const tds = await tdsModel.aggregate([
     {
+      $match: { "current_data.status": true },
+    },
+    {
       $project: {
         _id: 1,
-        tds_percentage: 1,
+        current_data: {
+          tds_percentage: 1,
+        },
       },
     },
   ]);
@@ -90,15 +100,26 @@ export const getTDSList = catchAsync(async (req, res, next) => {
 
 export const updateTds = catchAsync(async (req, res, next) => {
   const { id } = req.params;
-  const tds = await tdsModel.findById(id);
-  if (!tds) {
-    return next(new ApiError("TDS Not Found", 404));
-  }
+  const user = req.user;
+  const { tds_percentage } = req.body;
+
   const updatedtds = await tdsModel.findByIdAndUpdate(
     id,
-    { ...req.body, updated_at: Date.now() },
+    {
+      $set: {
+        "proposed_changes.tds_percentage": tds_percentage,
+        "proposed_changes.status": false,
+        approver: approvalData(user),
+        updated_at: Date.now(),
+      },
+    },
     { new: true }
   );
+
+  if (!updatedtds) {
+    return next(new ApiError("TDS Not Found", 404));
+  }
+
   return res.status(200).json({
     statusCode: 200,
     status: "success",

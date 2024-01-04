@@ -2,13 +2,17 @@ import ApiError from "../../../../Utils/ApiError";
 import catchAsync from "../../../../Utils/catchAsync";
 import { dynamicSearch } from "../../../../Utils/dynamicSearch";
 import gstModel from "../../../../database/schema/Master/GST/gst.schema";
+import { approvalData } from "../../../HelperFunction/approvalFunction";
 export const createGst = catchAsync(async (req, res, next) => {
-  const gst = await gstModel.create(req.body);
+  const user = req.user;
+  const gst = await gstModel.create({
+    current_data: { ...req.body },
+    approver: approvalData(user),
+  });
   if (gst) {
     return res.status(201).json({
       statusCode: 201,
       status: "success",
-
       data: gst,
       message: "GST Created",
     });
@@ -22,7 +26,7 @@ export const getGST = catchAsync(async (req, res, next) => {
   const limit = parseInt(req.query.limit) || 10;
   const sortDirection = req.query.sort === "desc" ? -1 : 1;
   const search = req.query.search || "";
-  const sortField = req.query.sortBy;
+  const sortField = req.query.sortBy || "created_at";
 
   let searchQuery = {};
   if (search != "" && req?.body?.searchFields) {
@@ -33,8 +37,6 @@ export const getGST = catchAsync(async (req, res, next) => {
         status: "failed",
         data: {
           gst: [],
-          // totalPages: 1,
-          // currentPage: 1,
         },
         message: "Results Not Found",
       });
@@ -48,7 +50,7 @@ export const getGST = catchAsync(async (req, res, next) => {
   const skip = Math.max((validPage - 1) * limit, 0);
 
   const gst = await gstModel
-    .find(searchQuery)
+    .find({...searchQuery, "current_data.status": true })
     .sort({ [sortField]: sortDirection })
     .skip(skip)
     .limit(limit);
@@ -70,9 +72,14 @@ export const getGST = catchAsync(async (req, res, next) => {
 export const getGstList = catchAsync(async (req, res, next) => {
   const gst = await gstModel.aggregate([
     {
+      $match: { "current_data.status": true },
+    },
+    {
       $project: {
         _id: 1,
-        gst_percentage: 1,
+        current_data: {
+          gst_percentage: 1,
+        },
       },
     },
   ]);
@@ -80,7 +87,6 @@ export const getGstList = catchAsync(async (req, res, next) => {
     return res.status(200).json({
       statusCode: 200,
       status: "success",
-
       data: gst,
       message: "All GST List",
     });
@@ -89,15 +95,25 @@ export const getGstList = catchAsync(async (req, res, next) => {
 
 export const updateGst = catchAsync(async (req, res, next) => {
   const { id } = req.params;
-  const gst = await gstModel.findById(id);
-  if (!gst) {
-    return next(new ApiError("GST Not Found", 404));
-  }
+  const { gst_percentage } = req.body;
+  const user = req.user;
+
   const updatedGst = await gstModel.findByIdAndUpdate(
     id,
-    { ...req.body, updated_at: Date.now() },
+    {
+      $set: {
+        "proposed_changes.gst_percentage": gst_percentage,
+        "proposed_changes.status": false,
+        approver: approvalData(user),
+        updated_at: Date.now(),
+      },
+    },
     { new: true }
   );
+
+  if (!updatedGst) {
+    return next(new ApiError("GST Not Found", 404));
+  }
   return res.status(200).json({
     statusCode: 200,
     status: "success",

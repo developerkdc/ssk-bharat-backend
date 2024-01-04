@@ -9,7 +9,7 @@ export const getMarketExecutive = catchAsync(async (req, res, next) => {
   const { string, boolean, numbers } = req?.body?.searchFields || {};
   const search = req.query.search || "";
   const { filters = {} } = req.body;
-  const { page = 1, limit = 10,sortBy= "company_details.companyName", sort = "desc" } = req.query;
+  const { page = 1, limit = 10, sortBy = "company_details.companyName", sort = "desc" } = req.query;
 
   let searchQuery = {};
   if (search != "" && req?.body?.searchFields) {
@@ -40,7 +40,7 @@ export const getMarketExecutive = catchAsync(async (req, res, next) => {
     },
     {
       $sort: {
-        [sortBy]: sort == "desc" ? -1 :1,
+        [sortBy]: sort == "desc" ? -1 : 1,
       },
     },
     {
@@ -78,7 +78,11 @@ export const getMarketExecutiveById = catchAsync(async (req, res, next) => {
 });
 
 export const addMarketExec = catchAsync(async (req, res, next) => {
-  const addME = await MarketExecutiveModel.create(req.body);
+  const { approver, ...data } = req.body;
+  const addME = await MarketExecutiveModel.create({
+    current_data: data,
+    approver
+  });
   return res.status(201).json({
     statusCode: 201,
     status: "created",
@@ -93,7 +97,41 @@ export const updateMarketExec = catchAsync(async (req, res) => {
   const updateME = await MarketExecutiveModel.updateOne(
     { _id: req.params.id },
     {
-      $set: data,
+      $set: {
+        "proposed_changes.company_details": data?.company_details,
+        "proposed_changes.contact_person_details.first_name": data?.contact_person_details?.first_name,
+        "proposed_changes.contact_person_details.last_name": data?.contact_person_details?.last_name,
+        "proposed_changes.contact_person_details.blood_group": data?.contact_person_details?.blood_group,
+        "proposed_changes.contact_person_details.primary_email_id": data?.contact_person_details?.primary_email_id,
+        "proposed_changes.contact_person_details.secondary_email_id": data?.contact_person_details?.secondary_email_id,
+        "proposed_changes.contact_person_details.primary_mobile_no": data?.contact_person_details?.primary_mobile_no,
+        "proposed_changes.contact_person_details.secondary_mobile_no": data?.contact_person_details?.secondary_mobile_no,
+        "proposed_changes.contact_person_details.onboarding_date": data?.contact_person_details?.onboarding_date,
+        "proposed_changes.contact_person_details.role_assign": data?.contact_person_details?.role_assign,
+        "proposed_changes.kyc.kyc_status": data?.kyc?.kyc_status,
+        "proposed_changes.kyc.pan.pan_no": data?.kyc?.pan?.pan_no,
+        "proposed_changes.kyc.aadhar.aadhar_no": data?.kyc?.aadhar?.aadhar_no,
+        "proposed_changes.kyc.gst.gst_no": data?.kyc?.gst?.gst_no,
+        "proposed_changes.kyc.bank_details.bank_name": data?.kyc?.bank_details?.bank_name,
+        "proposed_changes.kyc.bank_details.account_no": data?.kyc?.bank_details?.account_no,
+        "proposed_changes.kyc.bank_details.confirm_account_no": data?.kyc?.bank_details?.confirm_account_no,
+        "proposed_changes.kyc.bank_details.ifsc_code": data?.kyc?.bank_details?.ifsc_code,
+        "proposed_changes.insurance.policy_no": data?.insurance?.policy_no,
+        "proposed_changes.insurance.policy_company_name": data?.insurance?.policy_company_name,
+        "proposed_changes.insurance.policy_date": data?.insurance?.policy_date,
+        "proposed_changes.insurance.policy_amount": data?.insurance?.policy_amount,
+        "proposed_changes.insurance.renewal_date": data?.insurance?.renewal_date,
+        "proposed_changes.address.address": data?.address?.address,
+        "proposed_changes.address.location": data?.address?.location,
+        "proposed_changes.address.area": data?.address?.area,
+        "proposed_changes.address.district": data?.address?.district,
+        "proposed_changes.address.taluka": data?.address?.taluka,
+        "proposed_changes.address.state": data?.address?.state,
+        "proposed_changes.address.city": data?.address?.city,
+        "proposed_changes.address.country": data?.address?.country,
+        "proposed_changes.address.pincode": data?.address?.pincode,
+        updated_at: Date.now()
+      },
     },
     { runValidators: true }
   );
@@ -124,45 +162,46 @@ export const uploadMarketExecImages = catchAsync(async (req, res, next) => {
     for (let i in req.files) {
       const name = i.split("_")[0];
       images[i] = req.files[i][0].filename;
-      if (name === "policy") {
-        if (
-          fs.existsSync(
-            `./uploads/marketExecutive/${MEx.insurance?.policy_image}`
-          )
-        ) {
-          fs.unlinkSync(
-            `./uploads/marketExecutive/${MEx.insurance?.policy_image}`
-          );
-        }
-      } else {
-        if (name === "passbook") {
-          if (
-            fs.existsSync(
-              `./uploads/marketExecutive/${MEx?.kyc?.bank_details?.passbook_image}`
-            )
-          ) {
-            fs.unlinkSync(
-              `./uploads/marketExecutive/${MEx?.kyc?.bank_details?.passbook_image}`
-            );
-          }
-        }
-        if (
-          fs.existsSync(`./uploads/marketExecutive/${MEx.kyc?.[name]?.[i]}`)
-        ) {
-          fs.unlinkSync(`./uploads/marketExecutive/${MEx.kyc?.[name]?.[i]}`);
-        }
-      }
+      // if (name === "policy") {
+      //   if (
+      //     fs.existsSync(
+      //       `./uploads/marketExecutive/${MEx.insurance?.policy_image}`
+      //     )
+      //   ) {
+      //     fs.unlinkSync(
+      //       `./uploads/marketExecutive/${MEx.insurance?.policy_image}`
+      //     );
+      //   }
+      // } else {
+      //   if (name === "passbook") {
+      //     if (
+      //       fs.existsSync(
+      //         `./uploads/marketExecutive/${MEx?.kyc?.bank_details?.passbook_image}`
+      //       )
+      //     ) {
+      //       fs.unlinkSync(
+      //         `./uploads/marketExecutive/${MEx?.kyc?.bank_details?.passbook_image}`
+      //       );
+      //     }
+      //   }
+      //   if (
+      //     fs.existsSync(`./uploads/marketExecutive/${MEx.kyc?.[name]?.[i]}`)
+      //   ) {
+      //     fs.unlinkSync(`./uploads/marketExecutive/${MEx.kyc?.[name]?.[i]}`);
+      //   }
+      // }
     }
   }
   const updatedImages = await MarketExecutiveModel.updateOne(
     { _id: req.params.id },
     {
       $set: {
-        "insurance.policy_image": images?.policy_image,
-        "kyc.pan.pan_image": images?.pan_image,
-        "kyc.gst.gst_image": images?.gst_image,
-        "kyc.aadhar.aadhar_image": images?.aadhar_image,
-        "kyc.bank_details.passbook_image": images?.passbook_image,
+        "proposed_changes.insurance.policy_image": images?.policy_image,
+        "proposed_changes.kyc.pan.pan_image": images?.pan_image,
+        "proposed_changes.kyc.gst.gst_image": images?.gst_image,
+        "proposed_changes.kyc.aadhar.aadhar_image": images?.aadhar_image,
+        "proposed_changes.kyc.bank_details.passbook_image": images?.passbook_image,
+        updated_at: Date.now()
       },
     }
   );
@@ -211,7 +250,7 @@ export const addNominee = catchAsync(async (req, res, next) => {
     { _id: req.params.id },
     {
       $push: {
-        nominee: {
+        "proposed_changes.nominee": {
           nominee_name,
           nominee_dob,
           nominee_age,
@@ -245,6 +284,9 @@ export const addNominee = catchAsync(async (req, res, next) => {
             },
           },
         },
+      },
+      $set: {
+        updated_at: Date.now()
       },
     },
     { new: true }
@@ -289,44 +331,32 @@ export const editNominee = catchAsync(async (req, res, next) => {
     }
   }
 
-  // const editNominee = await MarketExecutiveModel.aggregate([
-  //     {
-  //         $match:{_id:new mongoose.Types.ObjectId(req.params.id),"nominee._id":new mongoose.Types.ObjectId(req.params.nomineeId)}
-  //     },
-  //     {
-  //         $project:{
-  //             nominee:{
-  //                 $cond:{if:{$eq:["$nominee._id",new mongoose.Types.ObjectId(req.params.nomineeId)]},then:"kdkdk0",else:"$nominee._id"}
-  //             },
-  //         }
-  //     }
-  // ])
-
   const editNominee = await MarketExecutiveModel.updateOne(
-    { _id: req.params.id, "nominee._id": req.params.nomineeId },
+    { _id: req.params.id, "proposed_changes.nominee._id": req.params.nomineeId },
     {
       $set: {
-        "nominee.$[e].nominee_name": nominee_name,
-        "nominee.$[e].nominee_dob": nominee_dob,
-        "nominee.$[e].nominee_age": nominee_age,
-        "nominee.$[e].address.address": address,
-        "nominee.$[e].address.location": location,
-        "nominee.$[e].address.area": area,
-        "nominee.$[e].address.district": district,
-        "nominee.$[e].address.taluka": taluka,
-        "nominee.$[e].address.state": state,
-        "nominee.$[e].address.city": city,
-        "nominee.$[e].address.country": country,
-        "nominee.$[e].address.pincode": pincode,
-        "nominee.$[e].kyc.pan.pan_no": pan_no,
-        "nominee.$[e].kyc.pan.pan_image": images?.pan_image,
-        "nominee.$[e].kyc.aadhar.aadhar_no": aadhar_no,
-        "nominee.$[e].kyc.aadhar.aadhar_image": images?.aadhar_image,
-        "nominee.$[e].bank_details.bank_name": bank_name,
-        "nominee.$[e].bank_details.account_no": account_no,
-        "nominee.$[e].bank_details.confirm_account_no": confirm_account_no,
-        "nominee.$[e].bank_details.ifsc_code": ifsc_code,
-        "nominee.$[e].bank_details.passbook_image": images?.passbook_image,
+        "proposed_changes.nominee.$[e].nominee_name": nominee_name,
+        "proposed_changes.nominee.$[e].nominee_dob": nominee_dob,
+        "proposed_changes.nominee.$[e].nominee_age": nominee_age,
+        "proposed_changes.nominee.$[e].address.address": address,
+        "proposed_changes.nominee.$[e].address.location": location,
+        "proposed_changes.nominee.$[e].address.area": area,
+        "proposed_changes.nominee.$[e].address.district": district,
+        "proposed_changes.nominee.$[e].address.taluka": taluka,
+        "proposed_changes.nominee.$[e].address.state": state,
+        "proposed_changes.nominee.$[e].address.city": city,
+        "proposed_changes.nominee.$[e].address.country": country,
+        "proposed_changes.nominee.$[e].address.pincode": pincode,
+        "proposed_changes.nominee.$[e].kyc.pan.pan_no": pan_no,
+        "proposed_changes.nominee.$[e].kyc.pan.pan_image": images?.pan_image,
+        "proposed_changes.nominee.$[e].kyc.aadhar.aadhar_no": aadhar_no,
+        "proposed_changes.nominee.$[e].kyc.aadhar.aadhar_image": images?.aadhar_image,
+        "proposed_changes.nominee.$[e].kyc.bank_details.bank_name": bank_name,
+        "proposed_changes.nominee.$[e].kyc.bank_details.account_no": account_no,
+        "proposed_changes.nominee.$[e].kyc.bank_details.confirm_account_no": confirm_account_no,
+        "proposed_changes.nominee.$[e].kyc.bank_details.ifsc_code": ifsc_code,
+        "proposed_changes.nominee.$[e].kyc.bank_details.passbook_image": images?.passbook_image,
+        updated_at:Date.now()
       },
     },
     { arrayFilters: [{ "e._id": req.params.nomineeId }] }
