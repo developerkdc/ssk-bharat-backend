@@ -71,25 +71,25 @@ const dispatchOrder = new mongoose.Schema({
     },
     company_name: {
       type: String,
-      // required: [true, "Company Name is required"],
+      required: [true, "Company Name is required"],
       trim: true,
       default: null,
     },
     gst_no: {
-      type: Number,
-      //   required: [true, "Gst No is required"],
+      type: String,
+        required: [true, "Gst No is required"],
       trim: true,
       default: null,
     },
     first_name: {
       type: String,
-      //   required: [true, "First Name is required"],
+        required: [true, "First Name is required"],
       trim: true,
       default: null,
     },
     last_name: {
       type: String,
-      //   required: [true, "Last Name is required"],
+        required: [true, "Last Name is required"],
       trim: true,
       default: null,
     },
@@ -108,12 +108,6 @@ const dispatchOrder = new mongoose.Schema({
       type: String,
       default: null,
       trim: true,
-      validate: {
-        validator: function (value) {
-          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-        },
-        message: "invalid email Id",
-      },
     },
     primary_mobile_no: {
       type: String,
@@ -144,7 +138,7 @@ const dispatchOrder = new mongoose.Schema({
         default: null,
       },
       gst_no: {
-        type: Number,
+        type: String,
         // required: [true, "Gst No is required"],
         trim: true,
         default: null,
@@ -174,14 +168,8 @@ const dispatchOrder = new mongoose.Schema({
       },
       secondary_email_id: {
         type: String,
-        default: null,
         trim: true,
-        validate: {
-          validator: function (value) {
-            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-          },
-          message: "invalid email Id",
-        },
+        default:null,
       },
       primary_mobile_no: {
         type: Number,
@@ -203,7 +191,7 @@ const dispatchOrder = new mongoose.Schema({
         default: null,
       },
       gst_no: {
-        type: Number,
+        type: String,
         // required: [true, "Gst No is required"],
         trim: true,
         default: null,
@@ -234,14 +222,8 @@ const dispatchOrder = new mongoose.Schema({
       },
       secondary_email_id: {
         type: String,
-        default: null,
+        default:null,
         trim: true,
-        validate: {
-          validator: function (value) {
-            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-          },
-          message: "invalid email Id",
-        },
       },
       primary_mobile_no: {
         type: Number,
@@ -255,7 +237,7 @@ const dispatchOrder = new mongoose.Schema({
 
   Items: [
     {
-      product_id: {
+      product_Id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "products",
         required: [true, "product Id is required"],
