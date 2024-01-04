@@ -16,7 +16,7 @@ const SchemaFunction = function (Schema) {
         proposed_changes: {
             type: Schema,
             default: function () {
-                return this.current_data
+                return this.current_data || {}
             }
         },
         approver: userAndApprovals,

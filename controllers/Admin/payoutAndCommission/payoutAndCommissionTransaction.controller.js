@@ -18,19 +18,21 @@ export const addPayout = catchAsync(async (req, res, next) => {
     const addPayout = await payoutAndCommissionTransModel.create(
       [
         {
-          marketExecutiveId,
-          payouts: {
-            payoutType,
-            transactionId,
-            payoutAmount,
-            tdsPercentage,
-          },
+          current_data:{
+            marketExecutiveId,
+            payouts: {
+              payoutType,
+              transactionId,
+              payoutAmount,
+              tdsPercentage,
+            },
+          }
         },
       ],
       { session }
     );
 
-    const amountPaid = addPayout[0].payouts.amountPaid;
+    const amountPaid = addPayout[0].current_data.payouts.amountPaid;
 
     const marketExecutiveBalance = await MarketExecutiveModel.findById(
       marketExecutiveId
@@ -41,17 +43,17 @@ export const addPayout = catchAsync(async (req, res, next) => {
     }
 
     const newBalance =
-      marketExecutiveBalance.account_balance - Number(amountPaid);
+      marketExecutiveBalance.proposed_changes.account_balance - Number(amountPaid);
 
     if (newBalance < 0) {
-      throw new ApiError("Insufficient funds", 400);
+      return next(new ApiError("Insufficient funds", 400));
     }
 
     await MarketExecutiveModel.updateOne(
       { _id: marketExecutiveId },
       {
         $inc: {
-          account_balance: -Number(amountPaid).toFixed(2),
+          "proposed_changes.account_balance": -Number(amountPaid).toFixed(2),
         },
       },
       { session }
@@ -121,7 +123,7 @@ export const getPayoutAndCommissionTrans = catchAsync(
     const getTransaction = await payoutAndCommissionTransModel.aggregate([
       {
         $match: {
-          marketExecutiveId: new mongoose.Types.ObjectId(marketExecutiveId),
+          "current_data.marketExecutiveId": new mongoose.Types.ObjectId(marketExecutiveId),
           ...matchQuery,
           ...searchQuery,
         },
@@ -140,6 +142,7 @@ export const getPayoutAndCommissionTrans = catchAsync(
     ]);
 
     const totalDocuments = await payoutAndCommissionTransModel.countDocuments({
+      "current_data.marketExecutiveId": new mongoose.Types.ObjectId(marketExecutiveId),
       ...matchQuery,
       ...searchQuery,
     });

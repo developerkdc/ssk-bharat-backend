@@ -1,8 +1,9 @@
 import mongoose from "mongoose";
 import addressSchema from "../../utils/address.schema";
 import userAndApprovals from "../../utils/approval.schema";
+import SchemaFunction from "../../../controllers/HelperFunction/SchemaFunction";
 
-const salesOrder = new mongoose.Schema({
+const salesOrder = SchemaFunction(new mongoose.Schema({
   order_no: {
     type: Number,
     required: [true, "Order No is required"],
@@ -29,7 +30,6 @@ const salesOrder = new mongoose.Schema({
     enum: ["retailers", "offlinestores", "websites"],
     trim: true,
   },
-
   ssk_details: {
     ssk_id: {
       type: mongoose.Schema.Types.ObjectId,
@@ -211,7 +211,7 @@ const salesOrder = new mongoose.Schema({
   },
   Items: [
     {
-      product_id: {
+      product_Id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "products",
         required: [true, "product Id is required"],
@@ -318,12 +318,8 @@ const salesOrder = new mongoose.Schema({
   est_payment_days: {
     type: Number,
     default: null,
-  },
-  approver: userAndApprovals,
-  created_at: { type: Date, default: Date.now },
-  updated_at: { type: Date, default: Date.now },
-  deleted_at: { type: Date, default: null },
-});
+  }
+}))
 
 const SalesModel = mongoose.model("salesorders", salesOrder);
 export default SalesModel;

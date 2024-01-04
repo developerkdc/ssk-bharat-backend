@@ -5,8 +5,8 @@ import marketExectiveCommissionModel from "../../../database/schema/MET/marketEx
 export const listingMECommissionBasedOnReatiler = catchAsync(
   async (req, res, next) => {
     const retailerMarketExective = await marketExectiveCommissionModel
-      .find({ companyId: req.params.id })
-      .populate("companyId");
+      .find({ "current_data.companyId": req.params.id })
+      .populate("current_data.companyId");
     return res.status(200).json({
       statusCode: 200,
       status: "success",
@@ -18,7 +18,7 @@ export const listingMECommissionBasedOnReatiler = catchAsync(
 );
 
 export const addMECommission = catchAsync(async (req, res, next) => {
-  const addCommission = await marketExectiveCommissionModel.create(req.body);
+  const addCommission = await marketExectiveCommissionModel.create({current_data:{...req.body}});
   return res.status(201).json({
     statusCode: 201,
     status: "created",
@@ -32,7 +32,13 @@ export const EditMECommission = catchAsync(async (req, res, next) => {
   const EditCommission = await marketExectiveCommissionModel.updateOne(
     { _id: req.params.id },
     {
-      ...req.body,
+      $set:{
+        // "proposed_changes.companyId":req.body.companyId,
+        // "proposed_changes.marketExecutiveId":req.body.marketExecutiveId,
+        // "proposed_changes.companyType":req.body.companyType,
+        "proposed_changes.onBoardingDate":req.body.onBoardingDate,
+        "proposed_changes.commissionPercentage":req.body.commissionPercentage
+    }
     }
   );
 
