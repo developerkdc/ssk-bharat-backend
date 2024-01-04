@@ -2,54 +2,175 @@ import mongoose from "mongoose";
 import addressSchema from "../../utils/address.schema";
 
 const ItemsSchema = new mongoose.Schema({
-  product_Id: {
-    type: mongoose.Schema.Types.ObjectId,
-    trim: true,
-    ref: "products",
-  },
-  itemName: { type: String, required: true, trim: true },
-  category: { type: String, required: true, trim: true },
-  sku: { type: String, required: true, trim: true },
-  hsn_code: { type: String, required: true, trim: true },
-  itemsWeight: { type: Number, required: true, trim: true },
-  unit: { type: String, required: true, trim: true },
-  ratePerUnit: { type: Number, required: true, trim: true },
-  quantity: { type: Number, required: true, trim: true },
-  itemAmount: { type: Number, required: true, trim: true },
-  gstpercentage: { type: Number, required: true, trim: true },
-  gstAmount: { type: Number, required: true, trim: true },
-  totalAmount: { type: Number, required: true, trim: true },
+   
+      product_Id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "products",
+        required: [true, "product Id is required"],
+      },
+      item_name: {
+        type: String,
+        required: [true, "Item Name is required"],
+        trim: true,
+      },
+      category: {
+        type: String,
+        required: [true, "Category is required"],
+        trim: true,
+      },
+      sku: { type: String, required: [true, "SKU is required"], trim: true },
+      hsn_code: {
+        type: String,
+        required: [true, "HSN Code is required"],
+        trim: true,
+      },
+      weight: {
+        type: Number,
+        required: [true, "Item Weight is required"],
+        trim: true,
+      },
+      unit: { type: String, required: [true, "Unit is required"], trim: true },
+      rate_per_unit: {
+        type: Number,
+        required: [true, "Rate per Unit is required"],
+        trim: true,
+      },
+      quantity: {
+        type: Number,
+        required: [true, "Quantity is required"],
+        trim: true,
+      },
+      item_amount: {
+        type: Number,
+        required: [true, "Item Amount is required"],
+        trim: true,
+      },
+      gst: {
+        cgst: {
+          percentage: {
+            type: Number,
+            default: null,
+          },
+          cgst_value: {
+            type: Number,
+            default: null,
+          },
+        },
+        sgst: {
+          percentage: {
+            type: Number,
+            default: null,
+          },
+          sgst_value: {
+            type: Number,
+            default: null,
+          },
+        },
+        igst: {
+          percentage: {
+            type: Number,
+            default: null,
+          },
+          igst_value: {
+            type: Number,
+            default: null,
+          },
+        },
+      },
+      total_amount: {
+        type: Number,
+        required: [true, "Total Amount is required"],
+        trim: true,
+      },
+    
   receivedQuantity: { type: Number, required: true, trim: true },
   availableQuantity: { type: Number, trim: true },
   balanceQuantity: { type: Number, trim: true },
-  reservedQuantity: { type: Number, trim: true },
 });
 
 const TransportDetailsSchema = new mongoose.Schema({
-  deliveryChallanNo: { type: String, trim: true, required: true },
-  transportType: {
-    handDelivery: {
-      personName: { type: String, trim: true },
-      personNumber: { type: String, trim: true },
+    
+    delivery_challan_no: {
+      type: String,
+      default: null,
+    },
+    transport_type: {
+      type: String,
+      enum: ["hand", "courier", "road", "rail", "air"],
+      trim: true,
+      default: null,
+    },
+    hand_delivery: {
+      person_name: {
+        type: String,
+        trim: true,
+        default: null,
+      },
+      person_phone_no: {
+        type: Number,
+        trim: true,
+        default: null,
+      },
     },
     courier: {
-      companyName: { type: String, trim: true },
-      docketNumber: { type: String, trim: true },
+      company_name: {
+        type: String,
+        trim: true,
+        default: null,
+      },
+      docket_no: {
+        type: String,
+        trim: true,
+        default: null,
+      },
     },
     road: {
-      transporterName: { type: String, trim: true },
-      vehicleNumber: { type: String, trim: true },
-      driverName: { type: String, trim: true },
-      driverNumber: { type: String, trim: true },
+      transporter_name: {
+        type: String,
+        trim: true,
+        default: null,
+      },
+      vehicle_no: {
+        type: String,
+        trim: true,
+        default: null,
+      },
+      driver_name: {
+        type: String,
+        trim: true,
+        default: null,
+      },
+      driver_phone_no: {
+        type: Number,
+        trim: true,
+        default: null,
+      },
     },
-    airRail: {
-      transporterName: { type: String, trim: true },
-      airRail: { type: String, trim: true },
-      awbNumber: { type: String, trim: true },
+    rail: {
+      transporter_name: {
+        type: String,
+        trim: true,
+        default: null,
+      },
+      awb_no: {
+        type: String,
+        trim: true,
+        default: null,
+      },
     },
-
-    deliveryChallanNo_image: { type: String, default: null },
-  },
+    air: {
+      transporter_name: {
+        type: String,
+        trim: true,
+        default: null,
+      },
+      awb_no: {
+        type: String,
+        trim: true,
+        default: null,
+      },
+    },
+  
 });
 
 const CustomerDetailsSchema = new mongoose.Schema({
@@ -196,10 +317,36 @@ const InventorySchema = new mongoose.Schema({
   itemsDetails: ItemsSchema,
   transportDetails: TransportDetailsSchema,
   invoiceDetails: InvoiceDetailsSchema,
+  tracking_date: {
+    sales_order_date: {
+      type: Date,
+      
+    },
+    dispatch_generated_date: {
+      type: Date,
+      default: Date.now,
+    },
+    out_for_delivery: {
+      dispatch_date: {
+        type: Date,
+
+        default: null,
+      },
+      estimate_delivery_date: {
+        type: Date,
+
+        default: null,
+      },
+    },
+    delivered: {
+      type: Date,
+      default: null,
+    },
+  },
 });
 
-const retailerinventoryModel = mongoose.model(
-  "RetailerInventory",
-  InventorySchema
-);
-export default retailerinventoryModel;
+// const retailerinventoryModel = mongoose.model(
+//   "RetailerInventory",
+//   InventorySchema
+// );
+export default InventorySchema;

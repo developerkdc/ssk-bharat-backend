@@ -5,6 +5,7 @@ import SalesModel from "../../../database/schema/SalesOrders/salesOrder.schema.j
 import mongoose from "mongoose";
 import { dynamicSearch } from "../../../Utils/dynamicSearch.js";
 import retailerinventoryModel from "../../../database/schema/Inventory/RetailerInventory.schema.js";
+import InventorySchema from "../../../database/schema/Inventory/RetailerInventory.schema.js";
 
 export const latestDispatchNo = catchAsync(async (req, res, next) => {
   try {
@@ -228,82 +229,84 @@ export const delivered = catchAsync(async (req, res, next) => {
   let session;
   try {
     session = await mongoose.startSession();
-    session.startTransaction();
+    await session.startTransaction();
     // Validate if the provided id is a valid ObjectId
-    // if (!mongoose.Types.ObjectId.isValid(id)) {
-    //   throw new Error(new ApiError("Invalid Order ID", 400));
-    // }
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new Error(new ApiError("Invalid Order ID", 400));
+    }
 
-    // const updateData = await DispatchModel.findByIdAndUpdate(
-    //   { _id: id },
-    //   {
-    //     delivery_status: "delivered",
-    //     "tracking_date.delivered": req.body?.tracking_date?.delivered || null,
-    //   },
-    //   { new: true },
-    //   { session }
-    // );
+    const updateData = await DispatchModel.findByIdAndUpdate(
+      { _id: id },
+      {
+        delivery_status: "delivered",
+        "tracking_date.delivered": req.body?.tracking_date?.delivered || null,
+      },
+      { new: true ,session},
+    );
      
-    // if (!updateData) {
-    //   throw new Error(new ApiError("Order Not Found", 400));
-    // }
-     const retailerdetails = await DispatchModel.findById(id).populate(
-       "customer_id"
-     );
-    //  let model;
-    //  if (
-    //    mongoose
-    //      .modelNames()
-    //      .includes(retailerdetails.inventorySchema)
-    //  ) {
-    //    model = mongoose.model(retailer.current_data.inventorySchema);
-    //  } else {
-    //    model = mongoose.model(
-    //      retailer.inventorySchema,
-    //      inventorySchema
-    //    );
-    //  }
-     console.log(retailerdetails);
-    //  const items = retailerdetails.Items;
-    //   const inventoryArray = [];
-    //   for (const item of items) {
-    //     const inventory = new retailerinventoryModel({
-    //       sales_order_no: retailerdetails.sales_order_no,
-    //       supplierCompanyName: retailerdetails.ssk_details.company_name,
-    //       CustomerDetails: retailerdetails.customer_details,
-    //       receivedDate: retailerdetails.tracking_date.delivered,
-    //       transportDetails: retailerdetails.transport_details,
-    //       invoiceDetails: {
-    //         invoiceNo: retailerdetails.dispatch_no,
-    //         invoiceDate: retailerdetails.tracking_date.delivered,
-    //         itemsAmount: retailerdetails.total_item_amount,
-    //         gstAmount: retailerdetails.total_gst,
-    //         totalAmount: retailerdetails.total_amount,
-    //       },
-    //       itemsDetails: {
-    //         product_Id: item.product_Id,
-    //         itemName: item.item_name,
-    //         category: item.category,
-    //         sku: item.sku,
-    //         hsn_code: item.hsn_code,
-    //         itemsWeight: item.weight,
-    //         unit: item.unit,
-    //         ratePerUnit: item.rate_per_unit,
-    //         quantity: item.quantity,
-    //         receivedQuantity: item.quantity,
-    //         itemAmount: item.item_amount,
-    //         gstpercentage: item.gstpercentage,
-    //         gstAmount: item.gstAmount,
-    //         totalAmount: item.total_amount,
-    //         availableQuantity: item.quantity,
-    //       },
-    //     });
+    if (!updateData) {
+      throw new Error(new ApiError("Order Not Found", 400));
+    }
+     const retailerdetails = await DispatchModel.findById(id).populate({
+       path: "customer_details.customer_id",
+       select: "current_data.inventorySchema",
+     });
+     let model;
+     const inventoryName = retailerdetails.customer_details.customer_id.current_data.inventorySchema;
+     if (
+       mongoose
+         .modelNames()
+         .includes(inventoryName)
+     ) {
+       model = mongoose.model(inventoryName);
+     } else {
+       model = mongoose.model(
+         inventoryName,
+         InventorySchema
+       );
+     }
+     
+     const items = retailerdetails.Items;
+      const inventoryArray = [];
+      for (const item of items) {
+        const inventory = new model({
+          sales_order_no: retailerdetails.sales_order_no,
+          supplierCompanyName: retailerdetails.ssk_details.company_name,
+          CustomerDetails: retailerdetails.customer_details,
+          receivedDate: retailerdetails.tracking_date.delivered,
+          transportDetails: retailerdetails.transport_details,
+          invoiceDetails: {
+            invoiceNo: retailerdetails.dispatch_no,
+            invoiceDate: retailerdetails.tracking_date.delivered,
+            itemsAmount: retailerdetails.total_item_amount,
+            gstAmount: retailerdetails.total_gst,
+            totalAmount: retailerdetails.total_amount,
+          },
+          tracking_date: retailerdetails.tracking_date,
+          itemsDetails: {
+            product_Id: item.product_Id,
+            itemName: item.item_name,
+            category: item.category,
+            sku: item.sku,
+            hsn_code: item.hsn_code,
+            itemsWeight: item.weight,
+            unit: item.unit,
+            ratePerUnit: item.rate_per_unit,
+            quantity: item.quantity,
+            receivedQuantity: item.quantity,
+            itemAmount: item.item_amount,
+            gstpercentage: item.gstpercentage,
+            gstAmount: item.gstAmount,
+            totalAmount: item.total_amount,
+            availableQuantity: item.quantity,
+          },
+        });
 
-    //     inventoryArray.push(inventory);
-    //     await inventory.save();
-    //   }
+        inventoryArray.push(inventory);
+        await inventory.save();
+      }
     await session.commitTransaction();
-    session.endSession();
+    await session.endSession();
     return res.status(200).json({
       statusCode: 200,
       status: "success",
