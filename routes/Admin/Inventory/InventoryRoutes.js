@@ -8,10 +8,11 @@ import {
   ViewProductHistory,
   reseverdQuantity,
 } from "../../../controllers/Admin/Inventory/inventoryController";
+import authMiddleware from "../../../middlewares/adminAuth";
 
 const router = express.Router();
 
-router.post("/addstock", AddStock);
+router.post("/addstock",authMiddleware, AddStock);
 router.post("/sampleInward", AddSampleInward);
 router.get("/list", InventoryList);
 router.patch("/:productId", reseverdQuantity);

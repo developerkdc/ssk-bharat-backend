@@ -108,12 +108,12 @@ const dispatchOrder = new mongoose.Schema({
       type: String,
       default: null,
       trim: true,
-      validate: {
-        validator: function (value) {
-          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-        },
-        message: "invalid email Id",
-      },
+      // validate: {
+      //   validator: function (value) {
+      //     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+      //   },
+      //   message: "invalid email Id",
+      // },
     },
     primary_mobile_no: {
       type: String,
@@ -176,12 +176,12 @@ const dispatchOrder = new mongoose.Schema({
         type: String,
         default: null,
         trim: true,
-        validate: {
-          validator: function (value) {
-            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-          },
-          message: "invalid email Id",
-        },
+        // validate: {
+        //   validator: function (value) {
+        //     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+        //   },
+        //   message: "invalid email Id",
+        // },
       },
       primary_mobile_no: {
         type: Number,
@@ -236,12 +236,12 @@ const dispatchOrder = new mongoose.Schema({
         type: String,
         default: null,
         trim: true,
-        validate: {
-          validator: function (value) {
-            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-          },
-          message: "invalid email Id",
-        },
+        // validate: {
+        //   validator: function (value) {
+        //     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+        //   },
+        //   message: "invalid email Id",
+        // },
       },
       primary_mobile_no: {
         type: Number,
@@ -255,7 +255,7 @@ const dispatchOrder = new mongoose.Schema({
 
   Items: [
     {
-      product_id: {
+      product_Id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "products",
         required: [true, "product Id is required"],

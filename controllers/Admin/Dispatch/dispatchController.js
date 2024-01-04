@@ -4,7 +4,7 @@ import ApiError from "../../../Utils/ApiError.js";
 import SalesModel from "../../../database/schema/SalesOrders/salesOrder.schema.js";
 import mongoose from "mongoose";
 import { dynamicSearch } from "../../../Utils/dynamicSearch.js";
-
+import retailerinventoryModel from "../../../database/schema/Inventory/RetailerInventory.schema.js";
 
 export const latestDispatchNo = catchAsync(async (req, res, next) => {
   try {
@@ -16,7 +16,7 @@ export const latestDispatchNo = catchAsync(async (req, res, next) => {
       return res.status(200).json({
         dispatch_no: latestDispatch.dispatch_no + 1,
         statusCode: 200,
-        status:"success",
+        status: "success",
         message: "Latest Dispatch Number",
       });
     } else {
@@ -24,7 +24,7 @@ export const latestDispatchNo = catchAsync(async (req, res, next) => {
       return res.status(200).json({
         dispatch_no: 1,
         statusCode: 200,
-        status:"success",
+        status: "success",
         message: "Latest Dispatch Number",
       });
     }
@@ -51,20 +51,20 @@ export const createDispatch = catchAsync(async (req, res, next) => {
   } = salesOrderData;
   const body = {
     ...req.body,
-    sales_order_no: sales_order_no,
-    order_type: order_type,
+    sales_order_no: salesOrderData.current_data.sales_order_no,
+    order_type: salesOrderData.current_data.order_type,
     delivery_status: "dispatched",
     tracking_date: {
-      sales_order_date: sales_order_date,
+      sales_order_date: salesOrderData.current_data.sales_order_date,
     },
-    ssk_details: ssk_details,
-    customer_details: customer_details,
-    Items: Items,
-    total_weight: total_weight,
-    total_quantity: total_quantity,
-    total_item_amount: total_item_amount,
-    total_gst: total_gst,
-    total_amount: total_amount,
+    ssk_details: salesOrderData.current_data.ssk_details,
+    customer_details: salesOrderData.current_data.customer_details,
+    Items: salesOrderData.current_data.Items,
+    total_weight: salesOrderData.current_data.total_weight,
+    total_quantity: salesOrderData.current_data.total_quantity,
+    total_item_amount: salesOrderData.current_data.total_item_amount,
+    total_gst: salesOrderData.current_data.total_gst,
+    total_amount: salesOrderData.current_data.total_amount,
   };
   const dispatch = new DispatchModel(body);
   if (!dispatch) {
@@ -83,7 +83,7 @@ export const createDispatch = catchAsync(async (req, res, next) => {
 
 export const fetchDispatchBasedonDeliveryStatus = catchAsync(
   async (req, res, next) => {
-    const { string, boolean, numbers } = req?.body?.searchFields  || {};
+    const { string, boolean, numbers } = req?.body?.searchFields || {};
 
     const {
       type,
@@ -97,7 +97,7 @@ export const fetchDispatchBasedonDeliveryStatus = catchAsync(
     const search = req.query.search || "";
 
     let searchQuery = {};
-    if (search != ""  && req?.body?.searchFields) {
+    if (search != "" && req?.body?.searchFields) {
       const searchdata = dynamicSearch(search, boolean, numbers, string);
       if (searchdata?.length == 0) {
         return res.status(404).json({
@@ -157,7 +157,7 @@ export const fetchDispatchBasedonDeliveryStatus = catchAsync(
     return res.status(200).json({
       data: dispatchOrders,
       statusCode: 200,
-      status:"success",
+      status: "success",
       message: `All ${type} Orders`,
       totalPages: totalPages,
       currentPage: page,
@@ -213,7 +213,7 @@ export const outForDelivery = catchAsync(async (req, res, next) => {
   if (updateData) {
     return res.status(200).json({
       statusCode: 200,
-      status:"success",
+      status: "success",
       data: updateData,
       message: "Out For Delivery Successful",
     });
@@ -222,29 +222,94 @@ export const outForDelivery = catchAsync(async (req, res, next) => {
 
 export const delivered = catchAsync(async (req, res, next) => {
   const { id } = req.params;
+  let session;
+  try {
+    session = await mongoose.startSession();
+    session.startTransaction();
+    // Validate if the provided id is a valid ObjectId
+    // if (!mongoose.Types.ObjectId.isValid(id)) {
+    //   throw new Error(new ApiError("Invalid Order ID", 400));
+    // }
 
-  // Validate if the provided id is a valid ObjectId
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw new Error(new ApiError("Invalid Order ID", 400));
+    // const updateData = await DispatchModel.findByIdAndUpdate(
+    //   { _id: id },
+    //   {
+    //     delivery_status: "delivered",
+    //     "tracking_date.delivered": req.body?.tracking_date?.delivered || null,
+    //   },
+    //   { new: true },
+    //   { session }
+    // );
+     
+    // if (!updateData) {
+    //   throw new Error(new ApiError("Order Not Found", 400));
+    // }
+     const retailerdetails = await DispatchModel.findById(id).populate(
+       "customer_id"
+     );
+    //  let model;
+    //  if (
+    //    mongoose
+    //      .modelNames()
+    //      .includes(retailerdetails.inventorySchema)
+    //  ) {
+    //    model = mongoose.model(retailer.current_data.inventorySchema);
+    //  } else {
+    //    model = mongoose.model(
+    //      retailer.inventorySchema,
+    //      inventorySchema
+    //    );
+    //  }
+     console.log(retailerdetails);
+    //  const items = retailerdetails.Items;
+    //   const inventoryArray = [];
+    //   for (const item of items) {
+    //     const inventory = new retailerinventoryModel({
+    //       sales_order_no: retailerdetails.sales_order_no,
+    //       supplierCompanyName: retailerdetails.ssk_details.company_name,
+    //       CustomerDetails: retailerdetails.customer_details,
+    //       receivedDate: retailerdetails.tracking_date.delivered,
+    //       transportDetails: retailerdetails.transport_details,
+    //       invoiceDetails: {
+    //         invoiceNo: retailerdetails.dispatch_no,
+    //         invoiceDate: retailerdetails.tracking_date.delivered,
+    //         itemsAmount: retailerdetails.total_item_amount,
+    //         gstAmount: retailerdetails.total_gst,
+    //         totalAmount: retailerdetails.total_amount,
+    //       },
+    //       itemsDetails: {
+    //         product_Id: item.product_Id,
+    //         itemName: item.item_name,
+    //         category: item.category,
+    //         sku: item.sku,
+    //         hsn_code: item.hsn_code,
+    //         itemsWeight: item.weight,
+    //         unit: item.unit,
+    //         ratePerUnit: item.rate_per_unit,
+    //         quantity: item.quantity,
+    //         receivedQuantity: item.quantity,
+    //         itemAmount: item.item_amount,
+    //         gstpercentage: item.gstpercentage,
+    //         gstAmount: item.gstAmount,
+    //         totalAmount: item.total_amount,
+    //         availableQuantity: item.quantity,
+    //       },
+    //     });
+
+    //     inventoryArray.push(inventory);
+    //     await inventory.save();
+    //   }
+    await session.commitTransaction();
+    session.endSession();
+    return res.status(200).json({
+      statusCode: 200,
+      status: "success",
+      data: retailerdetails,
+      message: "Delivered Successfully",
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    await session.endSession();
+    next(error);
   }
-
-  const updateData = await DispatchModel.findByIdAndUpdate(
-    { _id: id },
-    {
-      delivery_status: "delivered",
-      "tracking_date.delivered": req.body?.tracking_date?.delivered || null,
-    },
-    { new: true }
-  );
-
-  if (!updateData) {
-    throw new Error(new ApiError("Order Not Found", 400));
-  }
-
-  return res.status(200).json({
-    statusCode: 200,
-    status:"success",
-    data: updateData,
-    message: "Delivered Successfully",
-  });
 });

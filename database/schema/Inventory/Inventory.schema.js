@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import addressSchema from "../../utils/address.schema";
 import userAndApprovals from "../../utils/approval.schema";
+import SchemaFunction from "../../../controllers/HelperFunction/SchemaFunction"
 
 const ItemsSchema = new mongoose.Schema({
   product_Id: {
@@ -87,7 +88,7 @@ const InvoiceDetailsSchema = new mongoose.Schema({
   uploadInviocePDF: { type: String, default: null },
 });
 
-const InventorySchema = new mongoose.Schema({
+const InventorySchema = SchemaFunction(new mongoose.Schema({
   purchaseOrderNo: { type: String, trim: true },
 
   receivedDate: Date,
@@ -95,11 +96,11 @@ const InventorySchema = new mongoose.Schema({
   itemsDetails: ItemsSchema,
   transportDetails: TransportDetailsSchema,
   invoiceDetails: InvoiceDetailsSchema,
-  approvals: userAndApprovals,
-  created_at: { type: Date, default: Date.now },
-  updated_at: { type: Date, default: Date.now },
-  deleted_at: { type: Date, default: null },
-});
+  // approvals: userAndApprovals,
+  // created_at: { type: Date, default: Date.now },
+  // updated_at: { type: Date, default: Date.now },
+  // deleted_at: { type: Date, default: null },
+}));
 
 const inventoryModel = mongoose.model("Inventory", InventorySchema);
 export default inventoryModel;
