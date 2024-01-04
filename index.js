@@ -73,7 +73,6 @@ app.group("/api/v1/admin", (router) => {
   router.use('/approval',approvalRouter);
   router.use('/faq',FaqRouter);
   router.use('/met',metAuthRouter);
-  
 });
 
 app.all("*", (req, res, next) => {

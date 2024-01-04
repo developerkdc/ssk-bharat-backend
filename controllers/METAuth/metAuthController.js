@@ -20,22 +20,20 @@ export const METLoginUser = catchAsync(async (req, res, next) => {
     met.current_data.contact_person_details.password
   );
 
-  console.log(passwordMatch,"passsss")
   if (!passwordMatch) {
     return res.status(401).json({ message: "Invalid Password" });
   }
 
   const token = met.jwtToken(next);
+  
+  res.cookie("token", token);
+  res.cookie("metUserId", met.id);
+  return res.status(200).json({
+    statusCode: 200,
+    token: token,
+    message: "Login success",
+  });
 
-  return res
-    .status(200)
-    .cookie("token", token)
-    .cookie("metUserId", met.id)
-    .json({
-      statusCode: 200,
-      token: token,
-      message: "Login success",
-    });
 });
 
 export const METSendOTP = catchAsync(async (req, res) => {

@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import addressSchema from "../../utils/address.schema";
 import bankDetailsSchema from "../../utils/bankDetails.schema";
+import jwt from "jsonwebtoken";
 import SchemaFunction from "../../../controllers/HelperFunction/SchemaFunction";
 
 const nomineeSchema = new mongoose.Schema({
@@ -221,7 +222,7 @@ const MarketExecutiveSchema = SchemaFunction(new mongoose.Schema({
 MarketExecutiveSchema.methods.jwtToken = function (next) {
   try {
     return jwt.sign(
-      { userId: this._id, username: this.first_name, primaryEmailId: this.primary_email_id },
+      { metUserId: this._id, username: this.current_data.contact_person_details.first_name, primaryEmailId: this.current_data.contact_person_details.primary_email_id },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES }
     );
