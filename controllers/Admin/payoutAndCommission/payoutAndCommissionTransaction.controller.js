@@ -32,7 +32,7 @@ export const addPayout = catchAsync(async (req, res, next) => {
       { session }
     );
 
-    const amountPaid = addPayout[0].current_data.payouts.amountPaid;
+    const amountPaid = addPayout[0].proposed_changes.payouts.amountPaid;
 
     const marketExecutiveBalance = await MarketExecutiveModel.findById(
       marketExecutiveId

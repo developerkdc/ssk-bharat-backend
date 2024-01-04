@@ -48,7 +48,7 @@ export const createDispatch = catchAsync(async (req, res, next) => {
     ssk_details,
     customer_details,
     Items,
-  } = salesOrderData;
+  } = salesOrderData.current_data;
   const body = {
     ...req.body,
     sales_order_no: salesOrderData.current_data.sales_order_no,
