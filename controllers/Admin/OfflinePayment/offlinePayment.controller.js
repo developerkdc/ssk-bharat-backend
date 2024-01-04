@@ -73,7 +73,7 @@ export const addOfflinePayment = catchAsync(async (req, res, next) => {
     { _id: req.params.id },
     {
       $push: {
-        payments: {
+        "proposed_changes.payments": {
           paymentType,
           transactionId,
           upiId,
@@ -83,11 +83,11 @@ export const addOfflinePayment = catchAsync(async (req, res, next) => {
         },
       },
       $inc: {
-        recievedAmount: paymentAmount,
-        balanceAmount: -paymentAmount,
+        "proposed_changes.recievedAmount": paymentAmount,
+        "proposed_changes.balanceAmount": -paymentAmount,
       },
       $set: {
-        paymentStatus: "partailly paid",
+        "proposed_changes.paymentStatus": "partailly paid",
       },
     },
     { new: true }
@@ -107,7 +107,7 @@ export const addFollowupAndRemark = catchAsync(async (req, res, next) => {
     { _id: req.params.id },
     {
       $push: {
-        followUp: {
+        "proposed_changes.followUp": {
           followUpDate,
           remark,
         },

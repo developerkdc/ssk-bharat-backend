@@ -1,7 +1,8 @@
 import mongoose from "mongoose";
 import ApiError from "../../../Utils/ApiError";
+import SchemaFunction from "../../../controllers/HelperFunction/SchemaFunction";
 
-const offlinePaymentSchema = new mongoose.Schema({
+const offlinePaymentSchema = SchemaFunction(new mongoose.Schema({
     salesOrderId: {
         type: mongoose.Schema.Types.ObjectId,
         required: [true, "sale order id is required"]
@@ -125,27 +126,29 @@ const offlinePaymentSchema = new mongoose.Schema({
         }],
         default: null
     }
-})
+}))
 
 offlinePaymentSchema.pre("findOneAndUpdate", async function (next) {
     try {
         const updatingData = this.getUpdate();
-        const paymentData = await this.model.findOne(this.getQuery(), { recievedAmount: 1, balanceAmount: 1, totalSalesAmount: 1 })
-        if (!paymentData) return next(new ApiError("payment hass not be added", 404))
+        if (updatingData["$push"] && updatingData["$push"]["proposed_changes.payments"]) {
+            const paymentData = await this.model.findOne(this.getQuery(), { "proposed_changes.recievedAmount": 1, "proposed_changes.balanceAmount": 1, "proposed_changes.totalSalesAmount": 1 })
+            if (!paymentData) return next(new ApiError("payment hass not be added", 404))
 
-        const receivedAmount = Number(updatingData["$inc"].recievedAmount) + Number(paymentData.recievedAmount);
-        const balanceAmount = Number(paymentData.balanceAmount) - Number(updatingData["$inc"].balanceAmount);
+            const receivedAmount = Number(updatingData["$inc"]["proposed_changes.recievedAmount"]) + Number(paymentData.proposed_changes.recievedAmount);
+            const balanceAmount = Number(paymentData.proposed_changes.balanceAmount) - Number(updatingData["$inc"]["proposed_changes.balanceAmount"]);
 
-        console.log(receivedAmount, balanceAmount, paymentData.totalSalesAmount, this.getUpdate())
-        if (receivedAmount >= Number(paymentData.totalSalesAmount) || balanceAmount <= 0) {
-            return next(new ApiError(`invalid payment Amount of ${updatingData["$push"].payments.paymentAmount}`, 422))
-        }
-        if (receivedAmount === Number(paymentData.totalSalesAmount)) {
-            updatingData["$set"] = { paymentStatus: "fully paid" }
+            console.log(receivedAmount, balanceAmount, paymentData.totalSalesAmount, this.getUpdate())
+            if (receivedAmount > Number(paymentData.proposed_changes.totalSalesAmount) || balanceAmount < 0) {
+                return next(new ApiError(`invalid payment Amount of ${updatingData["$push"]["proposed_changes.payments"].paymentAmount}`, 422))
+            }
+            if (receivedAmount === Number(paymentData.proposed_changes.totalSalesAmount)) {
+                updatingData["$set"] = { "proposed_changes.paymentStatus": "fully paid" }
+            }
         }
         next()
     } catch (error) {
-        next(error)
+        return next(error)
     }
 })
 

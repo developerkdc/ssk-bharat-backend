@@ -40,67 +40,71 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
   try {
     session = await mongoose.startSession();
     session.startTransaction();
-    const sales = await SalesModel.create([req.body], { session });
+    const sales = await SalesModel.create([{ current_data: { ...req.body } }], { session });
     if (!sales) {
       throw new Error(new ApiError("Error during Sales Order", 400));
     }
 
-    if (sales[0].order_type === "offlinestores") {
-      const dueDate = moment(sales[0].sales_order_date)
-        .add(sales[0].est_payment_days, "days")
+    if (sales[0].current_data.order_type === "offlinestores") {
+      const dueDate = moment(sales[0].current_data.sales_order_date)
+        .add(sales[0].current_data.est_payment_days, "days")
         .toISOString();
       const addOfflinePaymentDetails = await offlinePaymentModel.create(
         [
           {
-            salesOrderId: sales[0]._id,
-            salesOrderNo: sales[0].sales_order_no,
-            salesOrderDate: sales[0].sales_order_date,
-            offlineStoreDetails: {
-              companyId: sales[0].customer_details.customer_id,
-              companyName: sales[0].customer_details.customer_name,
-              companyType: sales[0].order_type,
-              gstNo: sales[0].customer_details.bill_to.gst_no,
-              firstName: sales[0].customer_details.bill_to.first_name,
-              lastName: sales[0].customer_details.bill_to.last_name,
-              email: sales[0].customer_details.bill_to.primary_email_id,
-              mobileNo: sales[0].customer_details.bill_to.primary_mobile_no,
+            current_data: {
+              salesOrderId: sales[0].current_data._id,
+              salesOrderNo: sales[0].current_data.sales_order_no,
+              salesOrderDate: sales[0].current_data.sales_order_date,
+              offlineStoreDetails: {
+                companyId: sales[0].current_data.customer_details.customer_id,
+                companyName: sales[0].current_data.customer_details.customer_name,
+                companyType: sales[0].current_data.order_type,
+                gstNo: sales[0].current_data.customer_details.bill_to.gst_no,
+                firstName: sales[0].current_data.customer_details.bill_to.first_name,
+                lastName: sales[0].current_data.customer_details.bill_to.last_name,
+                email: sales[0].current_data.customer_details.bill_to.primary_email_id,
+                mobileNo: sales[0].current_data.customer_details.bill_to.primary_mobile_no,
+              },
+              totalSalesAmount: Number(sales[0].current_data.total_amount).toFixed(2),
+              dueDate: dueDate,
             },
-            totalSalesAmount: Number(sales[0].total_amount).toFixed(2),
-            dueDate: dueDate,
-          },
+          }
         ],
         { session }
       );
     }
-    if (sales[0].order_type !== "websites") {
+    if (sales[0].current_data.order_type !== "websites") {
       const marketExecutive = await marketExectiveCommissionModel.find({
-        companyId: sales[0].customer_details.customer_id,
+        "current_data.companyId": sales[0].current_data.customer_details.customer_id,
       });
 
       const commission = await payoutAndCommissionTransModel.insertMany(
         marketExecutive.map((marketExec) => {
           return {
-            marketExecutiveId: marketExec.marketExecutiveId,
-            commission: {
-              companyDetails: {
-                companyId: sales[0].customer_details.customer_id,
-                companyName: sales[0].customer_details.customer_name,
-                companyType: sales[0].order_type,
-                gstNo: sales[0].customer_details.bill_to.gst_no,
-                firstName: sales[0].customer_details.bill_to.first_name,
-                lastName: sales[0].customer_details.bill_to.last_name,
-                email: sales[0].customer_details.bill_to.primary_email_id,
-                mobileNo: sales[0].customer_details.bill_to.primary_mobile_no,
+            current_data: {
+              marketExecutiveId: marketExec.current_data.marketExecutiveId,
+              commission: {
+                companyDetails: {
+                  companyId: sales[0].current_data.customer_details.customer_id,
+                  companyName: sales[0].current_data.customer_details.customer_name,
+                  companyType: sales[0].current_data.order_type,
+                  gstNo: sales[0].current_data.customer_details.bill_to.gst_no,
+                  firstName: sales[0].current_data.customer_details.bill_to.first_name,
+                  lastName: sales[0].current_data.customer_details.bill_to.last_name,
+                  email: sales[0].current_data.customer_details.bill_to.primary_email_id,
+                  mobileNo: sales[0].current_data.customer_details.bill_to.primary_mobile_no,
+                },
+                salesOrderId: sales[0].current_data._id,
+                salesOrderNo: sales[0].current_data.sales_order_no,
+                salesOrderDate: sales[0].current_data.sales_order_date,
+                salesOrderAmount: Number(sales[0].current_data.total_amount).toFixed(2),
+                commissionPercentage: marketExec.current_data.commissionPercentage,
+                commissionAmount: Number(
+                  (sales[0].current_data.total_amount / 100) * marketExec.current_data.commissionPercentage
+                ).toFixed(2),
               },
-              salesOrderId: sales[0]._id,
-              salesOrderNo: sales[0].sales_order_no,
-              salesOrderDate: sales[0].sales_order_date,
-              salesOrderAmount: Number(sales[0].total_amount).toFixed(2),
-              commissionPercentage: marketExec.commissionPercentage,
-              commissionAmount: Number(
-                (sales[0].total_amount / 100) * marketExec.commissionPercentage
-              ).toFixed(2),
-            },
+            }
           };
         }),
         { session }
@@ -109,11 +113,11 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
       const updateAccountBalance = Promise.all(
         commission.map(async (marketExecutive) => {
           const updateAccountBalance = await MarketExecutiveModel.updateOne(
-            { _id: marketExecutive.marketExecutiveId },
+            { _id: marketExecutive.proposed_changes.marketExecutiveId },
             {
               $inc: {
-                account_balance: Number(
-                  marketExecutive.commission.commissionAmount
+                "proposed_changes.account_balance": Number(
+                  marketExecutive.proposed_changes.commission.commissionAmount
                 ).toFixed(2),
               },
             }
@@ -141,7 +145,7 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
 });
 
 export const fetchSalesOrders = catchAsync(async (req, res, next) => {
-  const { string, boolean, numbers } = req?.body?.searchFields  || {};
+  const { string, boolean, numbers } = req?.body?.searchFields || {};
 
   const {
     type,
@@ -166,7 +170,7 @@ export const fetchSalesOrders = catchAsync(async (req, res, next) => {
   }
 
   let searchQuery = {};
-  if (search != ""  && req?.body?.searchFields) {
+  if (search != "" && req?.body?.searchFields) {
     const searchdata = dynamicSearch(search, boolean, numbers, string);
     if (searchdata?.length == 0) {
       return res.status(404).json({
