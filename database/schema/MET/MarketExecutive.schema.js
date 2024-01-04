@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import addressSchema from "../../utils/address.schema";
 import bankDetailsSchema from "../../utils/bankDetails.schema";
+import jwt from "jsonwebtoken";
 import SchemaFunction from "../../../controllers/HelperFunction/SchemaFunction";
 
 const nomineeSchema = new mongoose.Schema({
@@ -128,6 +129,11 @@ const MarketExecutiveSchema = SchemaFunction(new mongoose.Schema({
       trim: true,
       default: null,
     },
+    password: {
+      type: String,
+      trim: true,
+      default: null,
+    },
     onboarding_date: {
       type: Date,
       default: Date.now,
@@ -137,6 +143,7 @@ const MarketExecutiveSchema = SchemaFunction(new mongoose.Schema({
       trim: true,
       default: null,
     },
+    otp: { type: String, trim: true,default:null },
   },
   account_balance: {
     type: Number,
@@ -211,6 +218,19 @@ const MarketExecutiveSchema = SchemaFunction(new mongoose.Schema({
 //     // Continue with the update
 //     next();
 // });
+
+MarketExecutiveSchema.methods.jwtToken = function (next) {
+  try {
+    return jwt.sign(
+      { metUserId: this._id, username: this.current_data.contact_person_details.first_name, primaryEmailId: this.current_data.contact_person_details.primary_email_id },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES }
+    );
+  } catch (error) {
+    return next(error)
+  }
+}
+
 
 const MarketExecutiveModel = mongoose.model(
   "MarketExecutive",

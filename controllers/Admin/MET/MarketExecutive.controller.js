@@ -1,8 +1,10 @@
 import catchAsync from "../../../Utils/catchAsync";
 import fs from "fs";
+import crypto from "crypto"
 import MarketExecutiveModel from "../../../database/schema/MET/MarketExecutive.schema";
 import ApiError from "../../../Utils/ApiError";
 import mongoose from "mongoose";
+import bcrypt from "bcrypt"
 import { dynamicSearch } from "../../../Utils/dynamicSearch";
 
 export const getMarketExecutive = catchAsync(async (req, res, next) => {
@@ -79,8 +81,14 @@ export const getMarketExecutiveById = catchAsync(async (req, res, next) => {
 
 export const addMarketExec = catchAsync(async (req, res, next) => {
   const { approver, ...data } = req.body;
+
+  let Password = crypto.randomBytes(8).toString("hex");
+  console.log(Password,"passworddd")
+  let protectedPassword = bcrypt.hashSync(Password, 12);
+  data.contact_person_details.password=protectedPassword
+
   const addME = await MarketExecutiveModel.create({
-    current_data: data,
+    current_data: {...data},
     approver
   });
   return res.status(201).json({

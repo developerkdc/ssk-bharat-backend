@@ -31,6 +31,8 @@ import paymentTermDays from "./routes/Admin/Master/PaymentTerms/paymentTermDaysR
 import offlinePaymentRouter from "./routes/Admin/OfflinePayment/offlinePayment.route.js";
 import InventoryRouter from "./routes/Admin/Inventory/InventoryRoutes.js";
 import SampleRouter from "./routes/Admin/Samples/sampleRoutes.js";
+import FaqRouter from "./routes/Admin/FAQs/faqRoutes.js";
+import metAuthRouter from "./routes/METAuthRoutes/metAuthRoutes.js";
 import approvalRouter from "./routes/Approval/getPendingApprovalList.route.js"
 const app = express();
 
@@ -69,6 +71,8 @@ app.group("/api/v1/admin", (router) => {
   router.use('/ssk/inventory', InventoryRouter);
   router.use('/sample', SampleRouter);
   router.use('/approval',approvalRouter);
+  router.use('/faq',FaqRouter);
+  router.use('/met',metAuthRouter);
 });
 
 app.all("*", (req, res, next) => {
