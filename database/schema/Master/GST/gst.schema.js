@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import userAndApprovals from "../../../utils/approval.schema";
 import SchemaFunction from "../../../../controllers/HelperFunction/SchemaFunction";
 
 const GstSchema = SchemaFunction(

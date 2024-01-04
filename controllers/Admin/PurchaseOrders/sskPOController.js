@@ -3,9 +3,14 @@ import ApiError from "../../../Utils/ApiError";
 import catchAsync from "../../../Utils/catchAsync";
 import sskPOModel from "../../../database/schema/PurchaseOrders/SSKPurchaseOrder.schema";
 import { dynamicSearch } from "../../../Utils/dynamicSearch";
+import { approvalData } from "../../HelperFunction/approvalFunction";
 
 export const createSSKPO = catchAsync(async (req, res, next) => {
-  const po = await sskPOModel.create(req.body);
+  const user = req.user;
+  const po = await sskPOModel.create({
+    current_data: { ...req.body },
+    approver: approvalData(user),
+  });
   if (po) {
     return res.status(201).json({
       statusCode: 201,
@@ -22,11 +27,11 @@ export const latestSSKPONo = catchAsync(async (req, res, next) => {
     const latestPurchaseOrder = await sskPOModel
       .findOne()
       .sort({ created_at: -1 })
-      .select("purchase_order_no");
+      .select("current_data.purchase_order_no");
     console.log(latestPurchaseOrder, "lateee");
     if (latestPurchaseOrder) {
       return res.status(200).json({
-        latest_po_number: latestPurchaseOrder.purchase_order_no + 1,
+        latest_po_number: latestPurchaseOrder.current_data.purchase_order_no + 1,
         statusCode: 200,
         status: "success",
         message: "Latest PO Number",
@@ -87,7 +92,7 @@ export const getSSKPo = catchAsync(async (req, res, next) => {
   const sortField = req.query.sortBy || "purchase_order_no";
 
   const purchaseOrder = await sskPOModel
-    .find({ ...matchQuery, ...searchQuery })
+    .find({ ...matchQuery, ...searchQuery,"current_data.status":true })
     .sort({ [sortField]: sortDirection })
     .skip(skip)
     .limit(limit);

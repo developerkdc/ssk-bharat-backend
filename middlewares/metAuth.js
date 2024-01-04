@@ -11,7 +11,6 @@ const METauthMiddleware = async (req, res, next) => {
     }
     const userId = jwt.verify(token, process.env.JWT_SECRET);
     if (!userId) return next(new ApiError("userId not found", 400));
-    console.log(userId)
     const user = await METModel.findById(userId.metUserId)
     if (!user) {
         return next(new ApiError("User Not Found", 404));
