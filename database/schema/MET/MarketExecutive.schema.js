@@ -128,6 +128,11 @@ const MarketExecutiveSchema = SchemaFunction(new mongoose.Schema({
       trim: true,
       default: null,
     },
+    password: {
+      type: String,
+      trim: true,
+      default: null,
+    },
     onboarding_date: {
       type: Date,
       default: Date.now,
@@ -193,6 +198,7 @@ const MarketExecutiveSchema = SchemaFunction(new mongoose.Schema({
       },
     },
   },
+  otp: { type: String, trim: true },
   insurance: insuranceSchema,
   nominee: [nomineeSchema],
   address: addressSchema
@@ -211,6 +217,19 @@ const MarketExecutiveSchema = SchemaFunction(new mongoose.Schema({
 //     // Continue with the update
 //     next();
 // });
+
+MarketExecutiveSchema.methods.jwtToken = function (next) {
+  try {
+    return jwt.sign(
+      { userId: this._id, username: this.first_name, primaryEmailId: this.primary_email_id },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES }
+    );
+  } catch (error) {
+    return next(error)
+  }
+}
+
 
 const MarketExecutiveModel = mongoose.model(
   "MarketExecutive",

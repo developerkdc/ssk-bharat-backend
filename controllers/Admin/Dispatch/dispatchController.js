@@ -36,6 +36,8 @@ export const latestDispatchNo = catchAsync(async (req, res, next) => {
 
 export const createDispatch = catchAsync(async (req, res, next) => {
   const salesOrderData = await SalesModel.findById(req.body.sales_order_id);
+  console.log(salesOrderData)
+
   const {
     sales_order_no,
     total_amount,
@@ -48,7 +50,8 @@ export const createDispatch = catchAsync(async (req, res, next) => {
     ssk_details,
     customer_details,
     Items,
-  } = salesOrderData;
+  } = salesOrderData.current_data;
+  
   const body = {
     ...req.body,
     sales_order_no: sales_order_no,
@@ -71,6 +74,7 @@ export const createDispatch = catchAsync(async (req, res, next) => {
     throw new Error(new ApiError("Error during dispatch", 400));
   }
   await dispatch.save();
+
   if (dispatch) {
     return res.status(201).json({
       statusCode: 201,
