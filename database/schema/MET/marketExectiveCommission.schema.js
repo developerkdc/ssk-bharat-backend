@@ -6,7 +6,7 @@ const marketExectiveCommissionSchema = SchemaFunction(new mongoose.Schema({
         type:mongoose.Schema.Types.ObjectId,
         trim:true,
         required:[true,"retailer id is required"],
-        refPath:"companyType"
+        refPath:"current_data.companyType"
     },
     marketExecutiveId:{
         type:mongoose.Schema.Types.ObjectId,
