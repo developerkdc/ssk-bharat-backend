@@ -49,6 +49,16 @@ class CompanyMaster {
           }
         }
       },
+      billingSchema: {
+        type: String,
+        default: function () {
+          if(this.company_type === "retailers" || this.company_type === "offlinestores"){
+            return `${this.company_type}_billing_${this.company_name}_${this._id.toString().slice(-5)}`
+          }else{
+            return null
+          }
+        }
+      },
     }))
     this.#Schema.methods.jwtToken = function (next) {
       try {
@@ -127,7 +137,7 @@ class CompanyMaster {
     });
   });
   AddCompany = catchAsync(async (req, res, next) => {
-    const { approver, ...data } = req.body;
+    const { approver, inventorySchema,billingSchema,...data } = req.body;
     const user = req.user;
     let protectedPassword;
 
