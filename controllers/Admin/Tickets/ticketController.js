@@ -2,79 +2,65 @@ import ApiError from "../../../Utils/ApiError";
 import catchAsync from "../../../Utils/catchAsync";
 import TicketModel from "../../../database/schema/Tickets/tickets.schema";
 
-
 export const createTicket = catchAsync(async (req, res, next) => {
-  const ticket = await TicketModel.create({
-    ...req.body,
-  });
-  if (ticket) {
+  const ticketData = req.body;
+  const newTicket = await TicketModel.create(ticketData);
+  if (newTicket) {
     return res.status(201).json({
       statusCode: 201,
       status: "success",
-      data: ticket,
+      data: newTicket,
       message: "Ticket Created",
     });
   }
 });
 
-// export const editFaq = catchAsync(async (req, res, next) => {
-//   const faq = await FaqModel.findByIdAndUpdate(
-//     req.params.id,
-//     {
-//       $set: {
-//         ...req.body,
-//         updated_at:Date.now()
-//       },
-//     },
-//     { new: true, runValidators: true }
-//   );
-//   if (!faq) {
-//     return next(new ApiError("Invalid Id", 400));
-//   }
-//   return res.status(200).json({
-//     statusCode: 200,
-//     status: "success",
-//     data: faq,
-//     message: "FAQ Updated",
-//   });
-// });
+export const replyTicket = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  const ticket=await TicketModel.findByIdAndUpdate(id,{
+    $push:{
+      replies:req.body
+    }
+  },{new:true,runValidators:true})
+  if (!ticket) {
+    return next(new ApiError("Ticket not found", 404));
+  }
+  return res.status(201).json({
+    statusCode: 201,
+    status: "success",
+    data: ticket,
+    message: "Message Send ",
+  });
+});
 
-// export const getFaqs = catchAsync(async (req, res, next) => {
-//   const { type = "order" } = req.query;
-//   const page = parseInt(req.query.page) || 1;
-//   const limit = parseInt(req.query.limit) || 10;
+export const updateTicketStatus = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  const { ticket_status } = req.body;
 
-//   const totalFaq = await FaqModel.countDocuments();
-//   const totalPages = Math.ceil(totalFaq / limit);
-//   const validPage = Math.min(Math.max(page, 1), totalPages);
-//   const skip = Math.max((validPage - 1) * limit, 0);
+  const updatedTicket = await TicketModel.findByIdAndUpdate(
+    id,
+    { $set: { ticket_status: ticket_status } },
+    { new: true }
+  );
 
-//   const faqs = await FaqModel.find({ module_type: type })
-//     .skip(skip)
-//     .limit(limit);
-//   console.log(faqs);
-//   if (faqs) {
-//     return res.status(200).json({
-//       statusCode: 200,
-//       status: "success",
-//       data: {
-//         faqs: faqs,
-//         totalPages: totalPages,
-//       },
-//       message: `All ${type} Faqs`,
-//     });
-//   }
-// });
+  if (!updatedTicket) {
+    return next(new ApiError("Ticket not found", 404));
+  }
 
-// export const deleteFaq = catchAsync(async (req, res, next) => {
-//   const faq = await FaqModel.findByIdAndDelete(req.params.id);
-//   if (!faq) {
-//     return next(new ApiError("Invalid Id", 400));
-//   }
-//   return res.status(200).json({
-//     statusCode: 200,
-//     status: "success",
-//     data: faq,
-//     message: "FAQ Deleted",
-//   });
-// });
+  return res.status(201).json({
+    statusCode: 201,
+    status: "success",
+    data: updatedTicket,
+    message: "Ticket Status Updated",
+  });
+});
+
+export const ticketList = catchAsync(async (req, res, next) => {
+  const tickets = await TicketModel.find().populate({path :"user_id" ,select: "_id current_data.company_name" });
+  return res.status(201).json({
+    statusCode: 201,
+    status: "success",
+    data: tickets,
+    message: "Ticket List",
+  });
+});
