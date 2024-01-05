@@ -1,15 +1,16 @@
 import express from "express";
 import { addFollowupAndRemark, addOfflinePayment, getOfflinePaymentDetails } from "../../../controllers/Admin/OfflinePayment/offlinePayment.controller.js";
+import authMiddleware from "../../../middlewares/adminAuth.js";
 const offlinePaymentRouter = express.Router();
 
 
 offlinePaymentRouter.route("/")
-    .get(getOfflinePaymentDetails)
+    .get(authMiddleware,getOfflinePaymentDetails)
 
 offlinePaymentRouter.route("/payment/:id")
-    .post(addOfflinePayment)
+    .post(authMiddleware,addOfflinePayment)
 
 offlinePaymentRouter.route("/followup-remark/:id")
-    .post(addFollowupAndRemark)
+    .post(authMiddleware,addFollowupAndRemark)
 
 export default offlinePaymentRouter

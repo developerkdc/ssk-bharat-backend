@@ -1,6 +1,7 @@
 import ApiError from "../../../Utils/ApiError";
 import catchAsync from "../../../Utils/catchAsync";
 import marketExectiveCommissionModel from "../../../database/schema/MET/marketExectiveCommission.schema";
+import { approvalData } from "../../HelperFunction/approvalFunction";
 
 export const listingMECommissionBasedOnReatiler = catchAsync(
   async (req, res, next) => {
@@ -18,7 +19,7 @@ export const listingMECommissionBasedOnReatiler = catchAsync(
 );
 
 export const addMECommission = catchAsync(async (req, res, next) => {
-  const addCommission = await marketExectiveCommissionModel.create({current_data:{...req.body}});
+  const addCommission = await marketExectiveCommissionModel.create({current_data:{...req.body},approver: approvalData(req.user)});
   return res.status(201).json({
     statusCode: 201,
     status: "created",
@@ -37,7 +38,8 @@ export const EditMECommission = catchAsync(async (req, res, next) => {
         // "proposed_changes.marketExecutiveId":req.body.marketExecutiveId,
         // "proposed_changes.companyType":req.body.companyType,
         "proposed_changes.onBoardingDate":req.body.onBoardingDate,
-        "proposed_changes.commissionPercentage":req.body.commissionPercentage
+        "proposed_changes.commissionPercentage":req.body.commissionPercentage,
+        approver: approvalData(req.user)
     }
     }
   );

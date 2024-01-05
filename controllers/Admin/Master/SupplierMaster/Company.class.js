@@ -5,6 +5,7 @@ import catchAsync from "../../../../Utils/catchAsync";
 import companyAndApprovals from "../../../../database/utils/approval.schema";
 import { dynamicSearch } from "../../../../Utils/dynamicSearch";
 import SchemaFunction from "../../../HelperFunction/SchemaFunction";
+import { approvalData } from "../../../HelperFunction/approvalFunction";
 
 class CompanyMaster {
   #Schema;
@@ -64,64 +65,6 @@ class CompanyMaster {
     this.#modalName = modalName;
     this.#modal = mongoose.model(this.#collectionName, this.#Schema);
   }
-  Logincompany = catchAsync(async (req, res, next) => {
-    const { companyname, password } = req.body;
-    const company = await this.#modal.findOne({
-      primary_email_id: companyname,
-    });
-    if (!company) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
-    const passwordMatch = await bcrypt.compare(password, company.password);
-
-    if (!passwordMatch) {
-      return res.status(401).json({ message: "Invalid Password" });
-    }
-
-    const token = company.jwtToken(next);
-
-    return res
-      .status(200)
-      .cookie("token", token)
-      .cookie("companyId", company.id)
-      .json({
-        statusCode: 200,
-        token: token,
-        message: "Login success",
-      });
-  });
-  ChangePassword = catchAsync(async (req, res) => {
-    const companyId = req.params.companyId;
-    const { currentPassword, newPassword } = req.body;
-    const saltRounds = 10;
-    if (!mongoose.Types.ObjectId.isValid(companyId)) {
-      return res.status(400).json({ message: "Invalid company ID" });
-    }
-    const company = await this.#modalName.findById(companyId);
-    if (!company) {
-      return res.status(404).json({ message: "company not found" });
-    }
-    // Check if the current password matches
-    const isPasswordValid = await bcrypt.compare(
-      currentPassword,
-      company.password
-    );
-
-    if (!isPasswordValid) {
-      return res.status(401).json({ message: "Current password is incorrect" });
-    }
-    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
-    company.password = hashedPassword;
-    const updatedcompany = await company.save();
-    res.json({
-      statusCode: 200,
-      status: "Success",
-      data: {
-        company: updatedcompany,
-      },
-      message: "Password updated successfully",
-    });
-  });
   GetCompany = catchAsync(async (req, res, next) => {
     const { string, boolean, numbers } = req?.body?.searchFields || {};
     const search = req.query.search || "";
@@ -185,6 +128,7 @@ class CompanyMaster {
   });
   AddCompany = catchAsync(async (req, res, next) => {
     const { approver, ...data } = req.body;
+    const user = req.user;
     let protectedPassword;
 
     if (
@@ -197,7 +141,7 @@ class CompanyMaster {
 
     const addData = await this.#modal.create({
       current_data: { ...data, password: protectedPassword },
-      approver
+      approver:approvalData(user)
     });
     return res.status(201).json({
       statusCode: 201,
@@ -225,7 +169,7 @@ class CompanyMaster {
           "proposed_changes.company_name": company_name,
           "proposed_changes.company_status": company_status,
           "proposed_changes.onboarding_date": onboarding_date,
-          approver,
+          approver:approvalData(req.user),
           updated_at: Date.now(),
         },
       },

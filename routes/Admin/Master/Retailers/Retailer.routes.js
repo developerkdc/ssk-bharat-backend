@@ -20,29 +20,29 @@ retailerRouter.post("/create/PO", authMiddleware, createRetailerPO);
 retailerRouter.get("/latestRetailerPoNo", authMiddleware, latestRetailerPONo);
 retailerRouter.get("/fetch", authMiddleware, getRetailerPo);
 
-retailerRouter.route("/").get(retailer.GetCompany).post(retailer.AddCompany);
+retailerRouter.route("/").get(retailer.GetCompany).post(authMiddleware,retailer.AddCompany);
 
 retailerRouter
   .route("/:id")
-  .get(retailer.GetCompanyById)
-  .patch(retailer.UpdateCompany);
+  .get(authMiddleware,retailer.GetCompanyById)
+  .patch(authMiddleware,retailer.UpdateCompany);
 
-retailerRouter.route("/branch").post(branch.addBranch);
+retailerRouter.route("/branch").post(authMiddleware,branch.addBranch);
 
 retailerRouter
   .route("/branch/:companyId")
-  .get(branch.getBranchOfCompany)
-  .patch(branch.updateBranch);
+  .get(authMiddleware,branch.getBranchOfCompany)
+  .patch(authMiddleware,branch.updateBranch);
 
 retailerRouter
   .route("/branch/contact/:companyId/:branchId")
-  .post(branch.AddContact)
-  .patch(branch.UpdateContact);
+  .post(authMiddleware,branch.AddContact)
+  .patch(authMiddleware,branch.UpdateContact);
 
-retailerRouter.get("/Branchretailer/all", branch.getAllBranchCompany);
+retailerRouter.get("/Branchretailer/all", authMiddleware,branch.getAllBranchCompany);
 
 retailerRouter.patch(
-  "/branch/upload/:companyId/:branchId",
+  "/branch/upload/:companyId/:branchId",authMiddleware,
   MulterFunction("./uploads/admin/retailerDocument").fields([
     { name: "pan_image", maxCount: 1 },
     { name: "gst_image", maxCount: 1 },

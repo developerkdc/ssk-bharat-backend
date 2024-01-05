@@ -242,7 +242,7 @@ class Branches {
       }
       searchQuery = searchdata;
     }
-    console.log({...filters,...searchQuery});
+    console.log({ ...filters, ...searchQuery });
 
     //total pages
     const totalDocuments = await this.#modal.countDocuments({
@@ -303,7 +303,7 @@ class Branches {
   });
   addBranch = catchAsync(async (req, res, next) => {
     const { approver, ...data } = req.body;
-    const branch = await this.#modal.create({ current_data: data, approver });
+    const branch = await this.#modal.create({ current_data: data, approver: approvalData(req.user), });
     return res.status(201).json({
       statusCode: 201,
       status: "Created",
@@ -352,7 +352,7 @@ class Branches {
             data?.branch_address?.country,
           "proposed_changes.branch_address.pincode":
             data?.branch_address?.pincode,
-          approver,
+          approver: approvalData(req.user),
         },
       },
       { new: true }
@@ -385,10 +385,6 @@ class Branches {
           // }
         }
       }
-      console.log(
-        { _id: branchId, [`proposed_changes.${this.#modalName}Id`]: companyId },
-        images
-      );
       const updatedImages = await this.#modal.updateOne(
         { _id: branchId, [`proposed_changes.${this.#modalName}Id`]: companyId },
         {
@@ -397,6 +393,7 @@ class Branches {
             "proposed_changes.kyc.gst.gst_image": images?.gst_image,
             "proposed_changes.kyc.bank_details.passbook_image":
               images?.passbook_image,
+            approver: approvalData(req.user),
           },
         }
       );
@@ -421,6 +418,7 @@ class Branches {
       {
         $push: {
           "proposed_changes.contact_person": req.body,
+          approver: approvalData(req.user)
         },
       },
       { runValidators: true, new: true }
@@ -468,6 +466,7 @@ class Branches {
           "proposed_changes.contact_person.$[e].secondary_mobile":
             secondary_mobile,
           "proposed_changes.contact_person.$[e].isPrimary": isPrimary,
+          approver: approvalData(req.user)
         },
       },
       {

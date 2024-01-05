@@ -25,30 +25,30 @@ const branch = new Branches(
 
 offlineStoreRouter
   .route("/")
-  .get(offlineStore.GetCompany)
-  .post(offlineStore.AddCompany);
+  .get(authMiddleware,offlineStore.GetCompany)
+  .post(authMiddleware,offlineStore.AddCompany);
 
 offlineStoreRouter
   .route("/:id")
-  .get(offlineStore.GetCompanyById)
-  .patch(offlineStore.UpdateCompany);
+  .get(authMiddleware,offlineStore.GetCompanyById)
+  .patch(authMiddleware,offlineStore.UpdateCompany);
 
-offlineStoreRouter.route("/branch").post(branch.addBranch);
+offlineStoreRouter.route("/branch").post(authMiddleware,branch.addBranch);
 
 offlineStoreRouter
   .route("/branch/:companyId")
-  .get(branch.getBranchOfCompany)
-  .patch(branch.updateBranch);
+  .get(authMiddleware,branch.getBranchOfCompany)
+  .patch(authMiddleware,branch.updateBranch);
 
 offlineStoreRouter
   .route("/branch/contact/:companyId/:branchId")
-  .post(branch.AddContact)
-  .patch(branch.UpdateContact);
+  .post(authMiddleware,branch.AddContact)
+  .patch(authMiddleware,branch.UpdateContact);
 
-offlineStoreRouter.get("/BranchofflineStore/all", branch.getAllBranchCompany);
+offlineStoreRouter.get("/BranchofflineStore/all", authMiddleware,branch.getAllBranchCompany);
 
 offlineStoreRouter.patch(
-  "/branch/upload/:companyId/:branchId",
+  "/branch/upload/:companyId/:branchId",authMiddleware,
   MulterFunction("./uploads/admin/offlineStoreDocument").fields([
     { name: "pan_image", maxCount: 1 },
     { name: "gst_image", maxCount: 1 },

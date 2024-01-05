@@ -9,16 +9,17 @@ import {
   updateMarketExec,
   uploadMarketExecImages,
 } from "../../../controllers/Admin/MET/MarketExecutive.controller.js";
+import authMiddleware from "../../../middlewares/adminAuth.js";
 const marketExecutiveRouter = express.Router();
 
-marketExecutiveRouter.route("/").get(getMarketExecutive).post(addMarketExec);
+marketExecutiveRouter.route("/").get(getMarketExecutive).post(authMiddleware,addMarketExec);
 
 marketExecutiveRouter
   .route("/:id")
-  .get(getMarketExecutiveById)
-  .patch(updateMarketExec);
+  .get(authMiddleware,getMarketExecutiveById)
+  .patch(authMiddleware,updateMarketExec);
 
-marketExecutiveRouter.route("/uploadImage/:id").patch(
+marketExecutiveRouter.route("/uploadImage/:id").patch(authMiddleware,
   MulterFunction("./uploads/marketExecutive").fields([
     { name: "policy_image", maxCount: 1 },
     { name: "gst_image", maxCount: 1 },
@@ -29,7 +30,7 @@ marketExecutiveRouter.route("/uploadImage/:id").patch(
   uploadMarketExecImages
 );
 
-marketExecutiveRouter.route("/nominee/add/:id").post(
+marketExecutiveRouter.route("/nominee/add/:id").post(authMiddleware,
   MulterFunction("./uploads/marketExecutive/nominee").fields([
     { name: "pan_image", maxCount: 1 },
     { name: "aadhar_image", maxCount: 1 },
@@ -38,7 +39,7 @@ marketExecutiveRouter.route("/nominee/add/:id").post(
   addNominee
 );
 
-marketExecutiveRouter.route("/nominee/update/:id/:nomineeId").patch(
+marketExecutiveRouter.route("/nominee/update/:id/:nomineeId").patch(authMiddleware,
   MulterFunction("./uploads/marketExecutive/nominee").fields([
     { name: "pan_image", maxCount: 1 },
     { name: "aadhar_image", maxCount: 1 },
