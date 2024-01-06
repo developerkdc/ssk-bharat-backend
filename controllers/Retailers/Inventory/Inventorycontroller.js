@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
-import catchAsync from "../../Utils/catchAsync";
-import DynamicModel from "../../Utils/DynamicModel";
-import InventorySchema from "../../database/schema/Inventory/RetailerInventory.schema";
+import catchAsync from "../../../Utils/catchAsync";
+import DynamicModel from "../../../Utils/DynamicModel";
+import InventorySchema from "../../../database/schema/Inventory/RetailerInventory.schema";
 
 const RetailerInventory = catchAsync(async(req,res)=>{
     // let user = req.user;

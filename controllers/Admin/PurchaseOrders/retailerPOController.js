@@ -78,7 +78,6 @@ export const createRetailerPO = catchAsync(async (req, res, next) => {
   }
 });
 
-
 export const latestRetailerPONo = catchAsync(async (req, res, next) => {
   try {
     // Find the latest purchase order by sorting in descending order based on purchase_order_date

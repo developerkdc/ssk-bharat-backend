@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
-import catchAsync from "../../Utils/catchAsync";
-import { dynamicSearch } from "../../Utils/dynamicSearch";
-import ApiError from "../../Utils/ApiError";
-import InventorySchema from "../../database/schema/Inventory/RetailerInventory.schema";
-import BillSchema from "../../database/schema/Retailers/Bills.schema";
-import DynamicModel from "../../Utils/DynamicModel";
+import catchAsync from "../../../Utils/catchAsync";
+import { dynamicSearch } from "../../../Utils/dynamicSearch";
+import ApiError from "../../../Utils/ApiError";
+import InventorySchema from "../../../database/schema/Inventory/RetailerInventory.schema";
+import BillSchema from "../../../database/schema/Retailers/Bills.schema";
+import DynamicModel from "../../../Utils/DynamicModel";
 
 
 export const createbill = catchAsync(async (req, res, next) => {
