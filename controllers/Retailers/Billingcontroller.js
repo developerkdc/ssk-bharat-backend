@@ -7,7 +7,7 @@ import InventorySchema from "../../database/schema/Inventory/RetailerInventory.s
 
 export const createbill = catchAsync(async (req, res, next) => {
   const session = await mongoose.startSession();
-  let user = "6598ecd7d1b23dfc8328ce36";
+  let user = "nn";
   session.startTransaction();
   try {
     let bills = await BillsModel.create([req.body], { session });
@@ -21,7 +21,7 @@ export const createbill = catchAsync(async (req, res, next) => {
      }
       for (const product of bills[0].Items) {
         const productId = product.product_Id;
-        console.log(productId);
+        console.log(model);
         const inventoryProduct = await model.findOne({
           "itemsDetails.product_Id": productId,
         });

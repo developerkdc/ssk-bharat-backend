@@ -251,7 +251,7 @@ export const delivered = catchAsync(async (req, res, next) => {
     {
       "proposed_changes.delivery_status": "delivered",
       "proposed_changes.tracking_date.delivered":
-        req.body?.tracking_date?.delivered || null,
+      req.body?.tracking_date?.delivered,
       approver: approvalData(user),
       updated_at: Date.now(),
     },
@@ -261,28 +261,28 @@ export const delivered = catchAsync(async (req, res, next) => {
     if (!updateData) {
       throw new Error(new ApiError("Order Not Found", 400));
     }
+    // console.log(updateData);
      const retailerdetails = await DispatchModel.findById(id).populate({
-       path: "customer_details.customer_id",
-       select: "current_data.inventorySchema",
+       path: "current_data.customer_details.customer_id",
+      //  select:"current_data.customer_details.customer_id.current_data.inventorySchema",
      });
      let model;
-     const inventoryName = retailerdetails.customer_details.customer_id.current_data.inventorySchema;
+     const inventoryName = retailerdetails.current_data.customer_details.customer_id.inventorySchema;
+     console.log(retailerdetails.current_data.customer_details.customer_id);
+     console.log(retailerdetails);
      if (
        mongoose
-         .modelNames()
-         .includes(inventoryName)
+         .modelNames().includes(inventoryName)
      ) {
        model = mongoose.model(inventoryName);
      } else {
-       model = mongoose.model(
-         inventoryName,
-         InventorySchema
-       );
+       model = mongoose.model(inventoryName,InventorySchema );
      }
-     
+     console.log(model)
      const items = retailerdetails.Items;
       const inventoryArray = [];
       for (const item of items) {
+        console.log("for")
         const inventory = new model({
           sales_order_no: retailerdetails.sales_order_no,
           supplierCompanyName: retailerdetails.ssk_details.company_name,
