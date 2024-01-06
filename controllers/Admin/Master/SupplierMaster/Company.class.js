@@ -43,7 +43,7 @@ class CompanyMaster {
         type: String,
         default: function () {
           if(this.company_type === "retailers" || this.company_type === "offlinestores"){
-            return `${this.company_type}_${this.company_name}_${this._id.toString().slice(-5)}`
+            return `${this.company_type}_${this.company_name}_${this.parent()._id.toString().slice(-5)}`
           }else{
             return null
           }
@@ -53,7 +53,7 @@ class CompanyMaster {
         type: String,
         default: function () {
           if(this.company_type === "retailers" || this.company_type === "offlinestores"){
-            return `${this.company_type}_billing_${this.company_name}_${this._id.toString().slice(-5)}`
+            return `${this.company_type}_billing_${this.company_name}_${this.parent()._id.toString().slice(-5)}`
           }else{
             return null
           }
