@@ -34,6 +34,7 @@ import SampleRouter from "./routes/Admin/Samples/sampleRoutes.js";
 import FaqRouter from "./routes/Admin/FAQs/faqRoutes.js";
 import metAuthRouter from "./routes/METAuthRoutes/metAuthRoutes.js";
 import approvalRouter from "./routes/Approval/getPendingApprovalList.route.js"
+import RetailerPRoutes from "./routes/Retailer/retailerRoutes.js";
 const app = express();
 
 const port = process.env.PORT || 4001;
@@ -73,6 +74,7 @@ app.group("/api/v1/admin", (router) => {
   router.use('/approval',approvalRouter);
   router.use('/faq',FaqRouter);
   router.use('/met',metAuthRouter);
+  router.use("/retailerp", RetailerPRoutes);
 });
 
 app.all("*", (req, res, next) => {
