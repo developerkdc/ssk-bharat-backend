@@ -14,8 +14,8 @@ const UserSchema = new mongoose.Schema({
   },
   secondary_email_id: { type: String, min: 5, max: 50, trim: true },
   password: { type: String, required: true, trim: true },
-  primary_mobile_no: { type: Number, min: 10, unique: true, trim: true },
-  secondary_mobile_no: { type: Number, min: 10, trim: true },
+  primary_mobile_no: { type: String, minLength: 10, maxLength:13,unique: true, trim: true },
+  secondary_mobile_no: { type: String, minLength: 10,maxLength:13, trim: true },
   profile_pic: { type: String, max: 150, default: null },
   status: { type: Boolean, default: true },
   role_id: {
@@ -33,7 +33,7 @@ const UserSchema = new mongoose.Schema({
       district: { type: String, trim: true },
       state: { type: String, trim: true },
       country: { type: String, trim: true },
-      pincode: { type: Number, min: 6, trim: true },
+      pincode: { type: String, minLength: 6, trim: true },
     },
   },
   kyc: {

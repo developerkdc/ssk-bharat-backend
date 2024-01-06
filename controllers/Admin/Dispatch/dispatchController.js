@@ -4,6 +4,8 @@ import ApiError from "../../../Utils/ApiError.js";
 import SalesModel from "../../../database/schema/SalesOrders/salesOrder.schema.js";
 import mongoose from "mongoose";
 import { dynamicSearch } from "../../../Utils/dynamicSearch.js";
+import retailerinventoryModel from "../../../database/schema/Inventory/RetailerInventory.schema.js";
+import InventorySchema from "../../../database/schema/Inventory/RetailerInventory.schema.js";
 import { approvalData } from "../../HelperFunction/approvalFunction.js";
 
 export const latestDispatchNo = catchAsync(async (req, res, next) => {
@@ -234,33 +236,100 @@ export const outForDelivery = catchAsync(async (req, res, next) => {
 
 export const delivered = catchAsync(async (req, res, next) => {
   const { id } = req.params;
+  let session;
+  try {
+    session = await mongoose.startSession();
+    await session.startTransaction();
+    // Validate if the provided id is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new Error(new ApiError("Invalid Order ID", 400));
+    }
   const user = req.user;
 
-  // Validate if the provided id is a valid ObjectId
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw new Error(new ApiError("Invalid Order ID", 400));
-  }
-
-  const updateData = await DispatchModel.findByIdAndUpdate(
-    { _id: id },
+    const updateData = await DispatchModel.findByIdAndUpdate(
+     { _id: id },
     {
       "proposed_changes.delivery_status": "delivered",
       "proposed_changes.tracking_date.delivered":
-        req.body?.tracking_date?.delivered || null,
+      req.body?.tracking_date?.delivered,
       approver: approvalData(user),
       updated_at: Date.now(),
     },
     { new: true }
   );
+     
+    if (!updateData) {
+      throw new Error(new ApiError("Order Not Found", 400));
+    }
+    // console.log(updateData);
+     const retailerdetails = await DispatchModel.findById(id).populate({
+       path: "current_data.customer_details.customer_id",
+      //  select:"current_data.customer_details.customer_id.current_data.inventorySchema",
+     });
+     let model;
+     const inventoryName = retailerdetails.current_data.customer_details.customer_id.inventorySchema;
+     console.log(retailerdetails.current_data.customer_details.customer_id);
+     console.log(retailerdetails);
+     if (
+       mongoose
+         .modelNames().includes(inventoryName)
+     ) {
+       model = mongoose.model(inventoryName);
+     } else {
+       model = mongoose.model(inventoryName,InventorySchema );
+     }
+     console.log(model)
+     const items = retailerdetails.Items;
+      const inventoryArray = [];
+      for (const item of items) {
+        console.log("for")
+        const inventory = new model({
+          sales_order_no: retailerdetails.sales_order_no,
+          supplierCompanyName: retailerdetails.ssk_details.company_name,
+          CustomerDetails: retailerdetails.customer_details,
+          receivedDate: retailerdetails.tracking_date.delivered,
+          transportDetails: retailerdetails.transport_details,
+          invoiceDetails: {
+            invoiceNo: retailerdetails.dispatch_no,
+            invoiceDate: retailerdetails.tracking_date.delivered,
+            itemsAmount: retailerdetails.total_item_amount,
+            gstAmount: retailerdetails.total_gst,
+            totalAmount: retailerdetails.total_amount,
+          },
+          tracking_date: retailerdetails.tracking_date,
+          itemsDetails: {
+            product_Id: item.product_Id,
+            itemName: item.item_name,
+            category: item.category,
+            sku: item.sku,
+            hsn_code: item.hsn_code,
+            itemsWeight: item.weight,
+            unit: item.unit,
+            ratePerUnit: item.rate_per_unit,
+            quantity: item.quantity,
+            receivedQuantity: item.quantity,
+            itemAmount: item.item_amount,
+            gstpercentage: item.gstpercentage,
+            gstAmount: item.gstAmount,
+            totalAmount: item.total_amount,
+            availableQuantity: item.quantity,
+          },
+        });
 
-  if (!updateData) {
-    throw new Error(new ApiError("Order Not Found", 400));
+        inventoryArray.push(inventory);
+        await inventory.save();
+      }
+    await session.commitTransaction();
+    await session.endSession();
+    return res.status(200).json({
+      statusCode: 200,
+      status: "success",
+      data: updateData,
+      message: "Delivered Successfully",
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    await session.endSession();
+    next(error);
   }
-
-  return res.status(200).json({
-    statusCode: 200,
-    status: "success",
-    data: updateData,
-    message: "Delivered Successfully",
-  });
 });

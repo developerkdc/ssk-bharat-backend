@@ -4,37 +4,43 @@ import catchAsync from "../../../Utils/catchAsync.js";
 import inventoryModel from "../../../database/schema/Inventory/Inventory.schema.js";
 import sampleInmodel from "../../../database/schema/Samples/SampleInward.schema.js";
 import sampleOut from "../../../database/schema/Samples/sampleOut.schema.js";
+import { approvalData } from "../../HelperFunction/approvalFunction.js";
+
 export const AddStock = catchAsync(async (req, res) => {
+   const user = req.user;
   const items = req.body.itemsDetails;
   const inventoryArray = [];
   for (const item of items) {
     const inventory = new inventoryModel({
-      purchaseOrderNo: req.body.purchaseOrderNo,
-      supplierCompanyName: req.body.supplierCompanyName,
-      receivedDate: req.body.receivedDate,
-      supplierDetails: req.body.supplierDetails,
-      transportDetails: req.body.transportDetails,
-      invoiceDetails: req.body.invoiceDetails,
-      approvals: req.body.approvals,
-      itemsDetails: {
-        product_Id: item.product_Id,
-        itemName: item.itemName,
-        category: item.category,
-        sku: item.sku,
-        hsn_code: item.hsn_code,
-        itemsWeight: item.itemsWeight,
-        unit: item.unit,
-        ratePerUnit: item.ratePerUnit,
-        quantity: item.quantity,
-        receivedQuantity: item.receivedQuantity,
-        itemAmount: item.itemAmount,
-        gstpercentage: item.gstpercentage,
-        gstAmount: item.gstAmount,
-        totalAmount: item.totalAmount,
-        availableQuantity: item.receivedQuantity,
-        balanceQuantity: item.receivedQuantity,
-        reservedQuantity: 0,
+      current_data: {
+        purchaseOrderNo: req.body.purchaseOrderNo,
+        supplierCompanyName: req.body.supplierCompanyName,
+        receivedDate: req.body.receivedDate,
+        supplierDetails: req.body.supplierDetails,
+        transportDetails: req.body.transportDetails,
+        invoiceDetails: req.body.invoiceDetails,
+        approvals: req.body.approvals,
+        itemsDetails: {
+          product_Id: item.product_Id,
+          itemName: item.itemName,
+          category: item.category,
+          sku: item.sku,
+          hsn_code: item.hsn_code,
+          itemsWeight: item.itemsWeight,
+          unit: item.unit,
+          ratePerUnit: item.ratePerUnit,
+          quantity: item.quantity,
+          receivedQuantity: item.receivedQuantity,
+          itemAmount: item.itemAmount,
+          gstpercentage: item.gstpercentage,
+          gstAmount: item.gstAmount,
+          totalAmount: item.totalAmount,
+          availableQuantity: item.receivedQuantity,
+          balanceQuantity: item.receivedQuantity,
+          reservedQuantity: 0,
+        },
       },
+      approver: approvalData(user),
     });
 
     inventoryArray.push(inventory);
@@ -295,37 +301,33 @@ export const reseverdQuantity = catchAsync(async (req, res) => {
   let productId = req.params.productId;
   let qty = req.query.qty;
   let products = await inventoryModel
-      .find({
-      "itemsDetails.product_Id": productId,
-      "itemsDetails.balanceQuantity": { $gt: 0 },
+    .find({
+      "current_data.itemsDetails.product_Id": productId,
+      "current_data.itemsDetails.balanceQuantity": { $gt: 0 },
     })
     .sort({ receivedDate: 1 });
+    console.log(products);
   for (const product of products) {
     const availableQty = product.itemsDetails.availableQuantity;
     const balanceQty = product.itemsDetails.balanceQuantity;
     if(balanceQty!==0){
-      const newReservedQty = Math.min(availableQty, qty); // Reserve up to qty or the received quantity, whichever is smaller
-    const newBalanceQty = Math.max(balanceQty - qty, 0); // Ensure balance quantity is not negative
-    console.log(newReservedQty);
-    console.log(newBalanceQty);
-    await inventoryModel.updateOne(
-      { _id: product._id },
-      {
-        $set: {
-          "itemsDetails.reservedQuantity": newReservedQty,
-          "itemsDetails.balanceQuantity": newBalanceQty,
-        },
-      }
-    );
+      let newReservedQty = Math.min(availableQty, qty); // Reserve up to qty or the received quantity, whichever is smaller
+      newReservedQty += product.itemsDetails.reservedQuantity;
+      const newBalanceQty = Math.max(balanceQty - qty, 0); // Ensure balance quantity is not negative
+      await inventoryModel.updateOne(
+        { _id: product._id },
+        {
+          $set: {
+            "itemsDetails.reservedQuantity": newReservedQty,
+            "itemsDetails.balanceQuantity": newBalanceQty,
+          },
+        }
+      );
     qty -= newReservedQty;
     if (qty <= 0) {
       break;
     }
     }
-    else{
-      continue;
-    }
-    
   }
 
   // Fetch the updated products

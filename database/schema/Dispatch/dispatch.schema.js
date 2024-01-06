@@ -45,12 +45,12 @@ const dispatchOrder = SchemaFunction(
       out_for_delivery: {
         dispatch_date: {
           type: Date,
-  
+
           default: null,
         },
         estimate_delivery_date: {
           type: Date,
-  
+
           default: null,
         },
       },
@@ -78,19 +78,19 @@ const dispatchOrder = SchemaFunction(
       },
       gst_no: {
         type: String,
-          required: [true, "Gst No is required"],
+        required: [true, "Gst No is required"],
         trim: true,
         default: null,
       },
       first_name: {
         type: String,
-          required: [true, "First Name is required"],
+        required: [true, "First Name is required"],
         trim: true,
         default: null,
       },
       last_name: {
         type: String,
-          required: [true, "Last Name is required"],
+        required: [true, "Last Name is required"],
         trim: true,
         default: null,
       },
@@ -121,6 +121,7 @@ const dispatchOrder = SchemaFunction(
     customer_details: {
       customer_id: {
         type: mongoose.Schema.Types.ObjectId,
+        refPath: "current_data.order_type",
         required: [true, "Customer Id is required"],
       },
       customer_name: {
@@ -170,7 +171,7 @@ const dispatchOrder = SchemaFunction(
         secondary_email_id: {
           type: String,
           trim: true,
-          default:null,
+          default: null,
         },
         primary_mobile_no: {
           type: Number,
@@ -200,7 +201,7 @@ const dispatchOrder = SchemaFunction(
         first_name: {
           type: String,
           // required: [true, "First Name is required"],
-  
+
           trim: true,
           default: null,
         },
@@ -223,7 +224,7 @@ const dispatchOrder = SchemaFunction(
         },
         secondary_email_id: {
           type: String,
-          default:null,
+          default: null,
           trim: true,
         },
         primary_mobile_no: {
@@ -235,7 +236,7 @@ const dispatchOrder = SchemaFunction(
         address: addressSchema,
       },
     },
-  
+
     Items: [
       {
         product_Id: {
@@ -264,7 +265,11 @@ const dispatchOrder = SchemaFunction(
           required: [true, "Item Weight is required"],
           trim: true,
         },
-        unit: { type: String, required: [true, "Unit is required"], trim: true },
+        unit: {
+          type: String,
+          required: [true, "Unit is required"],
+          trim: true,
+        },
         rate_per_unit: {
           type: Number,
           required: [true, "Rate per Unit is required"],
@@ -425,7 +430,7 @@ const dispatchOrder = SchemaFunction(
       },
     },
   })
-)
+);
 
 dispatchOrder.index({ "current_data.sales_order_no": 1 }, { unique: true });
 dispatchOrder.index({ "current_data.dispatch_no": 1 }, { unique: true });
