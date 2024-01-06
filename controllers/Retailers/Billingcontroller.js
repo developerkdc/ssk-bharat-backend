@@ -1,35 +1,34 @@
 import mongoose from "mongoose";
 import catchAsync from "../../Utils/catchAsync";
 import { dynamicSearch } from "../../Utils/dynamicSearch";
-import BillsModel from "../../database/schema/Retailers/Bills.schema";
 import ApiError from "../../Utils/ApiError";
 import InventorySchema from "../../database/schema/Inventory/RetailerInventory.schema";
+import BillSchema from "../../database/schema/Retailers/Bills.schema";
+import DynamicModel from "../../Utils/DynamicModel";
+
 
 export const createbill = catchAsync(async (req, res, next) => {
   const session = await mongoose.startSession();
-  let user = "nn";
+  let user = "6598ecd7d1b23dfc8328ce36";
   session.startTransaction();
   try {
-    let bills = await BillsModel.create([req.body], { session });
     const retailer = await mongoose.model("retailers").findById(user);
-    let model;
-     const inventoryName = retailer.current_data.inventorySchema;
-     if (mongoose.modelNames().includes(inventoryName)) {
-       model = mongoose.model(inventoryName);
-     } else {
-       model = mongoose.model(inventoryName, InventorySchema);
-     }
+    
+    const billName = retailer.current_data.billingSchema;
+    const BillsModel = DynamicModel(billName, BillSchema);
+    let bills = await BillsModel.create([req.body], { session });
+    const inventoryName = retailer.current_data.inventorySchema;
+    const retailerInveontry = DynamicModel(inventoryName, InventorySchema);
       for (const product of bills[0].Items) {
         const productId = product.product_Id;
-        console.log(model);
-        const inventoryProduct = await model.findOne({
+        const inventoryProduct = await retailerInveontry.findOne({
           "itemsDetails.product_Id": productId,
         });
         console.log(inventoryProduct);
         if (inventoryProduct) {
           const updatedQuantity =
             inventoryProduct.itemsDetails.availableQuantity - product.quantity;
-          await model.updateOne(
+          await retailerInveontry.updateOne(
             { "itemsDetails.product_Id": productId },
             { $set: { "itemsDetails.availableQuantity": updatedQuantity } }
           );

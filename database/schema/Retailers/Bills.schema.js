@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 
-const Bills = new mongoose.Schema({
+const BillSchema = new mongoose.Schema({
   BillNo: { type: Number, trim: true, unique: true },
   Name: { type: String, trim: true },
   Email: { type: String, trim: true },
@@ -122,5 +122,5 @@ const Bills = new mongoose.Schema({
   created_at: { type: Date, default: Date.now },
 });
 
-const BillsModel = mongoose.model("Billing", Bills);
-export default BillsModel;
+// const BillsModel = mongoose.model("Billing", Bills);
+export default BillSchema;

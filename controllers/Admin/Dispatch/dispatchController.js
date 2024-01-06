@@ -264,39 +264,36 @@ export const delivered = catchAsync(async (req, res, next) => {
     // console.log(updateData);
      const retailerdetails = await DispatchModel.findById(id).populate({
        path: "current_data.customer_details.customer_id",
-      //  select:"current_data.customer_details.customer_id.current_data.inventorySchema",
+       select:"current_data.customer_details.customer_id.current_data.inventorySchema",
      });
+
+    //  console.log(retailerdetails);
      let model;
      const inventoryName = retailerdetails.current_data.customer_details.customer_id.inventorySchema;
-     console.log(retailerdetails.current_data.customer_details.customer_id);
-     console.log(retailerdetails);
      if (
-       mongoose
-         .modelNames().includes(inventoryName)
+       mongoose.modelNames().includes(inventoryName)
      ) {
        model = mongoose.model(inventoryName);
      } else {
        model = mongoose.model(inventoryName,InventorySchema );
      }
-     console.log(model)
-     const items = retailerdetails.Items;
+     const items = retailerdetails.current_data.Items;
       const inventoryArray = [];
       for (const item of items) {
-        console.log("for")
         const inventory = new model({
-          sales_order_no: retailerdetails.sales_order_no,
-          supplierCompanyName: retailerdetails.ssk_details.company_name,
-          CustomerDetails: retailerdetails.customer_details,
-          receivedDate: retailerdetails.tracking_date.delivered,
-          transportDetails: retailerdetails.transport_details,
+          sales_order_no: retailerdetails.current_data.sales_order_no,
+          supplierCompanyName: retailerdetails.current_data.ssk_details.company_name,
+          CustomerDetails: retailerdetails.current_data.customer_details,
+          receivedDate: retailerdetails.current_data.tracking_date.delivered,
+          transportDetails: retailerdetails.current_data.transport_details,
           invoiceDetails: {
-            invoiceNo: retailerdetails.dispatch_no,
-            invoiceDate: retailerdetails.tracking_date.delivered,
-            itemsAmount: retailerdetails.total_item_amount,
-            gstAmount: retailerdetails.total_gst,
-            totalAmount: retailerdetails.total_amount,
+            invoiceNo: retailerdetails.current_data.dispatch_no,
+            invoiceDate: retailerdetails.current_data.tracking_date.delivered,
+            itemsAmount: retailerdetails.current_data.total_item_amount,
+            gstAmount: retailerdetails.current_data.total_gst,
+            totalAmount: retailerdetails.current_data.total_amount,
           },
-          tracking_date: retailerdetails.tracking_date,
+          tracking_date: retailerdetails.current_data.tracking_date,
           itemsDetails: {
             product_Id: item.product_Id,
             itemName: item.item_name,
