@@ -35,6 +35,10 @@ import FaqRouter from "./routes/Admin/FAQs/faqRoutes.js";
 import TicketRouter from "./routes/Admin/Tickets/ticketRoutes.js";
 import metAuthRouter from "./routes/METAuthRoutes/metAuthRoutes.js";
 import approvalRouter from "./routes/Approval/getPendingApprovalList.route.js"
+import retailerPortalRouter from "./routes/Retailer/retailerPortalRoute.js"
+import offlinePortalRouter from "./routes/OfflineStore/offlinePortalRoute.js"
+
+
 import RetailerPRoutes from "./routes/Retailer/retailerRoutes.js";
 const app = express();
 
@@ -76,6 +80,8 @@ app.group("/api/v1/admin", (router) => {
   router.use('/faq',FaqRouter);
   router.use('/met',metAuthRouter);
   router.use('/ticket',TicketRouter);
+  router.use('/retailer-portal',retailerPortalRouter);
+  router.use('/offlinestore-portal',offlinePortalRouter);
   router.use("/retailerp", RetailerPRoutes);
 });
 
