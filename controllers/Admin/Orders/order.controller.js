@@ -4,15 +4,15 @@ import { dynamicSearch } from "../../../Utils/dynamicSearch";
 import storePOModel from "../../../database/schema/PurchaseOrders/offlineStorePurchaseOrder.schema";
 import OrdersModel from "../../../database/schema/Orders/order.schema";
 import mongoose from "mongoose";
+import { approvalData } from "../../HelperFunction/approvalFunction";
 
 export const createNewOrder = catchAsync(async (req, res, next) => {
   const session = await mongoose.startSession();
   session.startTransaction();
+  const user = req.user;
+
   try {
     const { order_date, customer_details, ssk_details: sskData } = req.body;
-
-    // Create a new order
-    const newOrder = await OrdersModel.create([req.body], { session });
 
     // Create a new store purchase order
     let latestPoNo = 1;
@@ -47,6 +47,19 @@ export const createNewOrder = catchAsync(async (req, res, next) => {
       ],
       { session }
     );
+    const newOrder = await OrdersModel.create(
+      [
+        {
+          current_data: {
+            ...req.body,
+            purchase_order_id: storePO[0]?._id,
+            purchase_order_no: storePO[0]?.purchase_order_no  
+          },
+          approver: approvalData(user),
+        },
+      ],
+      { session }
+    );
 
     // Commit the transaction
     await session.commitTransaction();
@@ -73,10 +86,10 @@ export const latestOrderNo = catchAsync(async (req, res, next) => {
     // Find the latest purchase order by sorting in descending order based on purchase_order_date
     const latestOrder = await OrdersModel.findOne()
       .sort({ created_at: -1 })
-      .select("order_no");
+      .select("current_data.order_no");
     if (latestOrder) {
       return res.status(200).json({
-        order_no: latestOrder.order_no + 1,
+        order_no: latestOrder.current_data.order_no + 1,
         statusCode: 200,
         status: "Latest Order Number",
       });
@@ -141,7 +154,7 @@ export const fetchOrders = catchAsync(async (req, res, next) => {
   });
   const totalPages = Math.ceil(totalDocuments / limit);
 
-  const orders = await OrdersModel.find({ ...matchQuery, ...searchQuery })
+  const orders = await OrdersModel.find({ ...matchQuery, ...searchQuery,"current_data.status":true })
     .skip(skip)
     .limit(limit)
     .sort({ [sortBy]: sort })

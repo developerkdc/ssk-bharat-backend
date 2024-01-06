@@ -31,7 +31,8 @@ export const latestSSKPONo = catchAsync(async (req, res, next) => {
     console.log(latestPurchaseOrder, "lateee");
     if (latestPurchaseOrder) {
       return res.status(200).json({
-        latest_po_number: latestPurchaseOrder.current_data.purchase_order_no + 1,
+        latest_po_number:
+          latestPurchaseOrder.current_data.purchase_order_no + 1,
         statusCode: 200,
         status: "success",
         message: "Latest PO Number",
@@ -92,7 +93,7 @@ export const getSSKPo = catchAsync(async (req, res, next) => {
   const sortField = req.query.sortBy || "purchase_order_no";
 
   const purchaseOrder = await sskPOModel
-    .find({ ...matchQuery, ...searchQuery,"current_data.status":true })
+    .find({ ...matchQuery, ...searchQuery, "current_data.status": true })
     .sort({ [sortField]: sortDirection })
     .skip(skip)
     .limit(limit);
@@ -113,10 +114,19 @@ export const getSSKPo = catchAsync(async (req, res, next) => {
 
 export const updatePOStatus = catchAsync(async (req, res, next) => {
   const { id } = req.params;
+  const user = req.user;
+
   console.log(req.body, "req.body");
   const updatePO = await sskPOModel.findOneAndUpdate(
     { _id: id }, // Assuming 'id' is the unique identifier field
-    { $set: { status: req.body.status } },
+    {
+      $set: {
+        "proposed_changes.order_status": req.body.status,
+        "proposed_changes.status": false,
+        approver: approvalData(user),
+        updated_at: Date.now(),
+      },
+    },
     { new: true } // This option returns the updated document
   );
   if (!updatePO) return next(new ApiError("Purchase Order Not Found", 404));
