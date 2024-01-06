@@ -297,15 +297,11 @@ const purchaseOrderSchema = SchemaFunction(
       type: Number,
       required: [true, "Total Amount is required"],
     },
-    approver: userAndApprovals,
-    status: {
+    order_status: {
       type: String,
       enum: ["active", "cancelled", "closed"],
       default: "active",
     },
-    created_at: { type: Date, default: Date.now },
-    updated_at: { type: Date, default: Date.now },
-    deleted_at: { type: Date, default: null },
   })
 )
 

@@ -29,7 +29,7 @@ export const replyTicket = catchAsync(async (req, res, next) => {
     statusCode: 201,
     status: "success",
     data: ticket,
-    message: "Message Send ",
+    message: "Message Send",
   });
 });
 

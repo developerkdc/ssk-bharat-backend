@@ -22,32 +22,38 @@ export const createRetailerPO = catchAsync(async (req, res, next) => {
     let latestOrderNo = 1;
     const OrderNo = await OrdersModel.findOne()
       .sort({ created_at: -1 })
-      .select("order_no")
+      .select("current_data.order_no")
       .session(session);
 
     if (OrderNo) {
-      latestOrderNo = OrderNo.order_no + 1;
+      latestOrderNo = OrderNo.current_data.order_no + 1;
     } else {
       latestOrderNo = 1;
     }
+    console.log(latestOrderNo,"latesss")
     const addNewOrder = await OrdersModel.create(
       [
         {
-          ...req.body,
-          order_no: latestOrderNo,
-          order_type: "retailers",
-          order_date: purchase_order_date,
-          ssk_details: {
-            ...poData,
-            ssk_id: poData.supplier_id,
-            ssk_name: poData.supplier_name,
+          current_data: {
+            ...req.body,
+            status:true,
+            order_no: latestOrderNo,
+            order_type: "retailers",
+            order_date: purchase_order_date,
+            ssk_details: {
+              ...poData,
+              ssk_id: poData.supplier_id,
+              ssk_name: poData.supplier_name,
+            },
+            customer_details: {
+              ...retailer_details,
+              customer_id: retailer_details.retailer_id,
+              customer_name: retailer_details.retailer_name,
+            },
+            purchase_order_id: retailerPO[0]?._id,
+            purchase_order_no: retailerPO[0]?.purchase_order_no  
           },
-          customer_details: {
-            ...retailer_details,
-            customer_id: retailer_details.retailer_id,
-            customer_name: retailer_details.retailer_name,
-          },
-        },
+        }
       ],
       { session }
     );
