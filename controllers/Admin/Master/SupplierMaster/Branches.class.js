@@ -3,6 +3,7 @@ import ApiError from "../../../../Utils/ApiError";
 import catchAsync from "../../../../Utils/catchAsync";
 import fs from "fs";
 import userAndApprovals from "../../../../database/utils/approval.schema";
+import { approvalData } from "../../../HelperFunction/approvalFunction";
 import SchemaFunction from "../../../HelperFunction/SchemaFunction";
 import { dynamicSearch } from "../../../../Utils/dynamicSearch";
 
@@ -418,8 +419,10 @@ class Branches {
       {
         $push: {
           "proposed_changes.contact_person": req.body,
-          approver: approvalData(req.user)
         },
+        $set:{
+          approver: approvalData(req.user)
+        }
       },
       { runValidators: true, new: true }
     );
