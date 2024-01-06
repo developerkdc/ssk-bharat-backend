@@ -73,12 +73,6 @@ const retailerPurchaseOrderSchema = new mongoose.Schema({
       type: String,
       default: null,
       trim: true,
-      validate: {
-        validator: function (value) {
-          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-        },
-        message: "invalid email Id",
-      },
     },
     primary_mobile_no: {
       type: Number,
@@ -144,12 +138,6 @@ const retailerPurchaseOrderSchema = new mongoose.Schema({
         type: String,
         default: null,
         trim: true,
-        validate: {
-          validator: function (value) {
-            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-          },
-          message: "invalid email Id",
-        },
       },
       primary_mobile_no: {
         type: Number,
@@ -204,12 +192,6 @@ const retailerPurchaseOrderSchema = new mongoose.Schema({
         type: String,
         default: null,
         trim: true,
-        validate: {
-          validator: function (value) {
-            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-          },
-          message: "invalid email Id",
-        },
       },
       primary_mobile_no: {
         type: Number,
@@ -328,10 +310,14 @@ const retailerPurchaseOrderSchema = new mongoose.Schema({
     required: [true, "Total Amount is required"],
   },
   approver: userAndApprovals,
-  status: {
+  order_status: {
     type: String,
     enum: ["active", "cancelled", "closed"],
     default: "active",
+  },
+  status: {
+    type: Boolean,
+    default:false
   },
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: Date.now },

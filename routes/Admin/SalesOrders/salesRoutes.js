@@ -12,14 +12,14 @@ const router = express.Router();
 router.get("/latestOrderNo", authMiddleware, latestSalesOrderNo);
 router.post(
   "/create",
-  // authMiddleware,
-  // rolesPermissions("sales", "add"),
+  authMiddleware,
+  rolesPermissions("sales", "add"),
   createSalesOrder
 );
 router.get(
   "/fetch",
-  // authMiddleware,
-  // rolesPermissions("sales", "view"),
+  authMiddleware,
+  rolesPermissions("sales", "view"),
   fetchSalesOrders
 );
 router.get("/confirmsales", authMiddleware, fetchConfirmSalesOrders);

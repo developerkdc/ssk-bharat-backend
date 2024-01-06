@@ -32,6 +32,7 @@ import offlinePaymentRouter from "./routes/Admin/OfflinePayment/offlinePayment.r
 import InventoryRouter from "./routes/Admin/Inventory/InventoryRoutes.js";
 import SampleRouter from "./routes/Admin/Samples/sampleRoutes.js";
 import FaqRouter from "./routes/Admin/FAQs/faqRoutes.js";
+import TicketRouter from "./routes/Admin/Tickets/ticketRoutes.js";
 import metAuthRouter from "./routes/METAuthRoutes/metAuthRoutes.js";
 import approvalRouter from "./routes/Approval/getPendingApprovalList.route.js"
 import RetailerPRoutes from "./routes/Retailer/retailerRoutes.js";
@@ -74,6 +75,7 @@ app.group("/api/v1/admin", (router) => {
   router.use('/approval',approvalRouter);
   router.use('/faq',FaqRouter);
   router.use('/met',metAuthRouter);
+  router.use('/ticket',TicketRouter);
   router.use("/retailerp", RetailerPRoutes);
 });
 

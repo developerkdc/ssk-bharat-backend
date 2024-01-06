@@ -6,16 +6,17 @@ import mongoose from "mongoose";
 import { dynamicSearch } from "../../../Utils/dynamicSearch.js";
 import retailerinventoryModel from "../../../database/schema/Inventory/RetailerInventory.schema.js";
 import InventorySchema from "../../../database/schema/Inventory/RetailerInventory.schema.js";
+import { approvalData } from "../../HelperFunction/approvalFunction.js";
 
 export const latestDispatchNo = catchAsync(async (req, res, next) => {
   try {
     // Find the latest purchase order by sorting in descending order based on purchase_order_date
     const latestDispatch = await DispatchModel.findOne()
       .sort({ created_at: -1 })
-      .select("sales_order_no");
+      .select("current_data.dispatch_no");
     if (latestDispatch) {
       return res.status(200).json({
-        dispatch_no: latestDispatch.dispatch_no + 1,
+        dispatch_no: latestDispatch.current_data.dispatch_no + 1,
         statusCode: 200,
         status: "success",
         message: "Latest Dispatch Number",
@@ -37,7 +38,7 @@ export const latestDispatchNo = catchAsync(async (req, res, next) => {
 
 export const createDispatch = catchAsync(async (req, res, next) => {
   const salesOrderData = await SalesModel.findById(req.body.sales_order_id);
-  console.log(salesOrderData)
+  const user = req.user;
 
   const {
     sales_order_no,
@@ -53,6 +54,7 @@ export const createDispatch = catchAsync(async (req, res, next) => {
     Items,
   } = salesOrderData.current_data;
   const body = {
+<<<<<<< HEAD
     ...req.body,
     sales_order_no: salesOrderData.current_data.sales_order_no,
     order_type: salesOrderData.current_data.order_type,
@@ -68,6 +70,26 @@ export const createDispatch = catchAsync(async (req, res, next) => {
     total_item_amount: salesOrderData.current_data.total_item_amount,
     total_gst: salesOrderData.current_data.total_gst,
     total_amount: salesOrderData.current_data.total_amount,
+=======
+    current_data: {
+      ...req.body,
+      sales_order_no: sales_order_no,
+      order_type: order_type,
+      delivery_status: "dispatched",
+      tracking_date: {
+        sales_order_date: sales_order_date,
+      },
+      ssk_details: ssk_details,
+      customer_details: customer_details,
+      Items: Items,
+      total_weight: total_weight,
+      total_quantity: total_quantity,
+      total_item_amount: total_item_amount,
+      total_gst: total_gst,
+      total_amount: total_amount,
+    },
+    approver: approvalData(user),
+>>>>>>> 33d1dbf2e4b4cdae1d445001829ea775150b2993
   };
   const dispatch = new DispatchModel(body);
   if (!dispatch) {
@@ -93,7 +115,7 @@ export const fetchDispatchBasedonDeliveryStatus = catchAsync(
       type,
       page,
       limit = 10,
-      sortBy = "dispatch_no",
+      sortBy = "created_at",
       sort = "desc",
     } = req.query;
     const skip = (page - 1) * limit;
@@ -109,8 +131,6 @@ export const fetchDispatchBasedonDeliveryStatus = catchAsync(
           status: false,
           data: {
             data: [],
-            // totalPages: 1,
-            // currentPage: 1,
           },
           message: "Results Not Found",
         });
@@ -121,22 +141,23 @@ export const fetchDispatchBasedonDeliveryStatus = catchAsync(
     const { to, from, ...data } = req?.body?.filters || {};
     const matchQuery = data || {};
     if (type) {
-      matchQuery.delivery_status = type;
+      matchQuery["current_data.delivery_status"] = type;
     }
-
     if (to && from) {
       if (type == "dispatched") {
-        matchQuery["tracking_date.dispatch_generated_date"] = {
+        matchQuery["current_data.tracking_date.dispatch_generated_date"] = {
           $gte: new Date(from),
           $lte: new Date(to),
         };
       } else if (type == "outForDelivery") {
-        matchQuery["tracking_date.out_for_delivery.dispatch_date"] = {
+        matchQuery[
+          "current_data.tracking_date.out_for_delivery.dispatch_date"
+        ] = {
           $gte: new Date(from),
           $lte: new Date(to),
         };
       } else if (type == "delivered") {
-        matchQuery["tracking_date.delivered"] = {
+        matchQuery["current_data.tracking_date.delivered"] = {
           $gte: new Date(from),
           $lte: new Date(to),
         };
@@ -146,6 +167,7 @@ export const fetchDispatchBasedonDeliveryStatus = catchAsync(
     const dispatchOrders = await DispatchModel.find({
       ...matchQuery,
       ...searchQuery,
+      "current_data.status": true,
     })
       .skip(skip)
       .limit(limit)
@@ -171,43 +193,49 @@ export const fetchDispatchBasedonDeliveryStatus = catchAsync(
 
 export const outForDelivery = catchAsync(async (req, res, next) => {
   const { id } = req.params;
+  const user = req.user;
+
   const updateData = await DispatchModel.findByIdAndUpdate(
     { _id: id },
     {
-      delivery_status: "outForDelivery",
-      "tracking_date.out_for_delivery.dispatch_date":
-        req.body?.tracking_date?.out_for_delivery?.dispatch_date || null,
-      "tracking_date.out_for_delivery.estimate_delivery_date":
-        req.body?.tracking_date?.out_for_delivery?.estimate_delivery_date ||
-        null,
-      "transport_details.hand_delivery.person_name":
-        req.body?.transport_details?.hand_delivery?.person_name || null,
-      "transport_details.hand_delivery.person_phone_no":
-        req.body?.transport_details?.hand_delivery?.person_phone_no || null,
-      "transport_details.courier.company_name":
-        req.body?.transport_details?.courier?.company_name || null,
-      "transport_details.courier.docket_no":
-        req.body?.transport_details?.courier?.docket_no || null,
-      "transport_details.road.transporter_name":
-        req.body?.transport_details?.road?.transporter_name || null,
-      "transport_details.road.vehicle_no":
-        req.body?.transport_details?.road?.vehicle_no || null,
-      "transport_details.road.driver_name":
-        req.body?.transport_details?.road?.driver_name || null,
-      "transport_details.road.driver_phone_no":
-        req.body?.transport_details?.road?.driver_phone_no || null,
-      "transport_details.rail.transporter_name":
-        req.body?.transport_details?.rail?.transporter_name || null,
-      "transport_details.rail.awb_no":
-        req.body?.transport_details?.rail?.awb_no || null,
-      "transport_details.air.transporter_name":
-        req.body?.transport_details?.air?.transporter_name || null,
-      "transport_details.air.awb_no":
-        req.body?.transport_details?.air?.awb_no || null,
-      "transport_details.delivery_challan_no":
-        req.body?.transport_details?.delivery_challan_no || null,
-      "transport_details.transport_type":
-        req.body?.transport_details?.transport_type || null,
+      $set: {
+        "proposed_changes.delivery_status": "outForDelivery",
+        "proposed_changes.tracking_date.out_for_delivery.dispatch_date":
+          req.body?.tracking_date?.out_for_delivery?.dispatch_date || null,
+        "proposed_changes.tracking_date.out_for_delivery.estimate_delivery_date":
+          req.body?.tracking_date?.out_for_delivery?.estimate_delivery_date ||
+          null,
+        "proposed_changes.transport_details.hand_delivery.person_name":
+          req.body?.transport_details?.hand_delivery?.person_name || null,
+        "proposed_changes.transport_details.hand_delivery.person_phone_no":
+          req.body?.transport_details?.hand_delivery?.person_phone_no || null,
+        "proposed_changes.transport_details.courier.company_name":
+          req.body?.transport_details?.courier?.company_name || null,
+        "proposed_changes.transport_details.courier.docket_no":
+          req.body?.transport_details?.courier?.docket_no || null,
+        "proposed_changes.transport_details.road.transporter_name":
+          req.body?.transport_details?.road?.transporter_name || null,
+        "proposed_changes.transport_details.road.vehicle_no":
+          req.body?.transport_details?.road?.vehicle_no || null,
+        "proposed_changes.transport_details.road.driver_name":
+          req.body?.transport_details?.road?.driver_name || null,
+        "proposed_changes.transport_details.road.driver_phone_no":
+          req.body?.transport_details?.road?.driver_phone_no || null,
+        "proposed_changes.transport_details.rail.transporter_name":
+          req.body?.transport_details?.rail?.transporter_name || null,
+        "proposed_changes.transport_details.rail.awb_no":
+          req.body?.transport_details?.rail?.awb_no || null,
+        "proposed_changes.transport_details.air.transporter_name":
+          req.body?.transport_details?.air?.transporter_name || null,
+        "proposed_changes.transport_details.air.awb_no":
+          req.body?.transport_details?.air?.awb_no || null,
+        "proposed_changes.transport_details.delivery_challan_no":
+          req.body?.transport_details?.delivery_challan_no || null,
+        "proposed_changes.transport_details.transport_type":
+          req.body?.transport_details?.transport_type || null,
+        approver: approvalData(user),
+        updated_at: Date.now(),
+      },
     },
     { new: true }
   );
@@ -234,15 +262,19 @@ export const delivered = catchAsync(async (req, res, next) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new Error(new ApiError("Invalid Order ID", 400));
     }
+  const user = req.user;
 
     const updateData = await DispatchModel.findByIdAndUpdate(
-      { _id: id },
-      {
-        delivery_status: "delivered",
-        "tracking_date.delivered": req.body?.tracking_date?.delivered || null,
-      },
-      { new: true ,session},
-    );
+     { _id: id },
+    {
+      "proposed_changes.delivery_status": "delivered",
+      "proposed_changes.tracking_date.delivered":
+        req.body?.tracking_date?.delivered || null,
+      approver: approvalData(user),
+      updated_at: Date.now(),
+    },
+    { new: true }
+  );
      
     if (!updateData) {
       throw new Error(new ApiError("Order Not Found", 400));
@@ -310,7 +342,7 @@ export const delivered = catchAsync(async (req, res, next) => {
     return res.status(200).json({
       statusCode: 200,
       status: "success",
-      data: retailerdetails,
+      data: updateData,
       message: "Delivered Successfully",
     });
   } catch (error) {

@@ -22,30 +22,35 @@ export const createOfflineStorePO = catchAsync(async (req, res, next) => {
     let latestOrderNo = 1;
     const OrderNo = await OrdersModel.findOne()
       .sort({ created_at: -1 })
-      .select("order_no")
+      .select("current_data.order_no")
       .session(session);
 
     if (OrderNo) {
-      latestOrderNo = OrderNo.order_no + 1;
+      latestOrderNo = OrderNo.current_data.order_no + 1;
     } else {
       latestOrderNo = 1;
     }
     const addNewOrder = await OrdersModel.create(
       [
         {
-          ...req.body,
-          order_no: latestOrderNo,
-          order_type: "Store",
-          order_date: purchase_order_date,
-          ssk_details: {
-            ...poData,
-            ssk_id: poData.supplier_id,
-            ssk_name: poData.supplier_name,
-          },
-          customer_details: {
-            ...store_details,
-            customer_id: store_details.store_id,
-            customer_name: store_details.store_name,
+          current_data: {
+            ...req.body,
+            status:true,
+            order_no: latestOrderNo,
+            order_type: "offlinestores",
+            order_date: purchase_order_date,
+            ssk_details: {
+              ...poData,
+              ssk_id: poData.supplier_id,
+              ssk_name: poData.supplier_name,
+            },
+            customer_details: {
+              ...store_details,
+              customer_id: store_details.store_id,
+              customer_name: store_details.store_name,
+            },
+            purchase_order_id: storePO[0]?._id,
+            purchase_order_no: storePO[0]?.purchase_order_no  
           },
         },
       ],
@@ -108,7 +113,7 @@ export const getStorePo = catchAsync(async (req, res, next) => {
   const search = req.query.search || "";
 
   let searchQuery = {};
-  if (search != ""  && req?.body?.searchFields) {
+  if (search != "" && req?.body?.searchFields) {
     const searchdata = dynamicSearch(search, boolean, numbers, string);
     if (searchdata?.length == 0) {
       return res.status(404).json({

@@ -4,13 +4,14 @@ import {
   addMECommission,
   listingMECommissionBasedOnReatiler,
 } from "../../../controllers/Admin/MET/commission.controller";
+import authMiddleware from "../../../middlewares/adminAuth";
 const marketExecutiveCommissionRouter = express.Router();
 
-marketExecutiveCommissionRouter.route("/").post(addMECommission);
+marketExecutiveCommissionRouter.route("/").post(authMiddleware,addMECommission);
 
 marketExecutiveCommissionRouter
   .route("/:id")
-  .get(listingMECommissionBasedOnReatiler)
-  .patch(EditMECommission);
+  .get(authMiddleware,listingMECommissionBasedOnReatiler)
+  .patch(authMiddleware,EditMECommission);
 
 export default marketExecutiveCommissionRouter;

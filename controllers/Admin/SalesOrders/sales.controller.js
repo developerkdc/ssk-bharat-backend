@@ -8,6 +8,7 @@ import marketExectiveCommissionModel from "../../../database/schema/MET/marketEx
 import MarketExecutiveModel from "../../../database/schema/MET/MarketExecutive.schema";
 import offlinePaymentModel from "../../../database/schema/OfflinePayment/offlinePayment.schema";
 import { dynamicSearch } from "../../../Utils/dynamicSearch";
+import { approvalData } from "../../HelperFunction/approvalFunction";
 
 export const latestSalesOrderNo = catchAsync(async (req, res, next) => {
   try {
@@ -40,7 +41,7 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
   try {
     session = await mongoose.startSession();
     session.startTransaction();
-    const sales = await SalesModel.create([{ current_data: { ...req.body } }], { session });
+    const sales = await SalesModel.create([{ current_data: { ...req.body }, approver: approvalData(req.user) }], { session });
     if (!sales) {
       throw new Error(new ApiError("Error during Sales Order", 400));
     }
@@ -68,6 +69,7 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
               },
               totalSalesAmount: Number(sales[0].current_data.total_amount).toFixed(2),
               dueDate: dueDate,
+              approver: approvalData(req.user)
             },
           }
         ],
@@ -104,7 +106,8 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
                   (sales[0].current_data.total_amount / 100) * marketExec.current_data.commissionPercentage
                 ).toFixed(2),
               },
-            }
+            },
+            approver: approvalData(req.user)
           };
         }),
         { session }
@@ -120,6 +123,9 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
                   marketExecutive.proposed_changes.commission.commissionAmount
                 ).toFixed(2),
               },
+              $set: {
+                approver: approvalData(req.user)
+              }
             }
           );
         })

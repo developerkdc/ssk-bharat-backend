@@ -3,6 +3,7 @@ import catchAsync from "../../../Utils/catchAsync";
 import payoutAndCommissionTransModel from "../../../database/schema/payoutAndCommission/payoutsAndCommissionTransaction.schema";
 import MarketExecutiveModel from "../../../database/schema/MET/MarketExecutive.schema";
 import ApiError from "../../../Utils/ApiError";
+import { approvalData } from "../../HelperFunction/approvalFunction";
 
 export const addPayout = catchAsync(async (req, res, next) => {
   const {
@@ -18,7 +19,7 @@ export const addPayout = catchAsync(async (req, res, next) => {
     const addPayout = await payoutAndCommissionTransModel.create(
       [
         {
-          current_data:{
+          current_data: {
             marketExecutiveId,
             payouts: {
               payoutType,
@@ -26,7 +27,8 @@ export const addPayout = catchAsync(async (req, res, next) => {
               payoutAmount,
               tdsPercentage,
             },
-          }
+          },
+          approver: approvalData(req.user)
         },
       ],
       { session }
@@ -55,6 +57,9 @@ export const addPayout = catchAsync(async (req, res, next) => {
         $inc: {
           "proposed_changes.account_balance": -Number(amountPaid).toFixed(2),
         },
+        $set: {
+          approver: approvalData(req.user)
+        }
       },
       { session }
     );
@@ -82,7 +87,7 @@ export const getPayoutAndCommissionTrans = catchAsync(
 
     const {
       type,
-      page=1,
+      page = 1,
       limit = 10,
       sortBy = "createdAt",
       sort = "desc",
@@ -130,7 +135,7 @@ export const getPayoutAndCommissionTrans = catchAsync(
       },
       {
         $sort: {
-          [sortBy]: sort == "desc" ? -1 :1,
+          [sortBy]: sort == "desc" ? -1 : 1,
         },
       },
       {

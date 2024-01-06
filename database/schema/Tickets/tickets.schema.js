@@ -4,6 +4,7 @@ const TicketSchema = new mongoose.Schema({
   user_id: {
     type: mongoose.Schema.Types.ObjectId,
     required: [true, "User Id is required"],
+    refPath: "module_type",
   },
   module_type: {
     type: String,
@@ -15,21 +16,22 @@ const TicketSchema = new mongoose.Schema({
     required: [true, "complaint is required"],
     maxlength: [1000, "complaint cannot exceed 1000 characters"],
   },
-  ticket_status:{
+  ticket_status: {
     type: String,
     enum: ["pending", "closed"],
-    default:"pending"
+    default: "pending",
   },
   replies: [
     {
       user_id: {
         type: mongoose.Schema.Types.ObjectId,
+        refPath: "module_type",
         default: null,
       },
-      type:{
+      type: {
         type: String,
         enum: ["consultant", "user"],
-        required:[true,"Type is required"]
+        default: null,
       },
       reply: {
         type: String,

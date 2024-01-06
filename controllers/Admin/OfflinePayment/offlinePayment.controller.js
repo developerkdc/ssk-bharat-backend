@@ -1,6 +1,7 @@
 import catchAsync from "../../../Utils/catchAsync";
 import { dynamicSearch } from "../../../Utils/dynamicSearch";
 import offlinePaymentModel from "../../../database/schema/OfflinePayment/offlinePayment.schema";
+import { approvalData } from "../../HelperFunction/approvalFunction";
 
 export const getOfflinePaymentDetails = catchAsync(async (req, res, next) => {
   const { string, boolean, numbers } = req?.body?.searchFields || {};
@@ -88,6 +89,7 @@ export const addOfflinePayment = catchAsync(async (req, res, next) => {
       },
       $set: {
         "proposed_changes.paymentStatus": "partailly paid",
+        approver: approvalData(req.user)
       },
     },
     { new: true }
@@ -112,6 +114,9 @@ export const addFollowupAndRemark = catchAsync(async (req, res, next) => {
           remark,
         },
       },
+      $set:{
+        approver: approvalData(req.user)
+      }
     },
     { new: true }
   );

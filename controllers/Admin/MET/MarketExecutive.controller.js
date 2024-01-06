@@ -6,6 +6,7 @@ import ApiError from "../../../Utils/ApiError";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt"
 import { dynamicSearch } from "../../../Utils/dynamicSearch";
+import { approvalData } from "../../HelperFunction/approvalFunction";
 
 export const getMarketExecutive = catchAsync(async (req, res, next) => {
   const { string, boolean, numbers } = req?.body?.searchFields || {};
@@ -89,7 +90,7 @@ export const addMarketExec = catchAsync(async (req, res, next) => {
 
   const addME = await MarketExecutiveModel.create({
     current_data: {...data},
-    approver
+    approver: approvalData(req.user)
   });
   return res.status(201).json({
     statusCode: 201,
@@ -138,6 +139,7 @@ export const updateMarketExec = catchAsync(async (req, res) => {
         "proposed_changes.address.city": data?.address?.city,
         "proposed_changes.address.country": data?.address?.country,
         "proposed_changes.address.pincode": data?.address?.pincode,
+        approver: approvalData(req.user),
         updated_at: Date.now()
       },
     },
@@ -209,6 +211,7 @@ export const uploadMarketExecImages = catchAsync(async (req, res, next) => {
         "proposed_changes.kyc.gst.gst_image": images?.gst_image,
         "proposed_changes.kyc.aadhar.aadhar_image": images?.aadhar_image,
         "proposed_changes.kyc.bank_details.passbook_image": images?.passbook_image,
+        approver: approvalData(req.user),
         updated_at: Date.now()
       },
     }
@@ -294,6 +297,7 @@ export const addNominee = catchAsync(async (req, res, next) => {
         },
       },
       $set: {
+        approver: approvalData(req.user),
         updated_at: Date.now()
       },
     },
@@ -364,6 +368,7 @@ export const editNominee = catchAsync(async (req, res, next) => {
         "proposed_changes.nominee.$[e].kyc.bank_details.confirm_account_no": confirm_account_no,
         "proposed_changes.nominee.$[e].kyc.bank_details.ifsc_code": ifsc_code,
         "proposed_changes.nominee.$[e].kyc.bank_details.passbook_image": images?.passbook_image,
+        approver: approvalData(req.user),
         updated_at:Date.now()
       },
     },
