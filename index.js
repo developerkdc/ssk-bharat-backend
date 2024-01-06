@@ -35,8 +35,11 @@ import FaqRouter from "./routes/Admin/FAQs/faqRoutes.js";
 import TicketRouter from "./routes/Admin/Tickets/ticketRoutes.js";
 import metAuthRouter from "./routes/METAuthRoutes/metAuthRoutes.js";
 import approvalRouter from "./routes/Approval/getPendingApprovalList.route.js"
-import retailerPortalRouter from "./routes/Retailer/retailerPortalRoute.js"
-import offlinePortalRouter from "./routes/OfflineStore/offlinePortalRoute.js"
+import  offlinePORouter from "./routes/OfflineStore/PurchaseOrder/offlinePORoute.js"
+import  offlineSalesRouter from "./routes/OfflineStore/ConfirmSalesOrder/offlineConfirmSalesRoute.js"
+import  retailerPORouter from "./routes/Retailer/PurchaseOrder/retailerPortalPORoute.js"
+import  retailerSalesRouter from "./routes/Retailer/ConfirmSalesOrder/retailerConfirmSalesRoutes.js"
+
 
 
 import RetailerPRoutes from "./routes/Retailer/retailerRoutes.js";
@@ -80,9 +83,20 @@ app.group("/api/v1/admin", (router) => {
   router.use('/faq',FaqRouter);
   router.use('/met',metAuthRouter);
   router.use('/ticket',TicketRouter);
-  router.use('/retailer-portal',retailerPortalRouter);
-  router.use('/offlinestore-portal',offlinePortalRouter);
+
   router.use("/retailerp", RetailerPRoutes);
+});
+
+//retailers
+app.group("/api/v1/retailer-portal", (router) => {
+  router.use('/purchase-order',retailerPORouter);
+  router.use('/confirm-sales',retailerSalesRouter);
+});
+//offline store
+app.group("/api/v1/offline-store-portal", (router) => {
+  router.use('/purchase-order',offlinePORouter);
+  router.use('/confirm-sales',offlineSalesRouter);
+
 });
 
 app.all("*", (req, res, next) => {

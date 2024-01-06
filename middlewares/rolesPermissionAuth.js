@@ -1,11 +1,10 @@
-import userModel from "../database/schema/Users/user.schema";
+
 import ApiError from "../Utils/ApiError"; // Make sure to provide the correct path
 
 const rolesPermissions = (name, key) => {
   return async (req, res, next) => {
     try {
       let user = req.user
-
       const isAuthorized = user.role_id.permissions[name][key];
       if (isAuthorized != true) {
         return res.status(403).json({

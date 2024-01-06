@@ -5,7 +5,6 @@ import {
   createSalesOrder,
   latestSalesOrderNo,
   fetchSalesOrders,
-  fetchConfirmSalesOrders,
 } from "../../../controllers/Admin/SalesOrders/sales.controller";
 const router = express.Router();
 
@@ -22,6 +21,5 @@ router.get(
   rolesPermissions("sales", "view"),
   fetchSalesOrders
 );
-router.get("/confirmsales", authMiddleware, fetchConfirmSalesOrders);
 
 export default router;
