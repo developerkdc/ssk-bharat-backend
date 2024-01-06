@@ -54,23 +54,6 @@ export const createDispatch = catchAsync(async (req, res, next) => {
     Items,
   } = salesOrderData.current_data;
   const body = {
-<<<<<<< HEAD
-    ...req.body,
-    sales_order_no: salesOrderData.current_data.sales_order_no,
-    order_type: salesOrderData.current_data.order_type,
-    delivery_status: "dispatched",
-    tracking_date: {
-      sales_order_date: salesOrderData.current_data.sales_order_date,
-    },
-    ssk_details: salesOrderData.current_data.ssk_details,
-    customer_details: salesOrderData.current_data.customer_details,
-    Items: salesOrderData.current_data.Items,
-    total_weight: salesOrderData.current_data.total_weight,
-    total_quantity: salesOrderData.current_data.total_quantity,
-    total_item_amount: salesOrderData.current_data.total_item_amount,
-    total_gst: salesOrderData.current_data.total_gst,
-    total_amount: salesOrderData.current_data.total_amount,
-=======
     current_data: {
       ...req.body,
       sales_order_no: sales_order_no,
@@ -89,7 +72,6 @@ export const createDispatch = catchAsync(async (req, res, next) => {
       total_amount: total_amount,
     },
     approver: approvalData(user),
->>>>>>> 33d1dbf2e4b4cdae1d445001829ea775150b2993
   };
   const dispatch = new DispatchModel(body);
   if (!dispatch) {
