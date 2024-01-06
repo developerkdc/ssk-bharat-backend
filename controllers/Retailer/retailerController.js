@@ -36,18 +36,18 @@ export const getRetailerPoByRetailersId = catchAsync(async (req, res, next) => {
   const totalUnits = await retailerPOModel.countDocuments({
     ...matchQuery,
     ...searchQuery,
-    "retailer_details.retailer_id": req.params.id,
+    "retailer_details.retailer_id": "658a9e0d9b103802240ffd27",
   });
   const totalPages = Math.ceil(totalUnits / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
   const skip = (validPage - 1) * limit;
-  const sortField = req.query.sortBy || "purchase_order_no";
+  const sortField = req.query.sortBy || "created_at";
 
   const purchaseOrder = await retailerPOModel
     .find({
       ...matchQuery,
       ...searchQuery,
-      "retailer_details.retailer_id": req.params.id,
+      "retailer_details.retailer_id": "658a9e0d9b103802240ffd27",
     })
     .sort({ [sortField]: sortDirection })
     .skip(skip)

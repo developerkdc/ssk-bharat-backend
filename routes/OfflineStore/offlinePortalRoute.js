@@ -3,7 +3,7 @@ import { getStorePoByStoreId } from "../../controllers/OfflineStore/offlineStore
 
 const router = express.Router();
 
-router.get("/po/:id", getStorePoByStoreId);
+router.get("/po", getStorePoByStoreId);
 
 
 export default router;

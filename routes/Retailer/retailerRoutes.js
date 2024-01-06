@@ -1,5 +1,5 @@
 import express from "express";
-import { Bills, createbill, latestRetailerBillNo } from "../../controllers/Retailers/Billingcontroller";
+import { Bills, createbill, latestRetailerBillNo } from "../../controllers/Retailer/Billingcontroller";
 import authMiddleware from "../../middlewares/adminAuth";
 
 const RetailerPRoutes = express.Router();

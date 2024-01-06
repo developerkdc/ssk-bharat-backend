@@ -38,7 +38,7 @@ export const getStorePoByStoreId = catchAsync(async (req, res, next) => {
   const totalUnits = await storePOModel.countDocuments({
     ...matchQuery,
     ...searchQuery,
-    "store_details.store_id": req.params.id,
+    "store_details.store_id": "5fbd8c7e74be260022cd6af5",//replace id with login user
   });
   if (!totalUnits) throw new Error(new ApiError("No Data", 404));
   const totalPages = Math.ceil(totalUnits / limit);
@@ -50,7 +50,7 @@ export const getStorePoByStoreId = catchAsync(async (req, res, next) => {
     .find({
       ...matchQuery,
       ...searchQuery,
-      "store_details.store_id": req.params.id,
+      "store_details.store_id": "5fbd8c7e74be260022cd6af5",
     })
     .sort({ [sortField]: sortDirection })
     .skip(skip)

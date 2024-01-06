@@ -80,6 +80,9 @@ app.group("/api/v1/admin", (router) => {
   router.use('/faq',FaqRouter);
   router.use('/met',metAuthRouter);
   router.use('/ticket',TicketRouter);
+  router.use('/retailer-portal',retailerPortalRouter);
+  router.use('/offlinestore-portal',offlinePortalRouter);
+  router.use("/retailerp", RetailerPRoutes);
 });
 
 app.all("*", (req, res, next) => {
