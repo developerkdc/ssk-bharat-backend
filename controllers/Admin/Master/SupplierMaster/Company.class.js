@@ -34,6 +34,14 @@ class CompanyMaster {
         type: Date,
         default: Date.now,
       },
+      register_mobile_no:{
+        type: String,
+        minlength: [10, "Length should be greater or equal to 10"],
+        maxlength: [10, "Length should be less than or equal to 10"],
+        trim: true,
+        unique:true,
+        required: [true, "register mobile no is required"]
+      },
       password: {
         type: String,
         trim: true,

@@ -40,6 +40,7 @@ import offlinePortalRouter from "./routes/OfflineStore/offlinePortalRoute.js"
 
 
 import RetailerPRoutes from "./routes/Retailer/retailerRoutes.js";
+import RetailerAuthRouter from "./routes/Retailer/Auth/Auth.route.js";
 const app = express();
 
 const port = process.env.PORT || 4001;
@@ -83,6 +84,14 @@ app.group("/api/v1/admin", (router) => {
   router.use('/retailer-portal',retailerPortalRouter);
   router.use('/offlinestore-portal',offlinePortalRouter);
   router.use("/retailerp", RetailerPRoutes);
+});
+//retailers
+app.group("/api/v1/retailer-portal", (router) => {
+  router.use("/auth",RetailerAuthRouter)
+});
+//offline store
+app.group("/api/v1/offline-store-portal", (router) => {
+
 });
 
 app.all("*", (req, res, next) => {
