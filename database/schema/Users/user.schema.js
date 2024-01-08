@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
+import LogSchemaFunction from "../../utils/Logs.schema";
 
 const UserSchema = new mongoose.Schema({
   employee_id: { type: Number, min: 1, max: 25, indexedDB: true, trim: true },
@@ -138,4 +139,7 @@ UserSchema.methods.jwtToken = function (next) {
 }
 
 const userModel = mongoose.model("Users", UserSchema);
+
+LogSchemaFunction("user",userModel);
+
 export default userModel;

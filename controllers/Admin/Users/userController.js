@@ -1,49 +1,9 @@
-import ApiError from "../../../Utils/ApiError.js";
 import catchAsync from "../../../Utils/catchAsync.js";
-import connect from "../../../database/mongo.service.js";
 import mongoose from "mongoose";
 import userModel from "../../../database/schema/Users/user.schema.js";
 import bcrypt from "bcrypt";
-import userlogModel from "../../../database/schema/Users/userlog.schema.js";
 import ExcelJS from "exceljs";
 import { dynamicSearch } from "../../../Utils/dynamicSearch.js";
-
-const userChangeStream = userModel.watch();
-userChangeStream.on("change", async (change) => {
-  if (change.operationType === "update") {
-    const userId = change.documentKey._id;
-    const updatedFields = change.updateDescription.updatedFields;
-
-    // Create a user log entry
-    const userLog = new userlogModel({
-      employee_id: userId,
-      action: "update",
-      userUpdatedEmp_id: userId,
-      timestamp: new Date().toLocaleString(),
-      updatedFields: updatedFields,
-    });
-
-    await userLog.save();
-    console.log("Updated user logs:", userLog);
-  }
-  if (change.operationType === "insert") {
-    console.log(change.fullDocument);
-    const userId = change.documentKey._id;
-    const updatedFields = change.fullDocument;
-
-    // Create a user log entry
-    const userLog = new userlogModel({
-      employee_id: userId,
-      action: "insert",
-      userCreatedEmp_id: userId,
-      timestamp: new Date().toLocaleString(),
-      updatedFields: updatedFields,
-    });
-
-    await userLog.save();
-    console.log("Updated user logs:", userLog);
-  }
-});
 
 export const AddUser = catchAsync(async (req, res) => {
   const userData = req.body;
@@ -181,7 +141,7 @@ export const FetchUsers = catchAsync(async (req, res) => {
 });
 
 export const UserLogsFile = catchAsync(async (req, res) => {
-  const userLogs = await userlogModel.find().populate("employee_id");
+  const userLogs = await mongoose.model("userslogs").find().populate("employee_id");
 
   let workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("userLogs");
@@ -210,7 +170,7 @@ export const UserLogsFile = catchAsync(async (req, res) => {
 });
 
 export const UserLogs = catchAsync(async (req, res) => {
-  const log = await userlogModel.find({}).populate("employee_id");
+  const log = await mongoose.model("userslogs").find({}).populate("employee_id");
   return res.status(200).json({
     statusCode: 200,
     status: "success",

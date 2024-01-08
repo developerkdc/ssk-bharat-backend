@@ -16,6 +16,10 @@ const ProductSchema = SchemaFunction(
       required: [true, "Product Name is required"],
       unique: true,
     },
+    isActive:{
+      type:Boolean,
+      default:true
+    },
     sku: {
       type: String,
       min: 2,
@@ -48,7 +52,6 @@ const ProductSchema = SchemaFunction(
       ref: "gst",
       required: [true, "GST is required"],
     },
-    status: { type: Boolean, default: true },
     show_in_website: { type: Boolean, default: false },
     show_in_retailer: { type: Boolean, default: false },
     show_in_offline_store: { type: Boolean, default: false },

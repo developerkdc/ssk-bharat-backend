@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import SchemaFunction from "../../../../controllers/HelperFunction/SchemaFunction";
+import LogSchemaFunction from "../../../utils/Logs.schema";
 
 const CategorySchema = SchemaFunction(
   new mongoose.Schema({
@@ -24,4 +25,5 @@ const CategorySchema = SchemaFunction(
 CategorySchema.index({ "current_data.category_name": 1 }, { unique: true });
 
 const categoryModel = mongoose.model("category", CategorySchema);
+LogSchemaFunction("category",categoryModel)
 export default categoryModel;

@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import userModel from "../../../database/schema/Users/user.schema.js";
 import sendEmail from "../../../Utils/SendEmail.js";
+import Cookies from "cookies";
 
 const saltRounds = 10;
 
@@ -20,6 +21,15 @@ export const LoginUser = catchAsync(async (req, res, next) => {
   }
 
   const token = user.jwtToken(next);
+
+  var cookies = new Cookies(req, res, { keys: ['keyboard cat'] })
+
+  cookies.set('LastVisit', new Date().toISOString(), { signed: true })
+  // Get a cookie
+  var userId = cookies.get('userId')
+  
+  // Set the cookie to a value
+  console.log(lastVisit)
 
   return res.status(200).cookie("token", token).cookie("userId", user.id).json({
     statusCode: 200,

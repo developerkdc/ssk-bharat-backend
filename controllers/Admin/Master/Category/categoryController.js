@@ -102,7 +102,7 @@ export const updateCategory = catchAsync(async (req, res, next) => {
   const user = req.user;
 
   let relativeImagePath;
-  relativeImagePath = oldCategory.category_image;
+  // relativeImagePath = oldCategory.category_image;
   if (req.file) {
     // fs.unlinkSync(`./uploads/admin/category/${oldCategory.category_image}`);
     relativeImagePath = req.file.filename;
