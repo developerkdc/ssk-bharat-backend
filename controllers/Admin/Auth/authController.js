@@ -10,26 +10,17 @@ const saltRounds = 10;
 export const LoginUser = catchAsync(async (req, res, next) => {
   const { username, password } = req.body;
   const secretKey = process.env.JWT_SECRET;
-  const user = await userModel.findOne({ primary_email_id: username });
+  const user = await userModel.findOne({ "current_data.primary_email_id": username });
   if (!user) {
     return res.status(401).json({ message: "Invalid credentials" });
   }
-  const passwordMatch = await bcrypt.compare(password, user.password);
+  const passwordMatch = await bcrypt.compare(password, user.current_data.password);
 
   if (!passwordMatch) {
     return res.status(401).json({ message: "Invalid Password" });
   }
 
   const token = user.jwtToken(next);
-
-  var cookies = new Cookies(req, res, { keys: ['keyboard cat'] })
-
-  cookies.set('LastVisit', new Date().toISOString(), { signed: true })
-  // Get a cookie
-  var userId = cookies.get('userId')
-  
-  // Set the cookie to a value
-  console.log(lastVisit)
 
   return res.status(200).cookie("token", token).cookie("userId", user.id).json({
     statusCode: 200,

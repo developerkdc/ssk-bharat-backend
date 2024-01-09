@@ -4,12 +4,17 @@ import userModel from "../../../database/schema/Users/user.schema.js";
 import bcrypt from "bcrypt";
 import ExcelJS from "exceljs";
 import { dynamicSearch } from "../../../Utils/dynamicSearch.js";
+import { approvalData } from "../../HelperFunction/approvalFunction.js";
 
 export const AddUser = catchAsync(async (req, res) => {
+  const user = req.user;
   const userData = req.body;
   const saltRounds = 10;
   userData.password = await bcrypt.hash(userData.password, saltRounds);
-  const newUser = new userModel({ current_data: userData });
+  const newUser = new userModel({
+    current_data: { ...req.body },
+    approver: approvalData(user),
+  });
   const savedUser = await newUser.save();
 
   // Send a success response
@@ -25,6 +30,7 @@ export const AddUser = catchAsync(async (req, res) => {
 
 export const EditUser = catchAsync(async (req, res) => {
   const userId = req.params.userId;
+  const loginUser = req.user;
   const updateData = req.body;
   updateData.updated_at = new Date().toLocaleString();
   if (!mongoose.Types.ObjectId.isValid(userId)) {
@@ -45,6 +51,8 @@ export const EditUser = catchAsync(async (req, res) => {
         "proposed_changes.address": updateData?.address,
         "proposed_changes.role_id": updateData?.role_id,
         "proposed_changes.kyc": updateData?.kyc,
+        approver: approvalData(loginUser),
+        updated_at: Date.now(),
       },
     },
     { new: true }
@@ -156,7 +164,10 @@ export const FetchUsers = catchAsync(async (req, res) => {
 });
 
 export const UserLogsFile = catchAsync(async (req, res) => {
-  const userLogs = await mongoose.model("userslogs").find().populate("employee_id");
+  const userLogs = await mongoose
+    .model("userslogs")
+    .find()
+    .populate("employee_id");
 
   let workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("userLogs");
@@ -185,7 +196,10 @@ export const UserLogsFile = catchAsync(async (req, res) => {
 });
 
 export const UserLogs = catchAsync(async (req, res) => {
-  const log = await mongoose.model("userslogs").find({}).populate("employee_id");
+  const log = await mongoose
+    .model("userslogs")
+    .find({})
+    .populate("employee_id");
   return res.status(200).json({
     statusCode: 200,
     status: "success",
