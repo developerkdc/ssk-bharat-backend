@@ -269,11 +269,12 @@ export const delivered = catchAsync(async (req, res, next) => {
      });
        
      const inventoryName = retailerdetails.current_data.customer_details.customer_id.current_data.inventorySchema;
-     console.log(retailerdetails.current_data.total_amount);
+
      const inventoryModel = DynamicModel(inventoryName, InventorySchema);
      const items = retailerdetails.current_data.Items;
       const inventoryArray = [];
       for (const item of items) {
+        console.log(item);
         const inventory = new inventoryModel({
           sales_order_no: retailerdetails.current_data.sales_order_no,
           supplierCompanyName:
@@ -291,19 +292,18 @@ export const delivered = catchAsync(async (req, res, next) => {
           tracking_date: retailerdetails.current_data.tracking_date,
           itemsDetails: {
             product_Id: item.product_Id,
-            itemName: item.item_name,
+            item_name: item.item_name,
             category: item.category,
             sku: item.sku,
             hsn_code: item.hsn_code,
-            itemsWeight: item.weight,
+            weight: item.weight,
             unit: item.unit,
-            ratePerUnit: item.rate_per_unit,
+            rate_per_unit: item.rate_per_unit,
             quantity: item.quantity,
             receivedQuantity: item.quantity,
-            itemAmount: item.item_amount,
-            gstpercentage: item.gstpercentage,
-            gstAmount: item.gstAmount,
-            totalAmount: item.total_amount,
+            item_amount: item.item_amount,
+            gst: item.gst,
+            total_amount: item.total_amount,
             availableQuantity: item.quantity,
           },
         });
