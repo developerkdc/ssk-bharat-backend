@@ -3,13 +3,14 @@ import catchAsync from "../../../Utils/catchAsync";
 import DynamicModel from "../../../Utils/DynamicModel";
 import InventorySchema from "../../../database/schema/Inventory/RetailerInventory.schema";
 
-const RetailerInventory = catchAsync(async(req,res)=>{
+export const RetailerInventoryList = catchAsync(async(req,res)=>{
     // let user = req.user;
-    let user = "6596b712c68d5a79159c41e0";
+    console.log("fdsfsdf")
+    let user = "6598ecd7d1b23dfc8328ce36";
     const retailer = await mongoose.model("retailers").findById(user);
     const inventoryName = retailer.current_data.inventorySchema;
-    const retailerInveontry = DynamicModel(inventoryName, InventorySchema);
-    const products = await retailerInveontry.find()
+    const Inventoryschema = DynamicModel(inventoryName, InventorySchema);
+    const products = await Inventoryschema.find();
     return res.status(200).json({
       status: "success",
       statusCode: 200,
