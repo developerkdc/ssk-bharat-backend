@@ -3,11 +3,12 @@ import catchAsync from "../../../../Utils/catchAsync";
 import { dynamicSearch } from "../../../../Utils/dynamicSearch";
 import gstModel from "../../../../database/schema/Master/GST/gst.schema";
 import { approvalData } from "../../../HelperFunction/approvalFunction";
+import { createdByFunction } from "../../../HelperFunction/createdByfunction";
 
 export const createGst = catchAsync(async (req, res, next) => {
   const user = req.user;
   const gst = await gstModel.create({
-    current_data: { ...req.body },
+    current_data: { ...req.body, created_by: createdByFunction(user) },
     approver: approvalData(user),
   });
   if (gst) {
@@ -79,7 +80,7 @@ export const getGST = catchAsync(async (req, res, next) => {
 export const getGstList = catchAsync(async (req, res, next) => {
   const gst = await gstModel.aggregate([
     {
-      $match: { "current_data.status": true,"current_data.isActive": true },
+      $match: { "current_data.status": true, "current_data.isActive": true },
     },
     {
       $project: {
@@ -102,7 +103,7 @@ export const getGstList = catchAsync(async (req, res, next) => {
 
 export const updateGst = catchAsync(async (req, res, next) => {
   const { id } = req.params;
-  const { gst_percentage,isActive } = req.body;
+  const { gst_percentage, isActive } = req.body;
   const user = req.user;
 
   const updatedGst = await gstModel.findByIdAndUpdate(
