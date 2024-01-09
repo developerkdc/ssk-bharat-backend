@@ -10,44 +10,42 @@ export const RetailerInventoryList = catchAsync(async(req,res)=>{
     const inventoryName = retailer.current_data.inventorySchema;
     const Inventoryschema = DynamicModel(inventoryName, InventorySchema);
     // const products = await Inventoryschema.find();
-    console.log(Inventoryschema);
+    // console.log(Inventoryschema);
  
     const result = await Inventoryschema.aggregate([
-      { $unwind: "$itemsDetails" },
+      {
+        $unwind: "$itemsDetails",
+      },
+      {
+        $group: {
+          _id: "$itemsDetails.product_Id",
+          totalAvailableQuantity: { $sum: "$itemsDetails.availableQuantity" },
+        },
+      },
       {
         $lookup: {
           from: "products",
-          localField: "itemsDetails.product_Id",
+          localField: "_id",
           foreignField: "_id",
           as: "productData",
         },
       },
-      { $unwind: "$productData" },
       {
-        $group: {
-          _id: {
-            itemName: "$itemsDetails.item_name",
-            category: "$itemsDetails.category",
-            sku: "$itemsDetails.sku",
-            hsnCode: "$itemsDetails.hsn_code",
-          },
-          totalAvailableQuantity: { $sum: "$itemsDetails.availableQuantity" },
-          itemImage: { $addToSet: "$productData.product_images" },
-        },
+        $unwind: "$productData",
       },
-
       {
         $project: {
-          _id: 0,
-          itemName: "$_id.itemName",
-          category: "$_id.category",
-          sku: "$_id.sku",
-          hsnCode: "$_id.hsnCode",
+          productName: "$productData.item_name",
+          category: "$productData.category",
+          sku: "$productData.sku",
+          hsnCode: "$productData.hsn_code",
+          gst: "$productData.gst",
+          itemImage: "$productData.product_images",
           totalAvailableQuantity: 1,
-          itemImage: 1,
         },
       },
     ]);
+    console.log(result) 
     return res.status(200).json({
       status: "success",
       statusCode: 200,
