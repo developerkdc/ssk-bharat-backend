@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const userAndApprovals = new mongoose.Schema({
-    created_by: {
+    updated_by: {
         type: {
             user_id: {
                 type: mongoose.Schema.Types.ObjectId,
