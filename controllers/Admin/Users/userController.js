@@ -13,7 +13,7 @@ export const AddUser = catchAsync(async (req, res) => {
   userData.password = await bcrypt.hash(userData.password, saltRounds);
   const newUser = new userModel({
     current_data: { ...req.body },
-    approver: approvalData(user),
+    approver: approvalData(user,user?.current_data.role_id.role_name),
   });
   const savedUser = await newUser.save();
 
@@ -111,18 +111,18 @@ export const FetchUsers = catchAsync(async (req, res) => {
   const limit = 10;
   const skip = (page - 1) * limit;
 
-  const sortField = req.query.sortField || "employee_id";
+  const sortField = req.query.sortField || "current_data.employee_id";
   const sortOrder = req.query.sortOrder || "asc";
   const sort = {};
   sort[sortField] = sortOrder === "asc" ? 1 : -1;
 
   const filter = {};
-  if (req.query.district) filter["address.district"] = req.query.district;
-  if (req.query.location) filter["address.location"] = req.query.location;
-  if (req.query.taluka) filter["address.taluka"] = req.query.taluka;
-  if (req.query.state) filter["address.state"] = req.query.state;
-  if (req.query.city) filter["address.city"] = req.query.city;
-  if (req.query.area) filter["address.area"] = req.query.area;
+  if (req.query.district) filter["current_data.address.district"] = req.query.district;
+  if (req.query.location) filter["current_data.address.location"] = req.query.location;
+  if (req.query.taluka) filter["current_data.address.taluka"] = req.query.taluka;
+  if (req.query.state) filter["current_data.address.state"] = req.query.state;
+  if (req.query.city) filter["current_data.address.city"] = req.query.city;
+  if (req.query.area) filter["current_data.address.area"] = req.query.area;
 
   //search  functionality
   let searchQuery = {};
@@ -144,7 +144,8 @@ export const FetchUsers = catchAsync(async (req, res) => {
     .find({ ...filter, ...searchQuery, "current_data.status": true })
     .sort(sort)
     .skip(skip)
-    .limit(limit);
+    .limit(limit)
+    .populate("current_data.role_id")
 
   //total pages
   const totalDocuments = await userModel.countDocuments({
