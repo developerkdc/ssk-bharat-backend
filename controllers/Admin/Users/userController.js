@@ -13,7 +13,7 @@ export const AddUser = catchAsync(async (req, res) => {
   userData.password = await bcrypt.hash(userData.password, saltRounds);
   const newUser = new userModel({
     current_data: { ...req.body },
-    approver: approvalData(user),
+    approver: approvalData(user,user?.current_data.role_id.role_name),
   });
   const savedUser = await newUser.save();
 
@@ -111,7 +111,7 @@ export const FetchUsers = catchAsync(async (req, res) => {
   const limit = 10;
   const skip = (page - 1) * limit;
 
-  const sortField = req.query.sortField || "employee_id";
+  const sortField = req.query.sortField || "current_data.employee_id";
   const sortOrder = req.query.sortOrder || "asc";
   const sort = {};
   sort[sortField] = sortOrder === "asc" ? 1 : -1;
@@ -144,7 +144,8 @@ export const FetchUsers = catchAsync(async (req, res) => {
     .find({ ...filter, ...searchQuery, "current_data.status": true })
     .sort(sort)
     .skip(skip)
-    .limit(limit);
+    .limit(limit)
+    .populate("current_data.role_id")
 
   //total pages
   const totalDocuments = await userModel.countDocuments({
