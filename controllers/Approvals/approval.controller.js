@@ -54,9 +54,9 @@ export const Approved = catchAsync(async (req, res, next) => {
   if (!data) return next(new ApiError("the document does not exits", 400));
 
   let poModel;
-  if (data.current_data.order_type === "offlinestores") {
+  if (module === "orders" && data.current_data.order_type === "offlinestores") {
     poModel = storePOModel
-  } else if (data.current_data.order_type === "retailers") {
+  } else if (module === "orders" && data.current_data.order_type === "retailers") {
     poModel = retailerPOModel
   }
 
@@ -153,6 +153,51 @@ export const Approved = catchAsync(async (req, res, next) => {
       data: approvalList,
       message: "Document has been Approved",
     });
+  }
+
+  return res.status(200).json({
+    statusCode: 200,
+    status: true,
+    data: approvalList,
+    message: "Approval Pending",
+  });
+
+});
+
+
+export const ApprovedByAdmin = catchAsync(async (req, res, next) => {
+
+  const { module} = req.query;
+  const { documentId } = req.body;
+  if (!module) return next(new ApiError("please provide module name", 400));
+
+  const model = mongoose.model(module);
+  const data = await model.findOne({ _id: documentId });
+
+  if (!data) return next(new ApiError("the document does not exits", 400));
+
+  let poModel;
+  if (module === "order" && data.current_data.order_type === "offlinestores") {
+    poModel = storePOModel
+  } else if (module === "order" && data.current_data.order_type === "retailers") {
+    poModel = retailerPOModel
+  }
+
+  let approvalList = await model.updateOne({ _id: documentId }, {
+    $set: {
+      "proposed_changes.status": true,
+      current_data: Object.assign(data.proposed_changes, { status: true })
+    }
+  });
+
+  if (module === "orders" && poModel) {
+    if (approvalList.acknowledged && approvalList.modifiedCount > 0) {
+      const companyPOStatus = await poModel.updateOne({ _id: data.current_data.purchase_order_id }, {
+        $set: {
+          status: true
+        }
+      })
+    }
   }
 
   return res.status(200).json({
