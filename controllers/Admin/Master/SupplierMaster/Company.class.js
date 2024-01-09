@@ -158,7 +158,7 @@ class CompanyMaster {
     });
   });
   GetCompanyList = catchAsync(async (req, res, next) => {
-    const modalName = await this.#modal.find({"current_data.status":false},{"current_data.company_name":1});
+    const modalName = await this.#modal.find({"current_data.isActive":true,"current_data.status":true},{"current_data.company_name":1});
     return res.status(201).json({
       statusCode: 200,
       status: "Success",
@@ -198,9 +198,7 @@ class CompanyMaster {
       company_name,
       onboarding_date,
       company_status,
-      approver_one,
-      approver_two,
-      approver
+      isActive
     } = req.body;
     const { id } = req.params;
     const updateData = await this.#modal.findByIdAndUpdate(
@@ -209,6 +207,7 @@ class CompanyMaster {
         $set: {
           "proposed_changes.company_name": company_name,
           "proposed_changes.company_status": company_status,
+          "proposed_changes.isActive": isActive,
           "proposed_changes.onboarding_date": onboarding_date,
           approver: approvalData(req.user),
           updated_at: Date.now(),

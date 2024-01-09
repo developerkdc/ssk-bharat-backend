@@ -6,6 +6,6 @@ approvalRouter.route("/:userId")
     .get(getApprovalPendingList)
     .patch(Approved)
 
-approvalRouter.patch("/admin",ApprovedByAdmin)
+approvalRouter.patch("/admin/approve",ApprovedByAdmin)
 
 export default approvalRouter
