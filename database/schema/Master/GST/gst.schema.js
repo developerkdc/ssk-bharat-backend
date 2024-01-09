@@ -8,6 +8,10 @@ const GstSchema = SchemaFunction(
       required: [true, "GST Percentage is required"],
       unique: true,
     },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
   })
 );
 

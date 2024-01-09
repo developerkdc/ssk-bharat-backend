@@ -1,10 +1,13 @@
 import express from "express";
 import { MulterFunction } from "../../../../Utils/MulterFunction";
-import { createProduct,
+import {
+  createProduct,
   deleteProductImage,
+  getProductList,
   getProducts,
   updateProduct,
-  updateProductImage, } from "../../../../controllers/Admin/Master/Products/productsController";
+  updateProductImage,
+} from "../../../../controllers/Admin/Master/Products/productsController";
 import authMiddleware from "../../../../middlewares/adminAuth";
 import rolesPermissions from "../../../../middlewares/rolesPermissionAuth";
 
@@ -17,13 +20,14 @@ router.post(
   MulterFunction("./uploads/admin/products").array("product_images", 4),
   createProduct
 );
-// router.get("/getProduct",rolesPermissions("product","view"),getProducts)
 router.get(
   "/getProduct",
   authMiddleware,
   rolesPermissions("product", "view"),
   getProducts
 );
+
+router.get("/getProductList", authMiddleware, getProductList);
 router.patch(
   "/updateProduct/:id",
   authMiddleware,

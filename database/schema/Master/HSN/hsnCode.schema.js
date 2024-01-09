@@ -14,6 +14,10 @@ const HSNSchema = SchemaFunction(
       ref: "gst",
       required: [true, "GST Percentage is required"],
     },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
   })
 );
 

@@ -8,6 +8,10 @@ const PaymentTermSchema = SchemaFunction(
       required: [true, "Payment Term Days is required"],
       unique: true,
     },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
   })
 );
 

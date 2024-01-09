@@ -58,11 +58,14 @@ export const getProducts = catchAsync(async (req, res, next) => {
     }
     searchQuery = searchdata;
   }
-  const totalProduct = await productModel.countDocuments(searchQuery);
+  const totalProduct = await productModel.countDocuments({
+    ...searchQuery,
+    "current_data.status": true,
+  });
 
   const totalPages = Math.ceil(totalProduct / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
-  const skip = (validPage - 1) * limit;
+  const skip = Math.max((validPage - 1) * limit, 0);
   const sortField = req?.query?.sortBy || "created_at";
   const product = await productModel
     .find({ ...searchQuery, "current_data.status": true })
@@ -71,12 +74,12 @@ export const getProducts = catchAsync(async (req, res, next) => {
     .limit(limit)
     .populate([
       {
-        path: "category",
-        select: "_id category_name",
+        path: "current_data.category",
+        select: "_id current_data.category_name",
       },
       {
-        path: "unit",
-        select: "_id unit_name unit_symbol",
+        path: "current_data.unit",
+        select: "_id current_data.unit_name current_data.unit_symbol",
       },
     ]);
 
@@ -95,33 +98,55 @@ export const getProducts = catchAsync(async (req, res, next) => {
   }
 });
 
-// export const getCategoryList = catchAsync(async (req, res, next) => {
-//   console.log("iuhrgiuh");
-//   const category = await productModel.aggregate([
-//     {
-//       $project: {
-//         _id: 1,
-//         category_name: 1,
-//       },
-//     },
-//   ]);
+export const getProductList = catchAsync(async (req, res, next) => {
+  const product = await productModel.aggregate([
+    {
+      $match: { "current_data.status": true, "current_data.isActive": true },
+    },
+    {
+      $project: {
+        _id: 1,
+        "current_data.product_name": 1,
+      },
+    },
+  ]);
 
-//   if (category) {
-//     return res.status(200).json({
-//       statusCode: 200,
-//       status: true,
-//       data: category,
-//       message: "All Category List",
-//     });
-//   }
-// });
+  if (product) {
+    return res.status(200).json({
+      statusCode: 200,
+      status: true,
+      data: product,
+      message: "All Product List",
+    });
+  }
+});
 
 export const updateProduct = catchAsync(async (req, res, next) => {
   const { id } = req.params;
+  const user = req.user;
   const { product_images, ...data } = req.body;
   const updatedProduct = await productModel.findByIdAndUpdate(
     id,
-    { ...data, updated_at: Date.now() },
+    {
+        "proposed_changes.category": data?.category, // Replace with a valid category ObjectId
+        "proposed_changes.product_name": data?.product_name,
+        "proposed_changes.sku": data?.sku,
+        "proposed_changes.short_description":data?.short_description,
+        "proposed_changes.long_description": data?.long_description,
+        "proposed_changes.hsn_code": data?.hsn_code,
+        "proposed_changes.gst": data?.gst, // Replace with a valid GST ObjectId
+        "proposed_changes.status": data?.status,
+        "proposed_changes.show_in_website": data?.show_in_website,
+        "proposed_changes.show_in_retailer": data?.show_in_retailer,
+        "proposed_changes.show_in_offline_store": data?.show_in_offline_store,
+        "proposed_changes.prices": data?.prices,
+        "proposed_changes.mrp":data?.mrp,
+        "proposed_changes.item_weight": data?.item_weight,
+        "proposed_changes.unit": data?.unit, // Replace with a valid unit ObjectId
+        "proposed_changes.isActive": data?.isActive,
+        approver: approvalData(user),
+        updated_at: Date.now(),
+    },
     { new: true }
   );
 
@@ -135,11 +160,15 @@ export const updateProduct = catchAsync(async (req, res, next) => {
 
 export const updateProductImage = catchAsync(async (req, res, next) => {
   const { id, imageName } = req.params;
+  const user = req.user;
+
   const updatedProductImage = await productModel.updateOne(
     { _id: id, product_images: imageName },
     {
       $set: {
-        "product_images.$[e]": req.file.filename,
+        "proposed_changes.product_images.$[e]": req.file.filename,
+        approver: approvalData(user),
+        updated_at: Date.now(),
       },
     },
     {

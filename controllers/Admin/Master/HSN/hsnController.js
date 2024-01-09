@@ -46,14 +46,16 @@ export const getHSNCode = catchAsync(async (req, res, next) => {
     }
     searchQuery = searchdata;
   }
-  const totalGst = await hsnCodeModel.countDocuments(searchQuery);
-  if (!totalGst) throw new Error(new ApiError("No Data", 404));
+  const totalGst = await hsnCodeModel.countDocuments({
+    ...searchQuery,
+    "current_data.status": true,
+  });
   const totalPages = Math.ceil(totalGst / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
-  const skip = (validPage - 1) * limit;
+  const skip = Math.max((validPage - 1) * limit, 0);
 
   const hsn = await hsnCodeModel
-    .find({...searchQuery, "current_data.status": true })
+    .find({ ...searchQuery, "current_data.status": true })
     .sort({ [sortField]: sortDirection })
     .skip(skip)
     .limit(limit)
@@ -81,7 +83,7 @@ export const getHSNCode = catchAsync(async (req, res, next) => {
 export const getHSNCodeList = catchAsync(async (req, res, next) => {
   const hsnCode = await hsnCodeModel.aggregate([
     {
-      $match: { "current_data.status": true },
+      $match: { "current_data.status": true ,"current_data.isActive": true},
     },
     {
       $lookup: {
@@ -133,6 +135,7 @@ export const updateHsnCode = catchAsync(async (req, res, next) => {
         "proposed_changes.hsn_code": req?.body?.hsn_code,
         "proposed_changes.gst_percentage": req?.body?.gst_percentage,
         "proposed_changes.status": false,
+        "proposed_changes.isActive": req?.body?.isActive,
         updated_at: Date.now(),
         approver: approvalData(user),
       },

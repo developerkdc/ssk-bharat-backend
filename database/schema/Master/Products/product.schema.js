@@ -81,6 +81,10 @@ const ProductSchema = SchemaFunction(
       ref: "units",
       required: [true, "Unit is Required"],
     },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
   })
 );
 

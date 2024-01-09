@@ -49,7 +49,7 @@ export const AddUser = catchAsync(async (req, res) => {
   const userData = req.body;
   const saltRounds = 10;
   userData.password = await bcrypt.hash(userData.password, saltRounds);
-  const newUser = new userModel(userData);
+  const newUser = new userModel({ current_data: userData });
   const savedUser = await newUser.save();
 
   // Send a success response
@@ -72,7 +72,21 @@ export const EditUser = catchAsync(async (req, res) => {
   }
   const user = await userModel.findByIdAndUpdate(
     userId,
-    { $set: updateData },
+    {
+      $set: {
+        "proposed_changes.employee_id": updateData?.employee_id,
+        "proposed_changes.first_name": updateData?.first_name,
+        "proposed_changes.last_name": updateData?.last_name,
+        "proposed_changes.primary_email_id": updateData?.primary_email_id,
+        "proposed_changes.secondary_email_id": updateData?.secondary_email_id,
+        "proposed_changes.password": updateData?.password,
+        "proposed_changes.primary_mobile_no": updateData?.primary_mobile_no,
+        "proposed_changes.secondary_mobile_no": updateData?.secondary_mobile_no,
+        "proposed_changes.address": updateData?.address,
+        "proposed_changes.role_id": updateData?.role_id,
+        "proposed_changes.kyc": updateData?.kyc,
+      },
+    },
     { new: true }
   );
   if (!user) {
@@ -159,7 +173,7 @@ export const FetchUsers = catchAsync(async (req, res) => {
 
   // Fetching users
   const users = await userModel
-    .find({ ...filter, ...searchQuery })
+    .find({ ...filter, ...searchQuery, "current_data.status": true })
     .sort(sort)
     .skip(skip)
     .limit(limit);
@@ -168,6 +182,7 @@ export const FetchUsers = catchAsync(async (req, res) => {
   const totalDocuments = await userModel.countDocuments({
     ...filter,
     ...searchQuery,
+    "current_data.status": true,
   });
   const totalPages = Math.ceil(totalDocuments / limit);
 
