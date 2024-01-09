@@ -10,7 +10,11 @@ export const createCategory = catchAsync(async (req, res, next) => {
   const user = req.user;
   const relativeImagePath = req.file ? req.file.filename : null;
   const category = await categoryModel.create({
-    current_data: { ...req.body, category_image: relativeImagePath,created_by:createdByFunction(user) },
+    current_data: {
+      ...req.body,
+      category_image: relativeImagePath,
+      created_by: createdByFunction(user),
+    },
     approver: approvalData(user),
   });
   if (category) {

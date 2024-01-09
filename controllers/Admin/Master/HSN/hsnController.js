@@ -3,12 +3,13 @@ import catchAsync from "../../../../Utils/catchAsync";
 import { dynamicSearch } from "../../../../Utils/dynamicSearch";
 import hsnCodeModel from "../../../../database/schema/Master/HSN/hsnCode.schema";
 import { approvalData } from "../../../HelperFunction/approvalFunction";
+import { createdByFunction } from "../../../HelperFunction/createdByfunction";
 
 export const createHSN = catchAsync(async (req, res, next) => {
   const user = req.user;
 
   const hsnCode = await hsnCodeModel.create({
-    current_data: { ...req.body },
+    current_data: { ...req.body, created_by: createdByFunction(user) },
     approver: approvalData(user),
   });
   if (hsnCode) {
@@ -83,7 +84,7 @@ export const getHSNCode = catchAsync(async (req, res, next) => {
 export const getHSNCodeList = catchAsync(async (req, res, next) => {
   const hsnCode = await hsnCodeModel.aggregate([
     {
-      $match: { "current_data.status": true ,"current_data.isActive": true},
+      $match: { "current_data.status": true, "current_data.isActive": true },
     },
     {
       $lookup: {

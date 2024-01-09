@@ -5,6 +5,7 @@ import bcrypt from "bcrypt";
 import ExcelJS from "exceljs";
 import { dynamicSearch } from "../../../Utils/dynamicSearch.js";
 import { approvalData } from "../../HelperFunction/approvalFunction.js";
+import { createdByFunction } from "../../HelperFunction/createdByfunction.js";
 
 export const AddUser = catchAsync(async (req, res) => {
   const user = req.user;
@@ -12,8 +13,11 @@ export const AddUser = catchAsync(async (req, res) => {
   const saltRounds = 10;
   userData.password = await bcrypt.hash(userData.password, saltRounds);
   const newUser = new userModel({
-    current_data: { ...req.body },
-    approver: approvalData(user,user?.current_data.role_id.role_name),
+    current_data: {
+      ...req.body,
+      created_by: createdByFunction(user),
+    },
+    approver: approvalData(user, user?.current_data.role_id.role_name),
   });
   const savedUser = await newUser.save();
 
@@ -51,6 +55,8 @@ export const EditUser = catchAsync(async (req, res) => {
         "proposed_changes.address": updateData?.address,
         "proposed_changes.role_id": updateData?.role_id,
         "proposed_changes.kyc": updateData?.kyc,
+        "proposed_changes.status": false,
+        "proposed_changes.isActive": updateData?.isActive,
         approver: approvalData(loginUser),
         updated_at: Date.now(),
       },
@@ -80,18 +86,22 @@ export const ChangePassword = catchAsync(async (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(userId)) {
     return res.status(400).json({ message: "Invalid user ID" });
   }
-  const user = await userModel.findById(userId);
+  const user = await userModel.findById({ _id: userId });
   if (!user) {
     return res.status(404).json({ message: "User not found" });
   }
   // Check if the current password matches
-  const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+  const isPasswordValid = await bcrypt.compare(
+    currentPassword,
+    user.current_data.password
+  );
 
   if (!isPasswordValid) {
     return res.status(401).json({ message: "Current password is incorrect" });
   }
   const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
-  user.password = hashedPassword;
+  user.current_data.password = hashedPassword;
+  user.proposed_changes.password = hashedPassword;
   const updatedUser = await user.save();
   res.json({
     statusCode: 200,
@@ -111,15 +121,18 @@ export const FetchUsers = catchAsync(async (req, res) => {
   const limit = 10;
   const skip = (page - 1) * limit;
 
-  const sortField = req.query.sortField || "current_data.employee_id";
+  const sortField = req.query.sortField || "created_at";
   const sortOrder = req.query.sortOrder || "asc";
   const sort = {};
   sort[sortField] = sortOrder === "asc" ? 1 : -1;
 
   const filter = {};
-  if (req.query.district) filter["current_data.address.district"] = req.query.district;
-  if (req.query.location) filter["current_data.address.location"] = req.query.location;
-  if (req.query.taluka) filter["current_data.address.taluka"] = req.query.taluka;
+  if (req.query.district)
+    filter["current_data.address.district"] = req.query.district;
+  if (req.query.location)
+    filter["current_data.address.location"] = req.query.location;
+  if (req.query.taluka)
+    filter["current_data.address.taluka"] = req.query.taluka;
   if (req.query.state) filter["current_data.address.state"] = req.query.state;
   if (req.query.city) filter["current_data.address.city"] = req.query.city;
   if (req.query.area) filter["current_data.address.area"] = req.query.area;
@@ -145,7 +158,7 @@ export const FetchUsers = catchAsync(async (req, res) => {
     .sort(sort)
     .skip(skip)
     .limit(limit)
-    .populate("current_data.role_id")
+    .populate("current_data.role_id");
 
   //total pages
   const totalDocuments = await userModel.countDocuments({
@@ -162,6 +175,33 @@ export const FetchUsers = catchAsync(async (req, res) => {
     message: "Fetched successfully",
     totalPages: totalPages,
   });
+});
+
+export const getUserList = catchAsync(async (req, res, next) => {
+  const users = await userModel.aggregate([
+    {
+      $match: { "current_data.status": true, "current_data.isActive": true },
+    },
+    {
+      $project: {
+        user_id: "$_id",
+        name: {
+          $concat: ["$current_data.first_name", " ", "$current_data.last_name"],
+        },
+        employee_id: "$current_data.employee_id",
+        email_id: "$current_data.primary_email_id",
+      },
+    },
+  ]);
+
+  if (users) {
+    return res.status(200).json({
+      statusCode: 200,
+      status: "success",
+      data: users,
+      message: "All Users List",
+    });
+  }
 });
 
 export const UserLogsFile = catchAsync(async (req, res) => {
