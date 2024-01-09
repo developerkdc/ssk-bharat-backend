@@ -7,6 +7,7 @@ import { dynamicSearch } from "../../../Utils/dynamicSearch.js";
 import retailerinventoryModel from "../../../database/schema/Inventory/RetailerInventory.schema.js";
 import InventorySchema from "../../../database/schema/Inventory/RetailerInventory.schema.js";
 import { approvalData } from "../../HelperFunction/approvalFunction.js";
+import DynamicModel from "../../../Utils/DynamicModel.js";
 
 export const latestDispatchNo = catchAsync(async (req, res, next) => {
   try {
@@ -252,7 +253,7 @@ export const delivered = catchAsync(async (req, res, next) => {
       "proposed_changes.delivery_status": "delivered",
       "proposed_changes.tracking_date.delivered":
       req.body?.tracking_date?.delivered,
-      approver: approvalData(user),
+      // approver: approvalData(user),
       updated_at: Date.now(),
     },
     { new: true }
@@ -261,28 +262,22 @@ export const delivered = catchAsync(async (req, res, next) => {
     if (!updateData) {
       throw new Error(new ApiError("Order Not Found", 400));
     }
-    // console.log(updateData);
+  
      const retailerdetails = await DispatchModel.findById(id).populate({
        path: "current_data.customer_details.customer_id",
-       select:"current_data.customer_details.customer_id.current_data.inventorySchema",
+       select: "current_data.inventorySchema",
      });
-
-    //  console.log(retailerdetails);
-     let model;
-     const inventoryName = retailerdetails.current_data.customer_details.customer_id.inventorySchema;
-     if (
-       mongoose.modelNames().includes(inventoryName)
-     ) {
-       model = mongoose.model(inventoryName);
-     } else {
-       model = mongoose.model(inventoryName,InventorySchema );
-     }
+       
+     const inventoryName = retailerdetails.current_data.customer_details.customer_id.current_data.inventorySchema;
+     console.log(retailerdetails.current_data.total_amount);
+     const inventoryModel = DynamicModel(inventoryName, InventorySchema);
      const items = retailerdetails.current_data.Items;
       const inventoryArray = [];
       for (const item of items) {
-        const inventory = new model({
+        const inventory = new inventoryModel({
           sales_order_no: retailerdetails.current_data.sales_order_no,
-          supplierCompanyName: retailerdetails.current_data.ssk_details.company_name,
+          supplierCompanyName:
+            retailerdetails.current_data.ssk_details.company_name,
           CustomerDetails: retailerdetails.current_data.customer_details,
           receivedDate: retailerdetails.current_data.tracking_date.delivered,
           transportDetails: retailerdetails.current_data.transport_details,
