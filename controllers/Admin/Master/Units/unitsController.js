@@ -45,14 +45,17 @@ export const getUnits = catchAsync(async (req, res, next) => {
     searchQuery = searchdata;
   }
 
-  const totalUnits = await unitModel.countDocuments(searchQuery);
+  const totalUnits = await unitModel.countDocuments({
+    ...searchQuery,
+    "current_data.status": true,
+  });
   const totalPages = Math.ceil(totalUnits / limit);
 
   const validPage = Math.min(Math.max(page, 1), totalPages);
   const skip = Math.max((validPage - 1) * limit, 0);
 
   const units = await unitModel
-    .find(searchQuery)
+    .find({ ...searchQuery, "current_data.status": true })
     .sort({ [sortField]: sortDirection })
     .skip(skip)
     .limit(limit);
@@ -76,7 +79,7 @@ export const getUnits = catchAsync(async (req, res, next) => {
 export const getUnitList = catchAsync(async (req, res, next) => {
   const unit = await unitModel.aggregate([
     {
-      $match: { "current_data.status": true },
+      $match: { "current_data.status": true, "current_data.isActive": true },
     },
     {
       $project: {
@@ -110,6 +113,7 @@ export const updateUnit = catchAsync(async (req, res, next) => {
         "proposed_changes.unit_name": req?.body?.unit_name,
         "proposed_changes.unit_symbol": req?.body?.unit_symbol,
         "proposed_changes.status": false,
+        "proposed_changes.isActive": req?.body?.isActive,
         updated_at: Date.now(),
         approver: approvalData(user),
       },

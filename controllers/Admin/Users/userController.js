@@ -1,55 +1,20 @@
-import ApiError from "../../../Utils/ApiError.js";
 import catchAsync from "../../../Utils/catchAsync.js";
-import connect from "../../../database/mongo.service.js";
 import mongoose from "mongoose";
 import userModel from "../../../database/schema/Users/user.schema.js";
 import bcrypt from "bcrypt";
-import userlogModel from "../../../database/schema/Users/userlog.schema.js";
 import ExcelJS from "exceljs";
 import { dynamicSearch } from "../../../Utils/dynamicSearch.js";
-
-const userChangeStream = userModel.watch();
-userChangeStream.on("change", async (change) => {
-  if (change.operationType === "update") {
-    const userId = change.documentKey._id;
-    const updatedFields = change.updateDescription.updatedFields;
-
-    // Create a user log entry
-    const userLog = new userlogModel({
-      employee_id: userId,
-      action: "update",
-      userUpdatedEmp_id: userId,
-      timestamp: new Date().toLocaleString(),
-      updatedFields: updatedFields,
-    });
-
-    await userLog.save();
-    console.log("Updated user logs:", userLog);
-  }
-  if (change.operationType === "insert") {
-    console.log(change.fullDocument);
-    const userId = change.documentKey._id;
-    const updatedFields = change.fullDocument;
-
-    // Create a user log entry
-    const userLog = new userlogModel({
-      employee_id: userId,
-      action: "insert",
-      userCreatedEmp_id: userId,
-      timestamp: new Date().toLocaleString(),
-      updatedFields: updatedFields,
-    });
-
-    await userLog.save();
-    console.log("Updated user logs:", userLog);
-  }
-});
+import { approvalData } from "../../HelperFunction/approvalFunction.js";
 
 export const AddUser = catchAsync(async (req, res) => {
+  const user = req.user;
   const userData = req.body;
   const saltRounds = 10;
   userData.password = await bcrypt.hash(userData.password, saltRounds);
-  const newUser = new userModel(userData);
+  const newUser = new userModel({
+    current_data: { ...req.body },
+    approver: approvalData(user,user?.current_data.role_id.role_name),
+  });
   const savedUser = await newUser.save();
 
   // Send a success response
@@ -65,6 +30,7 @@ export const AddUser = catchAsync(async (req, res) => {
 
 export const EditUser = catchAsync(async (req, res) => {
   const userId = req.params.userId;
+  const loginUser = req.user;
   const updateData = req.body;
   updateData.updated_at = new Date().toLocaleString();
   if (!mongoose.Types.ObjectId.isValid(userId)) {
@@ -72,7 +38,23 @@ export const EditUser = catchAsync(async (req, res) => {
   }
   const user = await userModel.findByIdAndUpdate(
     userId,
-    { $set: updateData },
+    {
+      $set: {
+        "proposed_changes.employee_id": updateData?.employee_id,
+        "proposed_changes.first_name": updateData?.first_name,
+        "proposed_changes.last_name": updateData?.last_name,
+        "proposed_changes.primary_email_id": updateData?.primary_email_id,
+        "proposed_changes.secondary_email_id": updateData?.secondary_email_id,
+        "proposed_changes.password": updateData?.password,
+        "proposed_changes.primary_mobile_no": updateData?.primary_mobile_no,
+        "proposed_changes.secondary_mobile_no": updateData?.secondary_mobile_no,
+        "proposed_changes.address": updateData?.address,
+        "proposed_changes.role_id": updateData?.role_id,
+        "proposed_changes.kyc": updateData?.kyc,
+        approver: approvalData(loginUser),
+        updated_at: Date.now(),
+      },
+    },
     { new: true }
   );
   if (!user) {
@@ -129,18 +111,18 @@ export const FetchUsers = catchAsync(async (req, res) => {
   const limit = 10;
   const skip = (page - 1) * limit;
 
-  const sortField = req.query.sortField || "employee_id";
+  const sortField = req.query.sortField || "current_data.employee_id";
   const sortOrder = req.query.sortOrder || "asc";
   const sort = {};
   sort[sortField] = sortOrder === "asc" ? 1 : -1;
 
   const filter = {};
-  if (req.query.district) filter["address.district"] = req.query.district;
-  if (req.query.location) filter["address.location"] = req.query.location;
-  if (req.query.taluka) filter["address.taluka"] = req.query.taluka;
-  if (req.query.state) filter["address.state"] = req.query.state;
-  if (req.query.city) filter["address.city"] = req.query.city;
-  if (req.query.area) filter["address.area"] = req.query.area;
+  if (req.query.district) filter["current_data.address.district"] = req.query.district;
+  if (req.query.location) filter["current_data.address.location"] = req.query.location;
+  if (req.query.taluka) filter["current_data.address.taluka"] = req.query.taluka;
+  if (req.query.state) filter["current_data.address.state"] = req.query.state;
+  if (req.query.city) filter["current_data.address.city"] = req.query.city;
+  if (req.query.area) filter["current_data.address.area"] = req.query.area;
 
   //search  functionality
   let searchQuery = {};
@@ -159,15 +141,17 @@ export const FetchUsers = catchAsync(async (req, res) => {
 
   // Fetching users
   const users = await userModel
-    .find({ ...filter, ...searchQuery })
+    .find({ ...filter, ...searchQuery, "current_data.status": true })
     .sort(sort)
     .skip(skip)
-    .limit(limit);
+    .limit(limit)
+    .populate("current_data.role_id")
 
   //total pages
   const totalDocuments = await userModel.countDocuments({
     ...filter,
     ...searchQuery,
+    "current_data.status": true,
   });
   const totalPages = Math.ceil(totalDocuments / limit);
 
@@ -181,7 +165,10 @@ export const FetchUsers = catchAsync(async (req, res) => {
 });
 
 export const UserLogsFile = catchAsync(async (req, res) => {
-  const userLogs = await userlogModel.find().populate("employee_id");
+  const userLogs = await mongoose
+    .model("userslogs")
+    .find()
+    .populate("employee_id");
 
   let workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("userLogs");
@@ -210,7 +197,10 @@ export const UserLogsFile = catchAsync(async (req, res) => {
 });
 
 export const UserLogs = catchAsync(async (req, res) => {
-  const log = await userlogModel.find({}).populate("employee_id");
+  const log = await mongoose
+    .model("userslogs")
+    .find({})
+    .populate("employee_id");
   return res.status(200).json({
     statusCode: 200,
     status: "success",

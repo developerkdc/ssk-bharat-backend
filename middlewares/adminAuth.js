@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import ApiError from "../Utils/ApiError";
 import userModel from "../database/schema/Users/user.schema";
+import { eventEmitter } from "../database/utils/Logs.schema";
 
 // export default async (req, res, next) => {
 //     try {
@@ -77,11 +78,18 @@ const authMiddleware = async (req, res, next) => {
     const userId = jwt.verify(token, process.env.JWT_SECRET);
     if (!userId) return next(new ApiError("userId not found", 400));
 
-    const user = await userModel.findById(userId.userId).populate("role_id");
+    const user = await userModel.findById(userId.userId).populate("current_data.role_id");
     if (!user) {
       return next(new ApiError("User Not Found", 404));
     }
     req.user = user;
+    eventEmitter.emit("loginPersonData",{
+      userId: user._id,
+      emailId: user.primary_email_id,
+      mobileNo:user.primary_mobile_no,
+      employeeId: user.employee_id,
+      name: `${user.first_name} ${user.last_name}`,
+  })
     next()
   } catch (error) { 
     return next(error)

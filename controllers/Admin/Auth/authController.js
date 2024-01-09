@@ -3,17 +3,18 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import userModel from "../../../database/schema/Users/user.schema.js";
 import sendEmail from "../../../Utils/SendEmail.js";
+import Cookies from "cookies";
 
 const saltRounds = 10;
 
 export const LoginUser = catchAsync(async (req, res, next) => {
   const { username, password } = req.body;
   const secretKey = process.env.JWT_SECRET;
-  const user = await userModel.findOne({ primary_email_id: username });
+  const user = await userModel.findOne({ "current_data.primary_email_id": username });
   if (!user) {
     return res.status(401).json({ message: "Invalid credentials" });
   }
-  const passwordMatch = await bcrypt.compare(password, user.password);
+  const passwordMatch = await bcrypt.compare(password, user.current_data.password);
 
   if (!passwordMatch) {
     return res.status(401).json({ message: "Invalid Password" });

@@ -45,7 +45,10 @@ export const getPaymentTermDays = catchAsync(async (req, res, next) => {
     }
     searchQuery = searchdata;
   }
-  const totalTerm = await paymentTermDaysModel.countDocuments(searchQuery);
+  const totalTerm = await paymentTermDaysModel.countDocuments({
+    ...searchQuery,
+    "current_data.status": true,
+  });
   const totalPages = Math.ceil(totalTerm / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
   const skip = Math.max((validPage - 1) * limit, 0);
@@ -73,7 +76,7 @@ export const getPaymentTermDays = catchAsync(async (req, res, next) => {
 export const getPaymentTermList = catchAsync(async (req, res, next) => {
   const termDays = await paymentTermDaysModel.aggregate([
     {
-      $match: { "current_data.status": true },
+      $match: { "current_data.status": true, "current_data.isActive": true },
     },
     {
       $project: {
@@ -97,13 +100,15 @@ export const getPaymentTermList = catchAsync(async (req, res, next) => {
 export const updatePaymentTerm = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const { payment_term_days } = req.body;
-
+  const user = req.user;
+  
   const updatedTermDays = await paymentTermDaysModel.findByIdAndUpdate(
     id,
     {
       $set: {
         "proposed_changes.payment_term_days": payment_term_days,
         "proposed_changes.status": false,
+        "proposed_changes.isActive": req?.body?.isActive,
         approver: approvalData(user),
         updated_at: Date.now(),
       },

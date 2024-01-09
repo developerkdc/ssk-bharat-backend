@@ -15,6 +15,10 @@ const UnitSchema = SchemaFunction(
       unique: true,
       required: [true, "Unit is required"],
     },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
   })
 );
 

@@ -39,8 +39,6 @@ export const getTDS = catchAsync(async (req, res, next) => {
         status: "failed",
         data: {
           tds: [],
-          // totalPages: 1,
-          // currentPage: 1,
         },
         message: "Results Not Found",
       });
@@ -49,7 +47,10 @@ export const getTDS = catchAsync(async (req, res, next) => {
   }
 
   //total pages
-  const totalGst = await tdsModel.countDocuments(searchQuery);
+  const totalGst = await tdsModel.countDocuments({
+    ...searchQuery,
+    "current_data.status": true,
+  });
   const totalPages = Math.ceil(totalGst / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
   const skip = Math.max((validPage - 1) * limit, 0);
@@ -77,7 +78,7 @@ export const getTDS = catchAsync(async (req, res, next) => {
 export const getTDSList = catchAsync(async (req, res, next) => {
   const tds = await tdsModel.aggregate([
     {
-      $match: { "current_data.status": true },
+      $match: { "current_data.status": true,"current_data.isActive": true  },
     },
     {
       $project: {
@@ -101,7 +102,7 @@ export const getTDSList = catchAsync(async (req, res, next) => {
 export const updateTds = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const user = req.user;
-  const { tds_percentage } = req.body;
+  const { tds_percentage,isActive } = req.body;
 
   const updatedtds = await tdsModel.findByIdAndUpdate(
     id,
@@ -109,6 +110,7 @@ export const updateTds = catchAsync(async (req, res, next) => {
       $set: {
         "proposed_changes.tds_percentage": tds_percentage,
         "proposed_changes.status": false,
+        "proposed_changes.isActive": isActive,
         approver: approvalData(user),
         updated_at: Date.now(),
       },

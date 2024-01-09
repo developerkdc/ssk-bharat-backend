@@ -3,6 +3,7 @@ import catchAsync from "../../../../Utils/catchAsync";
 import { dynamicSearch } from "../../../../Utils/dynamicSearch";
 import gstModel from "../../../../database/schema/Master/GST/gst.schema";
 import { approvalData } from "../../../HelperFunction/approvalFunction";
+
 export const createGst = catchAsync(async (req, res, next) => {
   const user = req.user;
   const gst = await gstModel.create({
@@ -44,13 +45,19 @@ export const getGST = catchAsync(async (req, res, next) => {
     searchQuery = searchdata;
   }
 
-  const totalGst = await gstModel.countDocuments(searchQuery);
+  const totalGst = await gstModel.countDocuments({
+    ...searchQuery,
+    "current_data.status": true,
+  });
   const totalPages = Math.ceil(totalGst / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
   const skip = Math.max((validPage - 1) * limit, 0);
 
   const gst = await gstModel
-    .find({...searchQuery, "current_data.status": true })
+    .find({
+      ...searchQuery,
+      "current_data.status": true,
+    })
     .sort({ [sortField]: sortDirection })
     .skip(skip)
     .limit(limit);
@@ -72,7 +79,7 @@ export const getGST = catchAsync(async (req, res, next) => {
 export const getGstList = catchAsync(async (req, res, next) => {
   const gst = await gstModel.aggregate([
     {
-      $match: { "current_data.status": true },
+      $match: { "current_data.status": true,"current_data.isActive": true },
     },
     {
       $project: {
@@ -95,7 +102,7 @@ export const getGstList = catchAsync(async (req, res, next) => {
 
 export const updateGst = catchAsync(async (req, res, next) => {
   const { id } = req.params;
-  const { gst_percentage } = req.body;
+  const { gst_percentage,isActive } = req.body;
   const user = req.user;
 
   const updatedGst = await gstModel.findByIdAndUpdate(
@@ -104,6 +111,7 @@ export const updateGst = catchAsync(async (req, res, next) => {
       $set: {
         "proposed_changes.gst_percentage": gst_percentage,
         "proposed_changes.status": false,
+        "proposed_changes.isActive": isActive,
         approver: approvalData(user),
         updated_at: Date.now(),
       },

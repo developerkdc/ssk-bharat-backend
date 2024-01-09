@@ -5,7 +5,7 @@ const rolesPermissions = (name, key) => {
   return async (req, res, next) => {
     try {
       let user = req.user
-      const isAuthorized = user.role_id.permissions[name][key];
+      const isAuthorized = user.current_data.role_id.permissions[name][key];
       if (isAuthorized != true) {
         return res.status(403).json({
           statusCode: 403,
