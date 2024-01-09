@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import userAndApprovals from "../../../utils/approval.schema";
 import SchemaFunction from "../../../../controllers/HelperFunction/SchemaFunction";
+import LogSchemaFunction from "../../../utils/Logs.schema";
 
 const HSNSchema = SchemaFunction(
   new mongoose.Schema({
@@ -18,4 +19,5 @@ const HSNSchema = SchemaFunction(
 );
 
 const hsnCodeModel = mongoose.model("hsncode", HSNSchema);
+LogSchemaFunction("hsncode",hsnCodeModel)
 export default hsnCodeModel;
