@@ -1,7 +1,7 @@
-export const approvalData = function (user, admin) {
-    if (admin == "Admin")
+export const approvalData = function (user) {
+    if (user.current_data.role_id.role_name == "Admin")
         return {
-            created_by: {
+            updated_by: {
                 user_id: user.current_data._id,
                 name: `${user.current_data.first_name} ${user.current_data.last_name}`,
                 email_id: user.current_data.primary_email_id,
@@ -28,7 +28,7 @@ export const approvalData = function (user, admin) {
             }, }
     } = user;
     return {
-        created_by: {
+        updated_by: {
             user_id: _id,
             name: `${first_name} ${last_name}`,
             email_id: primary_email_id,
