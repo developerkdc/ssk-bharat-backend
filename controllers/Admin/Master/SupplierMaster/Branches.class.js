@@ -6,6 +6,7 @@ import userAndApprovals from "../../../../database/utils/approval.schema";
 import { approvalData } from "../../../HelperFunction/approvalFunction";
 import SchemaFunction from "../../../HelperFunction/SchemaFunction";
 import { dynamicSearch } from "../../../../Utils/dynamicSearch";
+import LogSchemaFunction from "../../../../database/utils/Logs.schema";
 
 class Branches {
   #branchSchema;
@@ -216,6 +217,7 @@ class Branches {
     this.#collectionName = collectionName;
     this.#modalName = modalName;
     this.#modal = mongoose.model(this.#collectionName, this.#branchSchema);
+    LogSchemaFunction(this.#collectionName,this.#modal)
   }
   getAllBranchCompany = catchAsync(async (req, res, next) => {
     const { string, boolean, numbers } = req?.body?.searchFields || {};

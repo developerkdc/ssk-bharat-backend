@@ -6,6 +6,7 @@ import companyAndApprovals from "../../../../database/utils/approval.schema";
 import { dynamicSearch } from "../../../../Utils/dynamicSearch";
 import SchemaFunction from "../../../HelperFunction/SchemaFunction";
 import { approvalData } from "../../../HelperFunction/approvalFunction";
+import LogSchemaFunction from "../../../../database/utils/Logs.schema";
 
 class CompanyMaster {
   #Schema;
@@ -25,25 +26,25 @@ class CompanyMaster {
         type: String,
         required: [true, "Sales Order Type is required"],
         enum: {
-          values:["retailers", "offlinestores","suppliers","sskcompanies"],
-          message:"invalid {VALUE}"
+          values: ["retailers", "offlinestores", "suppliers", "sskcompanies"],
+          message: "invalid {VALUE}"
         },
         trim: true,
       },
-      isActive:{
-        type:Boolean,
-        default:true
+      isActive: {
+        type: Boolean,
+        default: true
       },
       onboarding_date: {
         type: Date,
         default: Date.now,
       },
-      register_mobile_no:{
+      register_mobile_no: {
         type: String,
         minlength: [10, "Length should be greater or equal to 10"],
         maxlength: [10, "Length should be less than or equal to 10"],
         trim: true,
-        unique:true,
+        unique: true,
         required: [true, "register mobile no is required"]
       },
       password: {
@@ -54,9 +55,9 @@ class CompanyMaster {
       inventorySchema: {
         type: String,
         default: function () {
-          if(this.company_type === "retailers" || this.company_type === "offlinestores"){
+          if (this.company_type === "retailers" || this.company_type === "offlinestores") {
             return `${this.company_type}_${this.company_name}_${this.parent()._id.toString().slice(-5)}`
-          }else{
+          } else {
             return null
           }
         }
@@ -64,9 +65,9 @@ class CompanyMaster {
       billingSchema: {
         type: String,
         default: function () {
-          if(this.company_type === "retailers" || this.company_type === "offlinestores"){
+          if (this.company_type === "retailers" || this.company_type === "offlinestores") {
             return `${this.company_type}_billing_${this.company_name}_${this.parent()._id.toString().slice(-5)}`
-          }else{
+          } else {
             return null
           }
         }
@@ -86,6 +87,7 @@ class CompanyMaster {
     this.#collectionName = collectionName;
     this.#modalName = modalName;
     this.#modal = mongoose.model(this.#collectionName, this.#Schema);
+    LogSchemaFunction(this.#collectionName, this.#modal)
   }
   GetCompany = catchAsync(async (req, res, next) => {
     const { string, boolean, numbers } = req?.body?.searchFields || {};
@@ -150,7 +152,7 @@ class CompanyMaster {
     });
   });
   AddCompany = catchAsync(async (req, res, next) => {
-    const { approver, inventorySchema,billingSchema,...data } = req.body;
+    const { approver, inventorySchema, billingSchema, ...data } = req.body;
     const user = req.user;
     let protectedPassword;
 
@@ -164,7 +166,7 @@ class CompanyMaster {
 
     const addData = await this.#modal.create({
       current_data: { ...data, password: protectedPassword },
-      approver:approvalData(user)
+      approver: approvalData(user)
     });
     return res.status(201).json({
       statusCode: 201,
@@ -192,7 +194,7 @@ class CompanyMaster {
           "proposed_changes.company_name": company_name,
           "proposed_changes.company_status": company_status,
           "proposed_changes.onboarding_date": onboarding_date,
-          approver:approvalData(req.user),
+          approver: approvalData(req.user),
           updated_at: Date.now(),
         },
       },
