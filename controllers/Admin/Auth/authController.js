@@ -3,7 +3,6 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import userModel from "../../../database/schema/Users/user.schema.js";
 import sendEmail from "../../../Utils/SendEmail.js";
-import Cookies from "cookies";
 
 const saltRounds = 10;
 

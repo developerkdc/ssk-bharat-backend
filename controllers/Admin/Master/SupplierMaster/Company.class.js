@@ -7,6 +7,7 @@ import { dynamicSearch } from "../../../../Utils/dynamicSearch";
 import SchemaFunction from "../../../HelperFunction/SchemaFunction";
 import { approvalData } from "../../../HelperFunction/approvalFunction";
 import LogSchemaFunction from "../../../../database/utils/Logs.schema";
+import createdBy from "../../../../database/utils/createdBy.schema";
 
 class CompanyMaster {
   #Schema;
@@ -72,6 +73,10 @@ class CompanyMaster {
           }
         }
       },
+      created_by:{
+        type:createdBy,
+        required:[true,"created by is required"]
+      }
     }))
     this.#Schema.methods.jwtToken = function (next) {
       try {
