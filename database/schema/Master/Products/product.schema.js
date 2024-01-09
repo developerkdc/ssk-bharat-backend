@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import userAndApprovals from "../../../utils/approval.schema";
 import SchemaFunction from "../../../../controllers/HelperFunction/SchemaFunction";
+import LogSchemaFunction from "../../../utils/Logs.schema";
 
 const ProductSchema = SchemaFunction(
   new mongoose.Schema({
@@ -16,9 +17,9 @@ const ProductSchema = SchemaFunction(
       required: [true, "Product Name is required"],
       unique: true,
     },
-    isActive:{
-      type:Boolean,
-      default:true
+    isActive: {
+      type: Boolean,
+      default: true,
     },
     sku: {
       type: String,
@@ -88,6 +89,35 @@ const ProductSchema = SchemaFunction(
       type: Boolean,
       default: true,
     },
+    created_by: {
+      type: {
+        user_id: {
+          type: mongoose.Schema.Types.ObjectId,
+          required: [true, "user id is required"],
+        },
+        name: {
+          type: String,
+          trim: true,
+          default: null,
+        },
+        email_id: {
+          type: String,
+          trim: true,
+          validate: {
+            validator: function (value) {
+              return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+            },
+            message: "invalid email Id",
+          },
+        },
+        employee_id: {
+          type: String,
+          trim: true,
+          required: [true, "employee id is required"],
+        },
+      },
+      required: [true, "created by is required"],
+    },
   })
 );
 
@@ -95,4 +125,6 @@ ProductSchema.index({ "current_data.product_name": 1 }, { unique: true });
 ProductSchema.index({ "current_data.sku": 1 }, { unique: true });
 
 const productModel = mongoose.model("products", ProductSchema);
+LogSchemaFunction("products", productModel);
+
 export default productModel;

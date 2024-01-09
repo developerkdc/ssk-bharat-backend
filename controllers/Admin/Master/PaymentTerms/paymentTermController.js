@@ -3,11 +3,12 @@ import catchAsync from "../../../../Utils/catchAsync";
 import { dynamicSearch } from "../../../../Utils/dynamicSearch";
 import paymentTermDaysModel from "../../../../database/schema/Master/PaymentTerms/paymentTermDays.schema";
 import { approvalData } from "../../../HelperFunction/approvalFunction";
+import { createdByFunction } from "../../../HelperFunction/createdByfunction";
 
 export const createTermDays = catchAsync(async (req, res, next) => {
   const user = req.user;
   const termDays = await paymentTermDaysModel.create({
-    current_data: { ...req.body },
+    current_data: { ...req.body, created_by: createdByFunction(user) },
     approver: approvalData(user),
   });
 
@@ -101,7 +102,7 @@ export const updatePaymentTerm = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const { payment_term_days } = req.body;
   const user = req.user;
-  
+
   const updatedTermDays = await paymentTermDaysModel.findByIdAndUpdate(
     id,
     {
