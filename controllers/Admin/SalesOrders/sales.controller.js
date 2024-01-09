@@ -165,7 +165,7 @@ export const fetchSalesOrders = catchAsync(async (req, res, next) => {
   const { to, from, ...data } = req?.body?.filters || {};
   const matchQuery = data || {};
   if (type) {
-    matchQuery.order_type = type;
+    matchQuery["current_data.order_type"] = type;
   }
 
   if (to && from) {
