@@ -139,9 +139,6 @@ export const fetchOrders = catchAsync(async (req, res, next) => {
 
   const { to, from, ...data } = req?.body?.filters || {};
   const matchQuery = data || {};
-  if (type) {
-    matchQuery.order_type = type;
-  }
 
   if (to && from) {
     matchQuery.order_date = { $gte: new Date(from) };
@@ -151,10 +148,11 @@ export const fetchOrders = catchAsync(async (req, res, next) => {
   const totalDocuments = await OrdersModel.countDocuments({
     ...matchQuery,
     ...searchQuery,
+    "current_data.status":true
   });
   const totalPages = Math.ceil(totalDocuments / limit);
 
-  const orders = await OrdersModel.find({ ...matchQuery, ...searchQuery,"current_data.status":true })
+  const orders = await OrdersModel.find({ ...matchQuery, ...searchQuery,"current_data.status":true,"current_data.order_type":type })
     .skip(skip)
     .limit(limit)
     .sort({ [sortBy]: sort })
