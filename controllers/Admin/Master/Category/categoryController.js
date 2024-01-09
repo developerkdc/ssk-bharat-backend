@@ -4,12 +4,13 @@ import { dynamicSearch } from "../../../../Utils/dynamicSearch";
 import categoryModel from "../../../../database/schema/Master/Category/category.schema";
 import fs from "fs";
 import { approvalData } from "../../../HelperFunction/approvalFunction";
+import { createdByFunction } from "../../../HelperFunction/createdByfunction";
 
 export const createCategory = catchAsync(async (req, res, next) => {
   const user = req.user;
   const relativeImagePath = req.file ? req.file.filename : null;
   const category = await categoryModel.create({
-    current_data: { ...req.body, category_image: relativeImagePath },
+    current_data: { ...req.body, category_image: relativeImagePath,created_by:createdByFunction(user) },
     approver: approvalData(user),
   });
   if (category) {
