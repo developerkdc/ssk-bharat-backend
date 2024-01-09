@@ -117,12 +117,12 @@ export const FetchUsers = catchAsync(async (req, res) => {
   sort[sortField] = sortOrder === "asc" ? 1 : -1;
 
   const filter = {};
-  if (req.query.district) filter["address.district"] = req.query.district;
-  if (req.query.location) filter["address.location"] = req.query.location;
-  if (req.query.taluka) filter["address.taluka"] = req.query.taluka;
-  if (req.query.state) filter["address.state"] = req.query.state;
-  if (req.query.city) filter["address.city"] = req.query.city;
-  if (req.query.area) filter["address.area"] = req.query.area;
+  if (req.query.district) filter["current_data.address.district"] = req.query.district;
+  if (req.query.location) filter["current_data.address.location"] = req.query.location;
+  if (req.query.taluka) filter["current_data.address.taluka"] = req.query.taluka;
+  if (req.query.state) filter["current_data.address.state"] = req.query.state;
+  if (req.query.city) filter["current_data.address.city"] = req.query.city;
+  if (req.query.area) filter["current_data.address.area"] = req.query.area;
 
   //search  functionality
   let searchQuery = {};
