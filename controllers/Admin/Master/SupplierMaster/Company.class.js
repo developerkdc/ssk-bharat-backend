@@ -7,6 +7,8 @@ import { dynamicSearch } from "../../../../Utils/dynamicSearch";
 import SchemaFunction from "../../../HelperFunction/SchemaFunction";
 import { approvalData } from "../../../HelperFunction/approvalFunction";
 import LogSchemaFunction from "../../../../database/utils/Logs.schema";
+import createdBy from "../../../../database/utils/createdBy.schema";
+import { createdByFunction } from "../../../HelperFunction/createdByfunction";
 
 class CompanyMaster {
   #Schema;
@@ -39,14 +41,14 @@ class CompanyMaster {
         type: Date,
         default: Date.now,
       },
-      register_mobile_no: {
-        type: String,
-        minlength: [10, "Length should be greater or equal to 10"],
-        maxlength: [10, "Length should be less than or equal to 10"],
-        trim: true,
-        unique: true,
-        required: [true, "register mobile no is required"]
-      },
+      // register_mobile_no: {
+      //   type: String,
+      //   minlength: [10, "Length should be greater or equal to 10"],
+      //   maxlength: [10, "Length should be less than or equal to 10"],
+      //   trim: true,
+      //   unique: true,
+      //   required: [true, "register mobile no is required"]
+      // },
       password: {
         type: String,
         trim: true,
@@ -72,6 +74,10 @@ class CompanyMaster {
           }
         }
       },
+      created_by:{
+        type:createdBy,
+        required:[true,"created by is required"]
+      }
     }))
     this.#Schema.methods.jwtToken = function (next) {
       try {
@@ -151,6 +157,16 @@ class CompanyMaster {
       },
     });
   });
+  GetCompanyList = catchAsync(async (req, res, next) => {
+    const modalName = await this.#modal.find({"current_data.status":false},{"current_data.company_name":1});
+    return res.status(201).json({
+      statusCode: 200,
+      status: "Success",
+      data: {
+        [this.#modalName]: modalName,
+      },
+    });
+  });
   AddCompany = catchAsync(async (req, res, next) => {
     const { approver, inventorySchema, billingSchema, ...data } = req.body;
     const user = req.user;
@@ -165,7 +181,7 @@ class CompanyMaster {
     }
 
     const addData = await this.#modal.create({
-      current_data: { ...data, password: protectedPassword },
+      current_data: { ...data, password: protectedPassword,created_by:createdByFunction(user)},
       approver: approvalData(user)
     });
     return res.status(201).json({

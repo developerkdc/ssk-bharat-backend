@@ -164,7 +164,6 @@ export const Approved = catchAsync(async (req, res, next) => {
 
 });
 
-
 export const ApprovedByAdmin = catchAsync(async (req, res, next) => {
 
   const { module} = req.query;
@@ -177,9 +176,9 @@ export const ApprovedByAdmin = catchAsync(async (req, res, next) => {
   if (!data) return next(new ApiError("the document does not exits", 400));
 
   let poModel;
-  if (module === "order" && data.current_data.order_type === "offlinestores") {
+  if (module === "orders" && data.current_data.order_type === "offlinestores") {
     poModel = storePOModel
-  } else if (module === "order" && data.current_data.order_type === "retailers") {
+  } else if (module === "orders" && data.current_data.order_type === "retailers") {
     poModel = retailerPOModel
   }
 

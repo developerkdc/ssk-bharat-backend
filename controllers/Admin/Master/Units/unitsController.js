@@ -3,11 +3,12 @@ import catchAsync from "../../../../Utils/catchAsync";
 import { dynamicSearch } from "../../../../Utils/dynamicSearch";
 import unitModel from "../../../../database/schema/Master/Units/unit.schema";
 import { approvalData } from "../../../HelperFunction/approvalFunction";
+import { createdByFunction } from "../../../HelperFunction/createdByfunction";
 
 export const createUnit = catchAsync(async (req, res, next) => {
   const user = req.user;
   const unit = await unitModel.create({
-    current_data: { ...req.body },
+    current_data: { ...req.body, created_by: createdByFunction(user) },
     approver: approvalData(user),
   });
   if (unit) {

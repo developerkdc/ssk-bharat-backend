@@ -4,6 +4,7 @@ import { dynamicSearch } from "../../../../Utils/dynamicSearch";
 import productModel from "../../../../database/schema/Master/Products/product.schema";
 import fs from "fs";
 import { approvalData } from "../../../HelperFunction/approvalFunction";
+import { createdByFunction } from "../../../HelperFunction/createdByfunction";
 
 export const createProduct = catchAsync(async (req, res, next) => {
   // Get the relative path of the uploaded image
@@ -22,6 +23,7 @@ export const createProduct = catchAsync(async (req, res, next) => {
       ...req.body,
       prices: prices,
       product_images: relativeImagePath,
+      created_by: createdByFunction(user),
     },
     approver: approvalData(user),
   });
@@ -128,24 +130,24 @@ export const updateProduct = catchAsync(async (req, res, next) => {
   const updatedProduct = await productModel.findByIdAndUpdate(
     id,
     {
-        "proposed_changes.category": data?.category, // Replace with a valid category ObjectId
-        "proposed_changes.product_name": data?.product_name,
-        "proposed_changes.sku": data?.sku,
-        "proposed_changes.short_description":data?.short_description,
-        "proposed_changes.long_description": data?.long_description,
-        "proposed_changes.hsn_code": data?.hsn_code,
-        "proposed_changes.gst": data?.gst, // Replace with a valid GST ObjectId
-        "proposed_changes.status": data?.status,
-        "proposed_changes.show_in_website": data?.show_in_website,
-        "proposed_changes.show_in_retailer": data?.show_in_retailer,
-        "proposed_changes.show_in_offline_store": data?.show_in_offline_store,
-        "proposed_changes.prices": data?.prices,
-        "proposed_changes.mrp":data?.mrp,
-        "proposed_changes.item_weight": data?.item_weight,
-        "proposed_changes.unit": data?.unit, // Replace with a valid unit ObjectId
-        "proposed_changes.isActive": data?.isActive,
-        approver: approvalData(user),
-        updated_at: Date.now(),
+      "proposed_changes.category": data?.category, // Replace with a valid category ObjectId
+      "proposed_changes.product_name": data?.product_name,
+      "proposed_changes.sku": data?.sku,
+      "proposed_changes.short_description": data?.short_description,
+      "proposed_changes.long_description": data?.long_description,
+      "proposed_changes.hsn_code": data?.hsn_code,
+      "proposed_changes.gst": data?.gst, // Replace with a valid GST ObjectId
+      "proposed_changes.status": data?.status,
+      "proposed_changes.show_in_website": data?.show_in_website,
+      "proposed_changes.show_in_retailer": data?.show_in_retailer,
+      "proposed_changes.show_in_offline_store": data?.show_in_offline_store,
+      "proposed_changes.prices": data?.prices,
+      "proposed_changes.mrp": data?.mrp,
+      "proposed_changes.item_weight": data?.item_weight,
+      "proposed_changes.unit": data?.unit, // Replace with a valid unit ObjectId
+      "proposed_changes.isActive": data?.isActive,
+      approver: approvalData(user),
+      updated_at: Date.now(),
     },
     { new: true }
   );

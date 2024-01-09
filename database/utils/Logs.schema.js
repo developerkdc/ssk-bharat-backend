@@ -50,7 +50,7 @@ const LogSchemaFunction = function (modelName, collectionToWatch) {
 
     const ChangeStream = collectionToWatch.watch(pipeline,{ fullDocument: 'updateLookup' });
     ChangeStream.on("change", async (change) => {
-        const user = change.fullDocument.approver.created_by
+        const user = change.fullDocument.approver.updated_by
         const DataLog = new Model({
             userData:user,
             data:change
