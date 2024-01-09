@@ -1,19 +1,4 @@
 import express from "express";
-import {
-  AddSupplier,
-  GetSupplier,
-  GetSupplierById,
-  UpdateSupplier,
-} from "../../../../controllers/Admin/Master/SupplierMaster/Supplier.controller";
-import {
-  AddConatct,
-  UpdateContact,
-  addBranch,
-  getAllBranchSuppliers,
-  getBranchOfSupplier,
-  updateBranch,
-  uploadDocument,
-} from "../../../../controllers/Admin/Master/SupplierMaster/Branch.controller";
 import { MulterFunction } from "../../../../Utils/MulterFunction";
 import authMiddleware from "../../../../middlewares/adminAuth"
 import CompanyMaster from "../../../../controllers/Admin/Master/SupplierMaster/Company.class";
@@ -52,5 +37,7 @@ SupplierRouter.patch(
   ]),
   branch.uploadDocument("./uploads/admin/supplierDocument")
 );
+
+SupplierRouter.get("/dropdown/list",authMiddleware,supplier.GetCompanyList)
 
 export default SupplierRouter;
