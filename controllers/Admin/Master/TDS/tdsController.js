@@ -3,11 +3,12 @@ import catchAsync from "../../../../Utils/catchAsync";
 import { dynamicSearch } from "../../../../Utils/dynamicSearch";
 import tdsModel from "../../../../database/schema/Master/TDS/tds.schema";
 import { approvalData } from "../../../HelperFunction/approvalFunction";
+import { createdByFunction } from "../../../HelperFunction/createdByfunction";
 
 export const createTds = catchAsync(async (req, res, next) => {
   const user = req.user;
   const tds = await tdsModel.create({
-    current_data: { ...req.body },
+    current_data: { ...req.body, created_by: createdByFunction(user) },
     approver: approvalData(user),
   });
   if (tds) {
@@ -78,7 +79,7 @@ export const getTDS = catchAsync(async (req, res, next) => {
 export const getTDSList = catchAsync(async (req, res, next) => {
   const tds = await tdsModel.aggregate([
     {
-      $match: { "current_data.status": true,"current_data.isActive": true  },
+      $match: { "current_data.status": true, "current_data.isActive": true },
     },
     {
       $project: {
@@ -102,7 +103,7 @@ export const getTDSList = catchAsync(async (req, res, next) => {
 export const updateTds = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const user = req.user;
-  const { tds_percentage,isActive } = req.body;
+  const { tds_percentage, isActive } = req.body;
 
   const updatedtds = await tdsModel.findByIdAndUpdate(
     id,
