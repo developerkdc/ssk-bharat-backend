@@ -29,7 +29,7 @@ const LogSchema = new mongoose.Schema({
                 required: [true, "employee id is required"]
             },
         },
-        required: [true, "created by is required"]
+        // required: [true, "User Data is required"]
     },
     data: { type: mongoose.Schema.Types.Mixed }
 });

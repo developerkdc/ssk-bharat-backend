@@ -5,6 +5,7 @@ import bcrypt from "bcrypt";
 import ExcelJS from "exceljs";
 import { dynamicSearch } from "../../../Utils/dynamicSearch.js";
 import { approvalData } from "../../HelperFunction/approvalFunction.js";
+import { createdByFunction } from "../../HelperFunction/createdByfunction.js";
 
 export const AddUser = catchAsync(async (req, res) => {
   const user = req.user;
@@ -12,8 +13,8 @@ export const AddUser = catchAsync(async (req, res) => {
   const saltRounds = 10;
   userData.password = await bcrypt.hash(userData.password, saltRounds);
   const newUser = new userModel({
-    current_data: { ...req.body },
-    approver: approvalData(user,user?.current_data.role_id.role_name),
+    current_data: { ...req.body, created_by: createdByFunction(user) },
+    approver: approvalData(user, user?.current_data.role_id.role_name),
   });
   const savedUser = await newUser.save();
 
@@ -117,9 +118,12 @@ export const FetchUsers = catchAsync(async (req, res) => {
   sort[sortField] = sortOrder === "asc" ? 1 : -1;
 
   const filter = {};
-  if (req.query.district) filter["current_data.address.district"] = req.query.district;
-  if (req.query.location) filter["current_data.address.location"] = req.query.location;
-  if (req.query.taluka) filter["current_data.address.taluka"] = req.query.taluka;
+  if (req.query.district)
+    filter["current_data.address.district"] = req.query.district;
+  if (req.query.location)
+    filter["current_data.address.location"] = req.query.location;
+  if (req.query.taluka)
+    filter["current_data.address.taluka"] = req.query.taluka;
   if (req.query.state) filter["current_data.address.state"] = req.query.state;
   if (req.query.city) filter["current_data.address.city"] = req.query.city;
   if (req.query.area) filter["current_data.address.area"] = req.query.area;
@@ -145,7 +149,7 @@ export const FetchUsers = catchAsync(async (req, res) => {
     .sort(sort)
     .skip(skip)
     .limit(limit)
-    .populate("current_data.role_id")
+    .populate("current_data.role_id");
 
   //total pages
   const totalDocuments = await userModel.countDocuments({

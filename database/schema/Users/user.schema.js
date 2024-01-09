@@ -86,12 +86,93 @@ const UserSchema = SchemaFunction(
       },
     },
     otp: { type: String, trim: true },
-    isActive:{
-      type:Boolean,
-      default:true
-    }
-  })  
-)
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+    approver_one: {
+      type: {
+        user_id: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Users",
+          required: [true, "user_id for approvar one is required"],
+        },
+        name: {
+          type: String,
+          trim: true,
+          required: [true, "name for approvar one is required"],
+        },
+        email_id: {
+          type: String,
+          validate: {
+            validator: function (value) {
+              return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+            },
+            message: "approver one invalid email Id",
+          },
+          required: [true, "email id for approvar one is required"],
+        },
+        employee_id: String,
+      },
+      default: null,
+    },
+    approver_two: {
+      type: {
+        user_id: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Users",
+          required: [true, "user_id for approvar two is required"],
+        },
+        name: {
+          type: String,
+          trim: true,
+          required: [true, "name for approvar two is required"],
+        },
+        email_id: {
+          type: String,
+          validate: {
+            validator: function (value) {
+              return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+            },
+            message: "approver two invalid email Id",
+          },
+          required: [true, "email id for approvar two is required"],
+        },
+        employee_id: String,
+      },
+      default: null,
+    },
+    created_by: {
+      type: {
+        user_id: {
+          type: mongoose.Schema.Types.ObjectId,
+          required: [true, "user id is required"],
+        },
+        name: {
+          type: String,
+          trim: true,
+          default: null,
+        },
+        email_id: {
+          type: String,
+          trim: true,
+          validate: {
+            validator: function (value) {
+              return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+            },
+            message: "invalid email Id",
+          },
+        },
+        employee_id: {
+          type: String,
+          trim: true,
+          required: [true, "employee id is required"],
+        },
+      },
+      required: [true, "created by is required"],
+    },
+  })
+);
 UserSchema.methods.jwtToken = function (next) {
   try {
     return jwt.sign(
@@ -110,9 +191,8 @@ UserSchema.methods.jwtToken = function (next) {
 
 UserSchema.index({ "current_data.primary_mobile_no": 1 }, { unique: true });
 
-
 const userModel = mongoose.model("Users", UserSchema);
 
-LogSchemaFunction("user",userModel);
+LogSchemaFunction("user", userModel);
 
 export default userModel;
