@@ -1,5 +1,5 @@
 export const approvalData = function (user) {
-    const {current_data: {_id,first_name,last_name,primary_email_id,employee_id,approver_one,approver_two}} = user;
+    const {_id,current_data: {first_name,last_name,primary_email_id,employee_id,approver_one,approver_two}} = user;
     const approverObj = {
         updated_by: {
             user_id: _id,
