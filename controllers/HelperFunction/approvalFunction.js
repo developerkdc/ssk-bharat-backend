@@ -17,7 +17,8 @@ export const approvalData = function (user) {
             email_id: A2_email_id,
             employee_id: A2_employee_id
         }
-    } = user
+    } = user;
+    console.log(this)
     return {
         created_by: {
             user_id:_id,
