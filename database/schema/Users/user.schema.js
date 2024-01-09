@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import LogSchemaFunction from "../../utils/Logs.schema";
 import SchemaFunction from "../../../controllers/HelperFunction/SchemaFunction";
+import createdBy from "../../utils/createdBy.schema";
 
 const UserSchema = SchemaFunction(
   new mongoose.Schema({
@@ -142,35 +143,10 @@ const UserSchema = SchemaFunction(
       },
       default: null,
     },
-    created_by: {
-      type: {
-        user_id: {
-          type: mongoose.Schema.Types.ObjectId,
-          required: [true, "user id is required"],
-        },
-        name: {
-          type: String,
-          trim: true,
-          default: null,
-        },
-        email_id: {
-          type: String,
-          trim: true,
-          validate: {
-            validator: function (value) {
-              return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-            },
-            message: "invalid email Id",
-          },
-        },
-        employee_id: {
-          type: String,
-          trim: true,
-          required: [true, "employee id is required"],
-        },
-      },
-      required: [true, "created by is required"],
-    },
+   created_by:{
+        type:createdBy,
+        required:[true,"created by is required"]
+      }
   })
 );
 UserSchema.methods.jwtToken = function (next) {
