@@ -15,6 +15,10 @@ const CategorySchema = SchemaFunction(
       type: String,
       default: null,
     },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
     status: { type: Boolean, default: false },
     show_in_website: { type: Boolean, default: false },
     show_in_retailer: { type: Boolean, default: false },

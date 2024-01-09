@@ -47,14 +47,20 @@ export const getCategory = catchAsync(async (req, res, next) => {
     searchQuery = searchdata;
   }
 
-  const totalCategory = await categoryModel.countDocuments(searchQuery);
-  const totalPages = Math.ceil(totalCategory / limit);
+  const totalCategory = await categoryModel.countDocuments({
+    ...searchQuery,
+    "current_data.status": true,
+  });
 
+  const totalPages = Math.ceil(totalCategory / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
-  const skip = (validPage - 1) * limit;
+  const skip = Math.max((validPage - 1) * limit, 0);
 
   const category = await categoryModel
-    .find({ ...searchQuery, "current_data.status": true })
+    .find({
+      ...searchQuery,
+      "current_data.status": true,
+    })
     .sort({ [sortBy]: sortDirection })
     .skip(skip)
     .limit(limit);
@@ -77,7 +83,7 @@ export const getCategory = catchAsync(async (req, res, next) => {
 export const getCategoryList = catchAsync(async (req, res, next) => {
   const category = await categoryModel.aggregate([
     {
-      $match: { "current_data.status": true },
+      $match: { "current_data.status": true, "current_data.isActive": true },
     },
     {
       $project: {
@@ -114,6 +120,7 @@ export const updateCategory = catchAsync(async (req, res, next) => {
         "proposed_changes.category_name": req?.body?.category_name,
         "proposed_changes.category_image": relativeImagePath,
         "proposed_changes.status": false,
+        "proposed_changes.isActive": req?.body?.isActive,
         "proposed_changes.show_in_website": req?.body?.show_in_website,
         "proposed_changes.show_in_retailer": req?.body?.show_in_retailer,
         "proposed_changes.show_in_offline_store":

@@ -30,6 +30,10 @@ class CompanyMaster {
         },
         trim: true,
       },
+      isActive:{
+        type:Boolean,
+        default:true
+      },
       onboarding_date: {
         type: Date,
         default: Date.now,
@@ -115,11 +119,12 @@ class CompanyMaster {
     const totalDocuments = await this.#modal.countDocuments({
       ...filters,
       ...searchQuery,
+      "current_data.status": true,
     });
     const totalPages = Math.ceil(totalDocuments / limit);
 
     const modalName = await this.#modal
-      .find({ ...filters, ...searchQuery })
+      .find({ ...filters, ...searchQuery, "current_data.status": true })
       .skip(skip)
       .limit(limit)
       .sort({ [sortBy]: sort });

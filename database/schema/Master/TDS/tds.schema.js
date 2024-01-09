@@ -8,6 +8,10 @@ const TdsSchema = SchemaFunction(
       required: [true, "TDS Percentage is required"],
       unique: true,
     },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
   })
 );
 
