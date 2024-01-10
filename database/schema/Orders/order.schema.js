@@ -2,8 +2,9 @@ import mongoose from "mongoose";
 import addressSchema from "../../utils/address.schema";
 import userAndApprovals from "../../utils/approval.schema";
 import SchemaFunction from "../../../controllers/HelperFunction/SchemaFunction";
+import LogSchemaFunction from "../../utils/Logs.schema";
 
-const orders =SchemaFunction(
+const orders = SchemaFunction(
   new mongoose.Schema({
     order_no: {
       type: Number,
@@ -27,7 +28,7 @@ const orders =SchemaFunction(
       enum: ["retailers", "offlinestores", "websites"],
       trim: true,
     },
-  
+
     ssk_details: {
       ssk_id: {
         type: mongoose.Schema.Types.ObjectId,
@@ -173,7 +174,7 @@ const orders =SchemaFunction(
         first_name: {
           type: String,
           // required: [true, "First Name is required"],
-  
+
           trim: true,
           default: null,
         },
@@ -207,7 +208,7 @@ const orders =SchemaFunction(
         address: addressSchema,
       },
     },
-  
+
     Items: [
       {
         product_id: {
@@ -236,7 +237,11 @@ const orders =SchemaFunction(
           required: [true, "Item Weight is required"],
           trim: true,
         },
-        unit: { type: String, required: [true, "Unit is required"], trim: true },
+        unit: {
+          type: String,
+          required: [true, "Unit is required"],
+          trim: true,
+        },
         rate_per_unit: {
           type: Number,
           required: [true, "Rate per Unit is required"],
@@ -319,22 +324,25 @@ const orders =SchemaFunction(
       enum: ["active", "cancelled", "closed"],
       default: "active",
     },
-    purchase_order_no:{
+    purchase_order_no: {
       type: Number,
-      required:[true,"po no is required"]
+      required: [true, "po no is required"],
     },
-    purchase_order_id:{
-      type:mongoose.Schema.Types.ObjectId,
-      required:[true,"po id is required"]
+    purchase_order_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: [true, "po id is required"],
     },
     est_payment_days: {
       type: Number,
       default: null,
     },
   })
-)
+);
 
 orders.index({ "current_data.order_no": 1 }, { unique: true });
 
 const OrdersModel = mongoose.model("orders", orders);
+
+LogSchemaFunction("orders", OrdersModel);
+
 export default OrdersModel;

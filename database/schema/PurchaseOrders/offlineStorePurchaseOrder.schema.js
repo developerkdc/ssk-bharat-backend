@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import addressSchema from "../../utils/address.schema";
 import userAndApprovals from "../../utils/approval.schema";
+import LogSchemaFunction from "../../utils/Logs.schema";
 
 const storePurchaseOrderSchema = new mongoose.Schema({
   purchase_order_no: {
@@ -331,7 +332,9 @@ const storePurchaseOrderSchema = new mongoose.Schema({
 });
 
 const storePOModel = mongoose.model(
-  "offlineStorePurchaseOrder",
+  "offlinestorepurchaseorder",
   storePurchaseOrderSchema
 );
+
+LogSchemaFunction("offlinestorepo", storePOModel)
 export default storePOModel;

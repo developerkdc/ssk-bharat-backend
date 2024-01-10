@@ -2,6 +2,7 @@ import ApiError from "../../../../Utils/ApiError";
 import catchAsync from "../../../../Utils/catchAsync";
 import { dynamicSearch } from "../../../../Utils/dynamicSearch";
 import unitModel from "../../../../database/schema/Master/Units/unit.schema";
+import adminApprovalFunction from "../../../HelperFunction/AdminApprovalFunction";
 import { approvalData } from "../../../HelperFunction/approvalFunction";
 import { createdByFunction } from "../../../HelperFunction/createdByfunction";
 
@@ -11,6 +12,15 @@ export const createUnit = catchAsync(async (req, res, next) => {
     current_data: { ...req.body, created_by: createdByFunction(user) },
     approver: approvalData(user),
   });
+
+  if (!unit) return new ApiError("Error while Creating", 400);
+
+  adminApprovalFunction({
+    module: "units",
+    user: user,
+    documentId: unit._id,
+  });
+
   if (unit) {
     return res.status(201).json({
       statusCode: 201,
@@ -85,10 +95,8 @@ export const getUnitList = catchAsync(async (req, res, next) => {
     {
       $project: {
         _id: 1,
-        current_data: {
-          unit_name: 1,
-          unit_symbol: 1,
-        },
+        unit_name: "$current_data.unit_name",
+        unit_symbol: "$current_data.unit_symbol",
       },
     },
   ]);
@@ -121,9 +129,14 @@ export const updateUnit = catchAsync(async (req, res, next) => {
     },
     { new: true }
   );
-  if (!updatedUnit) {
-    return next(new ApiError("Unit Not Found", 404));
-  }
+  if (!updatedUnit) return new ApiError("Error while updating", 400);
+
+  adminApprovalFunction({
+    module: "units",
+    user: user,
+    documentId: id,
+  });
+
   return res.status(200).json({
     statusCode: 200,
     status: "success",

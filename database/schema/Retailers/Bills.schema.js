@@ -122,5 +122,6 @@ const BillSchema = new mongoose.Schema({
   created_at: { type: Date, default: Date.now },
 });
 
+
 // const BillsModel = mongoose.model("Billing", Bills);
 export default BillSchema;
