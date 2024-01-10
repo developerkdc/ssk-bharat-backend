@@ -2,6 +2,7 @@ import ApiError from "../../../../Utils/ApiError";
 import catchAsync from "../../../../Utils/catchAsync";
 import { dynamicSearch } from "../../../../Utils/dynamicSearch";
 import paymentTermDaysModel from "../../../../database/schema/Master/PaymentTerms/paymentTermDays.schema";
+import adminApprovalFunction from "../../../HelperFunction/AdminApprovalFunction";
 import { approvalData } from "../../../HelperFunction/approvalFunction";
 import { createdByFunction } from "../../../HelperFunction/createdByfunction";
 
@@ -10,6 +11,14 @@ export const createTermDays = catchAsync(async (req, res, next) => {
   const termDays = await paymentTermDaysModel.create({
     current_data: { ...req.body, created_by: createdByFunction(user) },
     approver: approvalData(user),
+  });
+
+  if (!termDays) return new ApiError("Error while Creating", 400);
+
+  adminApprovalFunction({
+    module: "paymenttermdays",
+    user: user,
+    documentId: termDays._id,
   });
 
   if (termDays) {
@@ -82,9 +91,7 @@ export const getPaymentTermList = catchAsync(async (req, res, next) => {
     {
       $project: {
         _id: 1,
-        current_data: {
-          payment_term_days: 1,
-        },
+        payment_term_days: "$current_data.payment_term_days",
       },
     },
   ]);
@@ -116,9 +123,15 @@ export const updatePaymentTerm = catchAsync(async (req, res, next) => {
     },
     { new: true }
   );
-  if (!updatedTermDays) {
-    return next(new ApiError("Payment Term Days Not Found", 404));
-  }
+
+  if (!updatedTermDays) return new ApiError("Error while updating", 400);
+
+  adminApprovalFunction({
+    module: "paymenttermdays",
+    user: user,
+    documentId: id,
+  });
+
   return res.status(200).json({
     statusCode: 200,
     status: "success",

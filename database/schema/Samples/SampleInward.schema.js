@@ -1,3 +1,5 @@
+import LogSchemaFunction from "../../utils/Logs.schema";
+
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
@@ -118,5 +120,7 @@ const SampleInwardSchema = new Schema({
 });
 
 const sampleInmodel = mongoose.model("SampleInward", SampleInwardSchema);
+
+LogSchemaFunction("sampleinward", sampleInmodel)
 
 export default sampleInmodel;

@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import userAndApprovals from "../../utils/approval.schema";
+import LogSchemaFunction from "../../utils/Logs.schema";
 
 const sampleOutward = new mongoose.Schema({
   deliveryChallanNo: { type: String, trim: true, required: true },
@@ -45,4 +46,5 @@ const sampleOutward = new mongoose.Schema({
 });
 
 const sampleOut = mongoose.model("SampleOutward", sampleOutward);
+LogSchemaFunction("sampleoutward", sampleOut)
 export default sampleOut;

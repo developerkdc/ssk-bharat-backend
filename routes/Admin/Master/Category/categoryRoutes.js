@@ -25,7 +25,7 @@ router.get(
   rolesPermissions("category", "view"),
   getCategory
 );
-router.get("/categoryList", getCategoryList);
+router.get("/categoryList", authMiddleware, getCategoryList);
 router.patch(
   "/updateCategory/:id",
   authMiddleware,

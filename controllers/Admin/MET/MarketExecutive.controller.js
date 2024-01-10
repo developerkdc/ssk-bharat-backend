@@ -81,6 +81,19 @@ export const getMarketExecutiveById = catchAsync(async (req, res, next) => {
   });
 });
 
+export const getMarketExecutiveList = catchAsync(async (req, res, next) => {
+  const marketExec = await MarketExecutiveModel.find({"current_data.isActive":true,"current_data.status":true},
+  {"current_data.contact_person_details":1,"current_data.company_details":1});
+
+  return res.status(200).json({
+    statusCode: 200,
+    status: "success",
+    data: {
+      MarketExecutive: marketExec,
+    },
+  });
+});
+
 export const addMarketExec = catchAsync(async (req, res, next) => {
   const { approver, ...data } = req.body;
 
@@ -94,7 +107,7 @@ export const addMarketExec = catchAsync(async (req, res, next) => {
   });
 
   adminApprovalFunction({
-    module: MarketExecutiveModel,
+    module: "MarketExecutive",
     user: req.user,
     documentId: addME._id
   })
@@ -164,7 +177,7 @@ export const updateMarketExec = catchAsync(async (req, res) => {
   }
 
   adminApprovalFunction({
-    module: MarketExecutiveModel,
+    module: "MarketExecutive",
     user: req.user,
     documentId: req.params.id
   })
@@ -241,7 +254,7 @@ export const uploadMarketExecImages = catchAsync(async (req, res, next) => {
     });
   }
   adminApprovalFunction({
-    module: MarketExecutiveModel,
+    module: "MarketExecutive",
     user: req.user,
     documentId: req.params.id
   })
@@ -301,18 +314,18 @@ export const addNominee = catchAsync(async (req, res, next) => {
             kyc_status: false,
             pan: {
               pan_no,
-              pan_image: pan_image[0].filename,
+              pan_image: pan_image?.[0].filename,
             },
             aadhar: {
               aadhar_no,
-              aadhar_image: aadhar_image[0].filename,
+              aadhar_image: aadhar_image?.[0].filename,
             },
             bank_details: {
               bank_name,
               account_no,
               confirm_account_no,
               ifsc_code,
-              passbook_image: passbook_image[0].filename,
+              passbook_image: passbook_image?.[0].filename,
             },
           },
         },
@@ -328,7 +341,7 @@ export const addNominee = catchAsync(async (req, res, next) => {
 
 
   adminApprovalFunction({
-    module: MarketExecutiveModel,
+    module: "MarketExecutive",
     user: req.user,
     documentId: req.params.id
   })
@@ -409,7 +422,7 @@ export const editNominee = catchAsync(async (req, res, next) => {
   );
 
   adminApprovalFunction({
-    module: MarketExecutiveModel,
+    module: "MarketExecutive",
     user: req.user,
     documentId:req.params.id
   })

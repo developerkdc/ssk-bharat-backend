@@ -2,6 +2,7 @@ import ApiError from "../../../../Utils/ApiError";
 import catchAsync from "../../../../Utils/catchAsync";
 import { dynamicSearch } from "../../../../Utils/dynamicSearch";
 import hsnCodeModel from "../../../../database/schema/Master/HSN/hsnCode.schema";
+import adminApprovalFunction from "../../../HelperFunction/AdminApprovalFunction";
 import { approvalData } from "../../../HelperFunction/approvalFunction";
 import { createdByFunction } from "../../../HelperFunction/createdByfunction";
 
@@ -11,6 +12,13 @@ export const createHSN = catchAsync(async (req, res, next) => {
   const hsnCode = await hsnCodeModel.create({
     current_data: { ...req.body, created_by: createdByFunction(user) },
     approver: approvalData(user),
+  });
+
+  if (!hsnCode) return new ApiError("Something went Wrong", 400);
+  adminApprovalFunction({
+    module: "hsncode",
+    user: user,
+    documentId: hsnCode._id,
   });
   if (hsnCode) {
     return res.status(201).json({
@@ -100,12 +108,11 @@ export const getHSNCodeList = catchAsync(async (req, res, next) => {
     {
       $project: {
         _id: 1,
-        current_data: {
-          hsn_code: 1,
-          gst_percentage: {
-            _id: 1,
-            "current_data.gst_percentage": 1,
-          },
+        hsn_code: "$current_data.hsn_code",
+        gst: {
+          _id: "$current_data.gst_percentage._id",
+          gst_percentage:
+            "$current_data.gst_percentage.current_data.gst_percentage",
         },
       },
     },
@@ -143,6 +150,15 @@ export const updateHsnCode = catchAsync(async (req, res, next) => {
     },
     { new: true }
   );
+
+  if (!updatedHsnCode) return new ApiError("Error while updating", 400);
+
+  adminApprovalFunction({
+    module: "hsncode",
+    user: user,
+    documentId: id,
+  });
+
   return res.status(200).json({
     statusCode: 200,
     status: "success",

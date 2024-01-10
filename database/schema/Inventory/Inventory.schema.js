@@ -103,4 +103,5 @@ const InventorySchema = SchemaFunction(new mongoose.Schema({
 }));
 
 const inventoryModel = mongoose.model("Inventory", InventorySchema);
+
 export default inventoryModel;

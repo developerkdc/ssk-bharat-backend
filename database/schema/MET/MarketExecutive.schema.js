@@ -3,6 +3,7 @@ import addressSchema from "../../utils/address.schema";
 import bankDetailsSchema from "../../utils/bankDetails.schema";
 import jwt from "jsonwebtoken";
 import SchemaFunction from "../../../controllers/HelperFunction/SchemaFunction";
+import LogSchemaFunction from "../../utils/Logs.schema";
 
 const nomineeSchema = new mongoose.Schema({
   nominee_name: {
@@ -226,18 +227,25 @@ const MarketExecutiveSchema = SchemaFunction(new mongoose.Schema({
 MarketExecutiveSchema.methods.jwtToken = function (next) {
   try {
     return jwt.sign(
-      { metUserId: this._id, username: this.current_data.contact_person_details.first_name, primaryEmailId: this.current_data.contact_person_details.primary_email_id },
+      {
+        metUserId: this._id,
+        username: this.current_data.contact_person_details.first_name,
+        primaryEmailId:
+          this.current_data.contact_person_details.primary_email_id,
+      },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES }
     );
   } catch (error) {
-    return next(error)
+    return next(error);
   }
-}
-
+};
 
 const MarketExecutiveModel = mongoose.model(
   "MarketExecutive",
   MarketExecutiveSchema
 );
+
+LogSchemaFunction("MarketExecutive", MarketExecutiveModel);
+
 export default MarketExecutiveModel;

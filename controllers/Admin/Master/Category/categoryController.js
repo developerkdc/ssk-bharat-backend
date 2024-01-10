@@ -19,12 +19,13 @@ export const createCategory = catchAsync(async (req, res, next) => {
     approver: approvalData(user),
   });
 
-  adminApprovalFunction({
-    module:"category",
-    user:user,
-    documentId:category._id
-  })
+  if (!category) return new ApiError("Error while Creating", 400);
 
+  adminApprovalFunction({
+    module: "category",
+    user: user,
+    documentId: category._id,
+  });
 
   if (category) {
     return res.status(201).json({
@@ -102,7 +103,7 @@ export const getCategoryList = catchAsync(async (req, res, next) => {
     {
       $project: {
         _id: 1,
-        "current_data.category_name": 1,
+        category_name: "$current_data.category_name",
       },
     },
   ]);
@@ -146,12 +147,14 @@ export const updateCategory = catchAsync(async (req, res, next) => {
     { new: true }
   );
 
-  console.log(user.current_data.role_id)
+  if (!updatedCategory) return new ApiError("Error while updating", 400);
+
+  console.log(user.current_data.role_id);
   adminApprovalFunction({
-    module:"category",
-    user:user,
-    documentId:id
-  })
+    module: "category",
+    user: user,
+    documentId: id,
+  });
 
   return res.status(200).json({
     statusCode: 200,

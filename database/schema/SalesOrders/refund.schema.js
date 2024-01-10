@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import SchemaFunction from "../../../controllers/HelperFunction/SchemaFunction";
+import LogSchemaFunction from "../../utils/Logs.schema";
 
 const refundSchema = SchemaFunction(
   new mongoose.Schema({
@@ -7,7 +8,7 @@ const refundSchema = SchemaFunction(
       type: mongoose.Schema.Types.ObjectId,
       required: [true, "Sales ID is required"],
       ref: "salesorders",
-      unique:true
+      unique: true,
     },
     total_amount: {
       type: Number,
@@ -33,7 +34,7 @@ const refundSchema = SchemaFunction(
 );
 
 refundSchema.index({ "current_data.sales_order_id": 1 }, { unique: true });
-  
 
 const refundModel = mongoose.model("refunds", refundSchema);
+LogSchemaFunction("refunds", refundModel);
 export default refundModel;

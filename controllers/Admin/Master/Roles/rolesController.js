@@ -2,6 +2,7 @@ import ApiError from "../../../../Utils/ApiError";
 import catchAsync from "../../../../Utils/catchAsync";
 import { dynamicSearch } from "../../../../Utils/dynamicSearch";
 import rolesModel from "../../../../database/schema/Master/Roles/roles.schema";
+import adminApprovalFunction from "../../../HelperFunction/AdminApprovalFunction";
 import { approvalData } from "../../../HelperFunction/approvalFunction";
 import { createdByFunction } from "../../../HelperFunction/createdByfunction";
 
@@ -11,6 +12,15 @@ export const createRole = catchAsync(async (req, res, next) => {
     current_data: { ...req.body, created_by: createdByFunction(user) },
     approver: approvalData(user),
   });
+
+  if (!role) return new ApiError("Error while creating", 400);
+
+  adminApprovalFunction({
+    module: "roles",
+    user: user,
+    documentId: role._id,
+  });
+
   if (role) {
     return res.status(201).json({
       statusCode: 201,
@@ -120,8 +130,15 @@ export const updateRole = catchAsync(async (req, res, next) => {
     },
     { new: true }
   );
-  console.log(role);
-  if (!role) return next(new ApiError("Role Not Found", 404));
+
+  if (!role) return new ApiError("Error while creating", 400);
+
+  adminApprovalFunction({
+    module: "roles",
+    user: user,
+    documentId: id,
+  });
+
   return res.status(200).json({
     statusCode: 200,
     status: "Success",

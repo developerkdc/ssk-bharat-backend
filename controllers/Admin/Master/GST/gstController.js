@@ -2,6 +2,7 @@ import ApiError from "../../../../Utils/ApiError";
 import catchAsync from "../../../../Utils/catchAsync";
 import { dynamicSearch } from "../../../../Utils/dynamicSearch";
 import gstModel from "../../../../database/schema/Master/GST/gst.schema";
+import adminApprovalFunction from "../../../HelperFunction/AdminApprovalFunction";
 import { approvalData } from "../../../HelperFunction/approvalFunction";
 import { createdByFunction } from "../../../HelperFunction/createdByfunction";
 
@@ -11,6 +12,15 @@ export const createGst = catchAsync(async (req, res, next) => {
     current_data: { ...req.body, created_by: createdByFunction(user) },
     approver: approvalData(user),
   });
+
+  if (!gst) return new ApiError("Something went Wrong", 400);
+
+  adminApprovalFunction({
+    module: "gst",
+    user: user,
+    documentId: gst._id,
+  });
+
   if (gst) {
     return res.status(201).json({
       statusCode: 201,
@@ -85,9 +95,7 @@ export const getGstList = catchAsync(async (req, res, next) => {
     {
       $project: {
         _id: 1,
-        current_data: {
-          gst_percentage: 1,
-        },
+        gst_percentage: "$current_data.gst_percentage",
       },
     },
   ]);
@@ -123,6 +131,13 @@ export const updateGst = catchAsync(async (req, res, next) => {
   if (!updatedGst) {
     return next(new ApiError("GST Not Found", 404));
   }
+
+  adminApprovalFunction({
+    module: "gst",
+    user: user,
+    documentId: id,
+  });
+
   return res.status(200).json({
     statusCode: 200,
     status: "success",
