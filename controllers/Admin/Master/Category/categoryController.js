@@ -18,6 +18,14 @@ export const createCategory = catchAsync(async (req, res, next) => {
     },
     approver: approvalData(user),
   });
+
+  adminApprovalFunction({
+    module:"category",
+    user:user,
+    documentId:category._id
+  })
+
+
   if (category) {
     return res.status(201).json({
       statusCode: 201,
@@ -138,6 +146,7 @@ export const updateCategory = catchAsync(async (req, res, next) => {
     { new: true }
   );
 
+  console.log(user.current_data.role_id)
   adminApprovalFunction({
     module:"category",
     user:user,
