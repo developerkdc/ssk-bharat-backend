@@ -39,5 +39,7 @@ SupplierRouter.patch(
 );
 
 SupplierRouter.get("/dropdown/list",authMiddleware,supplier.GetCompanyList)
+SupplierRouter.get("/branch/dropdown/list",authMiddleware,branch.GetBranchList)
+
 
 export default SupplierRouter;

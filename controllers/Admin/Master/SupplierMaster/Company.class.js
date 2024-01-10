@@ -9,6 +9,7 @@ import { approvalData } from "../../../HelperFunction/approvalFunction";
 import LogSchemaFunction from "../../../../database/utils/Logs.schema";
 import createdBy from "../../../../database/utils/createdBy.schema";
 import { createdByFunction } from "../../../HelperFunction/createdByfunction";
+import adminApprovalFunction from "../../../HelperFunction/AdminApprovalFunction";
 
 class CompanyMaster {
   #Schema;
@@ -74,9 +75,9 @@ class CompanyMaster {
           }
         }
       },
-      created_by:{
-        type:createdBy,
-        required:[true,"created by is required"]
+      created_by: {
+        type: createdBy,
+        required: [true, "created by is required"]
       }
     }))
     this.#Schema.methods.jwtToken = function (next) {
@@ -158,7 +159,7 @@ class CompanyMaster {
     });
   });
   GetCompanyList = catchAsync(async (req, res, next) => {
-    const modalName = await this.#modal.find({"current_data.isActive":true,"current_data.status":true},{"current_data.company_name":1});
+    const modalName = await this.#modal.find({ "current_data.isActive": true, "current_data.status": true }, { "current_data.company_name": 1 });
     return res.status(201).json({
       statusCode: 200,
       status: "Success",
@@ -181,9 +182,18 @@ class CompanyMaster {
     }
 
     const addData = await this.#modal.create({
-      current_data: { ...data, password: protectedPassword,created_by:createdByFunction(user)},
+      current_data: { ...data, password: protectedPassword, created_by: createdByFunction(user) },
       approver: approvalData(user)
     });
+
+
+    adminApprovalFunction({
+      module: this.#collectionName,
+      user: user,
+      documentId: addData.id
+    })
+
+
     return res.status(201).json({
       statusCode: 201,
       status: "Success",
@@ -200,6 +210,7 @@ class CompanyMaster {
       isActive
     } = req.body;
     const { id } = req.params;
+    const user = req.user;
     const updateData = await this.#modal.findByIdAndUpdate(
       { _id: id },
       {
@@ -208,12 +219,18 @@ class CompanyMaster {
           "proposed_changes.status": false,
           "proposed_changes.isActive": isActive,
           "proposed_changes.onboarding_date": onboarding_date,
-          approver: approvalData(req.user),
+          approver: approvalData(user),
           updated_at: Date.now(),
         },
       },
       { new: true }
     );
+
+    adminApprovalFunction({
+      module: this.#collectionName,
+      user: user,
+      documentId:id
+    })
 
     return res.status(200).json({
       statusCode: 200,

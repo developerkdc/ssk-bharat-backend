@@ -7,6 +7,7 @@ import { approvalData } from "../../../HelperFunction/approvalFunction";
 import SchemaFunction from "../../../HelperFunction/SchemaFunction";
 import { dynamicSearch } from "../../../../Utils/dynamicSearch";
 import LogSchemaFunction from "../../../../database/utils/Logs.schema";
+import adminApprovalFunction from "../../../HelperFunction/AdminApprovalFunction";
 
 class Branches {
   #branchSchema;
@@ -31,7 +32,7 @@ class Branches {
           type: Date,
           default: Date.now,
         },
-        status: {
+        isActive: {
           type: Boolean,
           default: true,
         },
@@ -217,7 +218,7 @@ class Branches {
     this.#collectionName = collectionName;
     this.#modalName = modalName;
     this.#modal = mongoose.model(this.#collectionName, this.#branchSchema);
-    LogSchemaFunction(this.#collectionName,this.#modal)
+    LogSchemaFunction(this.#collectionName, this.#modal)
   }
   getAllBranchCompany = catchAsync(async (req, res, next) => {
     const { string, boolean, numbers } = req?.body?.searchFields || {};
@@ -294,7 +295,10 @@ class Branches {
   getBranchOfCompany = catchAsync(async (req, res, next) => {
     const branch = await this.#modal
       .find({ [`${this.#modalName}Id`]: req.params.companyId })
-      .populate(`${this.#modalName}Id`);
+      .populate({
+        path: `${this.#modalName}Id`,
+        select: "current_data.company_name current_data.company_type"
+      });
     return res.status(200).json({
       statusCode: 200,
       status: "Success",
@@ -304,9 +308,29 @@ class Branches {
       message: `${this.#modalName} All Branch`,
     });
   });
+  GetBranchList = catchAsync(async (req, res, next) => {
+    const modalName = await this.#modal.find({ "current_data.isActive": true, "current_data.status": true }, { "current_data.branch_name": 1, "current_data.company_name": 1 }).populate({
+      path: `current_data.${this.#modalName}Id`,
+      select: "current_data.company_name current_data.company_type"
+    });
+    return res.status(201).json({
+      statusCode: 200,
+      status: "Success",
+      data: {
+        [this.#modalName]: modalName,
+      },
+    });
+  })
   addBranch = catchAsync(async (req, res, next) => {
     const { approver, ...data } = req.body;
-    const branch = await this.#modal.create({ current_data: data, approver: approvalData(req.user), });
+    const user = req.user;
+    const branch = await this.#modal.create({ current_data: data, approver: approvalData(user), });
+
+    adminApprovalFunction({
+      module: this.#collectionName,
+      user: user,
+      documentId: branch._id
+    })
     return res.status(201).json({
       statusCode: 201,
       status: "Created",
@@ -355,11 +379,19 @@ class Branches {
             data?.branch_address?.country,
           "proposed_changes.branch_address.pincode":
             data?.branch_address?.pincode,
+          "proposed_changes.isActive": data?.isActive,
+          "proposed_changes.status": false,
           approver: approvalData(req.user),
         },
       },
       { new: true }
     );
+
+    adminApprovalFunction({
+      module: this.#collectionName,
+      user: req.user,
+      documentId: branchId
+    })
 
     if (!updateBranch)
       return next(new ApiError("please check the branchId or CompanyId", 400));
@@ -394,12 +426,19 @@ class Branches {
           $set: {
             "proposed_changes.kyc.pan.pan_image": images?.pan_image,
             "proposed_changes.kyc.gst.gst_image": images?.gst_image,
+            "proposed_changes.status": false,
             "proposed_changes.kyc.bank_details.passbook_image":
               images?.passbook_image,
             approver: approvalData(req.user),
           },
         }
       );
+
+      adminApprovalFunction({
+        module: this.#collectionName,
+        user: req.user,
+        documentId: branchId
+      })
 
       return res.status(200).json({
         statusCode: 200,
@@ -422,12 +461,22 @@ class Branches {
         $push: {
           "proposed_changes.contact_person": req.body,
         },
-        $set:{
+        $set: {
+          "proposed_changes.status": false,
           approver: approvalData(req.user)
         }
       },
       { runValidators: true, new: true }
     );
+    if(!addConatct){
+      return next(new ApiError("companyId or BranchId is not exits", 400))
+    }
+
+    adminApprovalFunction({
+      module: this.#collectionName,
+      user: req.user,
+      documentId: branchId
+    })
 
     return res.status(201).json({
       statusCode: 201,
@@ -471,6 +520,7 @@ class Branches {
           "proposed_changes.contact_person.$[e].secondary_mobile":
             secondary_mobile,
           "proposed_changes.contact_person.$[e].isPrimary": isPrimary,
+          "proposed_changes.status": false,
           approver: approvalData(req.user)
         },
       },
@@ -480,6 +530,12 @@ class Branches {
         new: true,
       }
     );
+
+    adminApprovalFunction({
+      module: this.#collectionName,
+      user: req.user,
+      documentId: branchId
+    })
 
     return res.status(200).json({
       statusCode: 200,

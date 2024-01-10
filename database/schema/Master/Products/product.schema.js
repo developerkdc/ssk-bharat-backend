@@ -89,10 +89,10 @@ const ProductSchema = SchemaFunction(
       type: Boolean,
       default: true,
     },
-   created_by:{
-        type:createdBy,
-        required:[true,"created by is required"]
-      }
+    created_by: {
+      type: createdBy,
+      required: [true, "created by is required"]
+    }
   })
 );
 
@@ -100,6 +100,26 @@ ProductSchema.index({ "current_data.product_name": 1 }, { unique: true });
 ProductSchema.index({ "current_data.sku": 1 }, { unique: true });
 
 const productModel = mongoose.model("products", ProductSchema);
-LogSchemaFunction("products", productModel);
 
+// (async function () {
+//   await productModel.createCollection();
+
+//   const RedactedUser = mongoose.model('productView', ProductSchema);
+
+//   await RedactedUser.createCollection({
+//     viewOn: 'products', // Set `viewOn` to the collection name, **not** model name.
+//     pipeline: [
+//       {
+//         $lookup: {
+//           from: 'categories',
+//           localField: 'current_data.category',
+//           foreignField: '_id',
+//           as: 'current_data.category'
+//         }
+//       }
+//     ]
+//   })
+
+// })()
+LogSchemaFunction("products", productModel);
 export default productModel;

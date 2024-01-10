@@ -4,7 +4,6 @@ import ApiError from "../../Utils/ApiError";
 const adminApprovalFunction = async function (obj) {
     const { module, user, documentId } = obj
     if (!module) return next(new ApiError("please provide module name", 400));
-    console.log(user.current_data.role_id.role_name)
 
     if (user.current_data.role_id.current_data.role_name === "Admin") {
         const model = mongoose.model(module);

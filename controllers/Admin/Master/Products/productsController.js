@@ -151,6 +151,7 @@ export const updateProduct = catchAsync(async (req, res, next) => {
     },
     { new: true }
   );
+  
 
   return res.status(200).json({
     statusCode: 200,
