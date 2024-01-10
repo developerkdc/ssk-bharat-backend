@@ -7,6 +7,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt"
 import { dynamicSearch } from "../../../Utils/dynamicSearch";
 import { approvalData } from "../../HelperFunction/approvalFunction";
+import adminApprovalFunction from "../../HelperFunction/AdminApprovalFunction";
 
 export const getMarketExecutive = catchAsync(async (req, res, next) => {
   const { string, boolean, numbers } = req?.body?.searchFields || {};
@@ -84,14 +85,20 @@ export const addMarketExec = catchAsync(async (req, res, next) => {
   const { approver, ...data } = req.body;
 
   let Password = crypto.randomBytes(8).toString("hex");
-  console.log(Password,"passworddd")
   let protectedPassword = bcrypt.hashSync(Password, 12);
-  data.contact_person_details.password=protectedPassword
+  data.contact_person_details.password = protectedPassword
 
   const addME = await MarketExecutiveModel.create({
-    current_data: {...data},
+    current_data: { ...data },
     approver: approvalData(req.user)
   });
+
+  adminApprovalFunction({
+    module: MarketExecutiveModel,
+    user: req.user,
+    documentId: addME._id
+  })
+
   return res.status(201).json({
     statusCode: 201,
     status: "created",
@@ -139,6 +146,8 @@ export const updateMarketExec = catchAsync(async (req, res) => {
         "proposed_changes.address.city": data?.address?.city,
         "proposed_changes.address.country": data?.address?.country,
         "proposed_changes.address.pincode": data?.address?.pincode,
+        "proposed_changes.isActive": data?.isActive,
+        "proposed_changes.status": false,
         approver: approvalData(req.user),
         updated_at: Date.now()
       },
@@ -153,6 +162,12 @@ export const updateMarketExec = catchAsync(async (req, res) => {
       message: "Market Executive Member has not updated",
     });
   }
+
+  adminApprovalFunction({
+    module: MarketExecutiveModel,
+    user: req.user,
+    documentId: req.params.id
+  })
 
   return res.status(201).json({
     statusCode: 201,
@@ -211,6 +226,7 @@ export const uploadMarketExecImages = catchAsync(async (req, res, next) => {
         "proposed_changes.kyc.gst.gst_image": images?.gst_image,
         "proposed_changes.kyc.aadhar.aadhar_image": images?.aadhar_image,
         "proposed_changes.kyc.bank_details.passbook_image": images?.passbook_image,
+        "proposed_changes.status": false,
         approver: approvalData(req.user),
         updated_at: Date.now()
       },
@@ -224,6 +240,11 @@ export const uploadMarketExecImages = catchAsync(async (req, res, next) => {
       message: "files has not uploaded",
     });
   }
+  adminApprovalFunction({
+    module: MarketExecutiveModel,
+    user: req.user,
+    documentId: req.params.id
+  })
 
   return res.status(201).json({
     statusCode: 201,
@@ -297,12 +318,21 @@ export const addNominee = catchAsync(async (req, res, next) => {
         },
       },
       $set: {
+        "proposed_changes.status": false,
         approver: approvalData(req.user),
         updated_at: Date.now()
       },
     },
     { new: true }
   );
+
+
+  adminApprovalFunction({
+    module: MarketExecutiveModel,
+    user: req.user,
+    documentId: req.params.id
+  })
+
   return res.status(201).json({
     statusCode: 201,
     status: "added",
@@ -319,6 +349,7 @@ export const editNominee = catchAsync(async (req, res, next) => {
     nominee_dob,
     nominee_age,
     address,
+    isActive,
     location,
     area,
     district,
@@ -368,12 +399,20 @@ export const editNominee = catchAsync(async (req, res, next) => {
         "proposed_changes.nominee.$[e].kyc.bank_details.confirm_account_no": confirm_account_no,
         "proposed_changes.nominee.$[e].kyc.bank_details.ifsc_code": ifsc_code,
         "proposed_changes.nominee.$[e].kyc.bank_details.passbook_image": images?.passbook_image,
+        "proposed_changes.nominee.$[e].isActive": isActive,
+        "proposed_changes.status": false,
         approver: approvalData(req.user),
-        updated_at:Date.now()
+        updated_at: Date.now()
       },
     },
     { arrayFilters: [{ "e._id": req.params.nomineeId }] }
   );
+
+  adminApprovalFunction({
+    module: MarketExecutiveModel,
+    user: req.user,
+    documentId:req.params.id
+  })
 
   return res.status(201).json({
     statusCode: 201,

@@ -143,7 +143,14 @@ const MarketExecutiveSchema = SchemaFunction(new mongoose.Schema({
       trim: true,
       default: null,
     },
-    otp: { type: String, trim: true, default: null },
+    otp: { type: String, trim: true,default:null },
+  },
+  account_balance: {
+    type: Number,
+    min: [0, "account number should not be in negative"],
+    get: (value) => parseFloat(value).toFixed(2),
+    set: (value) => parseFloat(value).toFixed(2),
+    default: 0,
   },
   kyc: {
     type: {
@@ -193,18 +200,14 @@ const MarketExecutiveSchema = SchemaFunction(new mongoose.Schema({
       },
     },
   },
+  isActive:{
+    type:Boolean,
+    default:true
+  },
   insurance: insuranceSchema,
   nominee: [nomineeSchema],
   address: addressSchema
-})).add({
-  account_balance: {
-    type: Number,
-    min: [0, "account number should not be in negative"],
-    get: (value) => parseFloat(value).toFixed(2),
-    set: (value) => parseFloat(value).toFixed(2),
-    default: 0,
-  },
-});
+}));
 
 // MarketExecutiveSchema.pre("updateOne", function (next) {
 //     // `this` refers to the query object
