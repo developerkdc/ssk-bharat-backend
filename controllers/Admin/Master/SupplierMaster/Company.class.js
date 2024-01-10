@@ -197,7 +197,6 @@ class CompanyMaster {
     const {
       company_name,
       onboarding_date,
-      company_status,
       isActive
     } = req.body;
     const { id } = req.params;
@@ -206,7 +205,7 @@ class CompanyMaster {
       {
         $set: {
           "proposed_changes.company_name": company_name,
-          "proposed_changes.company_status": company_status,
+          "proposed_changes.status": false,
           "proposed_changes.isActive": isActive,
           "proposed_changes.onboarding_date": onboarding_date,
           approver: approvalData(req.user),

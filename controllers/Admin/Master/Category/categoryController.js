@@ -5,6 +5,7 @@ import categoryModel from "../../../../database/schema/Master/Category/category.
 import fs from "fs";
 import { approvalData } from "../../../HelperFunction/approvalFunction";
 import { createdByFunction } from "../../../HelperFunction/createdByfunction";
+import adminApprovalFunction from "../../../HelperFunction/AdminApprovalFunction";
 
 export const createCategory = catchAsync(async (req, res, next) => {
   const user = req.user;
@@ -136,6 +137,13 @@ export const updateCategory = catchAsync(async (req, res, next) => {
     },
     { new: true }
   );
+
+  adminApprovalFunction({
+    module:"category",
+    user:user,
+    documentId:id
+  })
+
   return res.status(200).json({
     statusCode: 200,
     status: "success",

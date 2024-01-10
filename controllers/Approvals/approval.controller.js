@@ -178,8 +178,6 @@ export const ApprovedByAdmin = catchAsync(async (req, res, next) => {
   let poModel;
   if (module === "orders" && data.current_data.order_type === "offlinestores") {
     poModel = storePOModel
-  } else if (module === "orders" && data.current_data.order_type === "retailers") {
-    poModel = retailerPOModel
   }
 
   let approvalList = await model.updateOne({ _id: documentId }, {
