@@ -8,6 +8,7 @@ const adminApprovalFunction = async function (obj) {
     if (user.current_data.role_id.current_data.role_name === "Admin") {
         const model = mongoose.model(module);
         const data = await model.findOne({ _id: documentId });
+        console.log(model,data)
 
         if (!data) return next(new ApiError("the document does not exits", 400));
 

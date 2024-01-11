@@ -8,7 +8,7 @@ const SchemaFunction = function (Schema) {
             default: false
         }
     });
-    return new mongoose.Schema({
+    const BaseSchema = new mongoose.Schema({
         current_data: {
             type: Schema,
             required: [true, "current data is required"]
@@ -16,14 +16,16 @@ const SchemaFunction = function (Schema) {
         proposed_changes: {
             type: Schema,
             default: function () {
-                return this.current_data || {}
+                return this.current_data || {};
             }
         },
         approver: userAndApprovals,
         created_at: { type: Date, default: Date.now },
         updated_at: { type: Date, default: Date.now },
         deleted_at: { type: Date, default: null },
-    })
+    });
+
+    return new mongoose.Schema(BaseSchema);
 };
 
 export default SchemaFunction;

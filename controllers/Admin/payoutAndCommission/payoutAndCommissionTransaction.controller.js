@@ -4,6 +4,7 @@ import payoutAndCommissionTransModel from "../../../database/schema/payoutAndCom
 import MarketExecutiveModel from "../../../database/schema/MET/MarketExecutive.schema";
 import ApiError from "../../../Utils/ApiError";
 import { approvalData } from "../../HelperFunction/approvalFunction";
+import adminApprovalFunction from "../../HelperFunction/AdminApprovalFunction";
 
 export const addPayout = catchAsync(async (req, res, next) => {
   const {
@@ -26,6 +27,8 @@ export const addPayout = catchAsync(async (req, res, next) => {
               transactionId,
               payoutAmount,
               tdsPercentage,
+              tdsAmount:(payoutAmount/100)*tdsPercentage,
+              amountPaid:payoutAmount - ((payoutAmount/100)*tdsPercentage)
             },
           },
           approver: approvalData(req.user)
@@ -50,7 +53,6 @@ export const addPayout = catchAsync(async (req, res, next) => {
     if (newBalance < 0) {
       return next(new ApiError("Insufficient funds", 400));
     }
-
     await MarketExecutiveModel.updateOne(
       { _id: marketExecutiveId },
       {
@@ -58,14 +60,27 @@ export const addPayout = catchAsync(async (req, res, next) => {
           "proposed_changes.account_balance": -Number(amountPaid).toFixed(2),
         },
         $set: {
+          "proposed_changes.status":false,
           approver: approvalData(req.user)
         }
       },
       { session }
     );
 
+    
     await session.commitTransaction();
     await session.endSession();
+    
+    adminApprovalFunction({
+      module: "MarketExecutive",
+      user: req.user,
+      documentId: marketExecutiveId
+    })
+    adminApprovalFunction({
+      module: "payoutAndCommissionTransaction",
+      user: req.user,
+      documentId: addPayout[0]._id
+    })
 
     return res.status(201).json({
       statusCode: 201,

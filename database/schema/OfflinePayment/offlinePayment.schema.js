@@ -146,21 +146,11 @@ offlinePaymentSchema.pre("findOneAndUpdate", async function (next) {
         "proposed_changes.totalSalesAmount": 1,
       });
       if (!paymentData)
-        return next(new ApiError("payment hass not be added", 404));
+        return next(new ApiError("payment has not be added", 404));
 
-      const receivedAmount =
-        Number(updatingData["$inc"]["proposed_changes.recievedAmount"]) +
-        Number(paymentData.proposed_changes.recievedAmount);
-      const balanceAmount =
-        Number(paymentData.proposed_changes.balanceAmount) -
-        Number(updatingData["$inc"]["proposed_changes.balanceAmount"]);
+      const receivedAmount = Number(updatingData["$inc"]["proposed_changes.recievedAmount"]) + Number(paymentData.proposed_changes.recievedAmount);
+      const balanceAmount = Number(paymentData.proposed_changes.balanceAmount) - Number(updatingData["$inc"]["proposed_changes.balanceAmount"]);
 
-      console.log(
-        receivedAmount,
-        balanceAmount,
-        paymentData.totalSalesAmount,
-        this.getUpdate()
-      );
       if (
         receivedAmount >
           Number(paymentData.proposed_changes.totalSalesAmount) ||
