@@ -23,22 +23,7 @@ const RoleSchema = SchemaFunction(
         edit: { type: Boolean, default: false },
         view: { type: Boolean, default: false },
       },
-      suppliers: {
-        add: { type: Boolean, default: false },
-        edit: { type: Boolean, default: false },
-        view: { type: Boolean, default: false },
-      },
       category: {
-        add: { type: Boolean, default: false },
-        edit: { type: Boolean, default: false },
-        view: { type: Boolean, default: false },
-      },
-      sskcompany: {
-        add: { type: Boolean, default: false },
-        edit: { type: Boolean, default: false },
-        view: { type: Boolean, default: false },
-      },
-      retailer: {
         add: { type: Boolean, default: false },
         edit: { type: Boolean, default: false },
         view: { type: Boolean, default: false },
@@ -63,12 +48,47 @@ const RoleSchema = SchemaFunction(
         edit: { type: Boolean, default: false },
         view: { type: Boolean, default: false },
       },
+      suppliers: {
+        add: { type: Boolean, default: false },
+        edit: { type: Boolean, default: false },
+        view: { type: Boolean, default: false },
+      },
+      sskcompany: {
+        add: { type: Boolean, default: false },
+        edit: { type: Boolean, default: false },
+        view: { type: Boolean, default: false },
+      },
+      marketExecutive: {
+        add: { type: Boolean, default: false },
+        edit: { type: Boolean, default: false },
+        view: { type: Boolean, default: false },
+      },
+      retailer: {
+        add: { type: Boolean, default: false },
+        edit: { type: Boolean, default: false },
+        view: { type: Boolean, default: false },
+      },
+      offlineStore: {
+        add: { type: Boolean, default: false },
+        edit: { type: Boolean, default: false },
+        view: { type: Boolean, default: false },
+      },
       ssk_po: {
         add: { type: Boolean, default: false },
         edit: { type: Boolean, default: false },
         view: { type: Boolean, default: false },
       },
-      new_order: {
+      inventory: {
+        add: { type: Boolean, default: false },
+        edit: { type: Boolean, default: false },
+        view: { type: Boolean, default: false },
+      },
+      sampleTracking: {
+        add: { type: Boolean, default: false },
+        edit: { type: Boolean, default: false },
+        view: { type: Boolean, default: false },
+      },
+      order: {
         add: { type: Boolean, default: false },
         edit: { type: Boolean, default: false },
         view: { type: Boolean, default: false },
@@ -78,8 +98,7 @@ const RoleSchema = SchemaFunction(
         edit: { type: Boolean, default: false },
         view: { type: Boolean, default: false },
       },
-
-      sales: {
+      salesOrder: {
         add: { type: Boolean, default: false },
         edit: { type: Boolean, default: false },
         view: { type: Boolean, default: false },
@@ -110,6 +129,16 @@ const RoleSchema = SchemaFunction(
         view: { type: Boolean, default: false },
       },
       ticket: {
+        add: { type: Boolean, default: false },
+        edit: { type: Boolean, default: false },
+        view: { type: Boolean, default: false },
+      },
+      payments: {
+        add: { type: Boolean, default: false },
+        edit: { type: Boolean, default: false },
+        view: { type: Boolean, default: false },
+      },
+      payouts: {
         add: { type: Boolean, default: false },
         edit: { type: Boolean, default: false },
         view: { type: Boolean, default: false },
