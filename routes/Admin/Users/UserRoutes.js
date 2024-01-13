@@ -6,6 +6,7 @@ import {
   FetchUsers,
   UserLogs,
   UserLogsFile,
+  generatePassword,
   getUserList,
 } from "../../../controllers/Admin/Users/userController";
 import rolesPermissions from "../../../middlewares/rolesPermissionAuth";
@@ -49,6 +50,6 @@ router.get(
   authMiddleware,
   getUserList
 );
-
+router.get("/generate-password", generatePassword);
 
 export default router;

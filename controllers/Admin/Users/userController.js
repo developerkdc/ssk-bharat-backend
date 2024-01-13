@@ -248,3 +248,33 @@ export const UserLogs = catchAsync(async (req, res) => {
     message: "Logs fetched successfully",
   });
 });
+
+export const generatePassword = catchAsync(async(req,res)=>{
+  const symbols = "!@#$%^&*()_-+=<>?/{}";
+  const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const lowercase = "abcdefghijklmnopqrstuvwxyz";
+  const numbers = "0123456789";
+
+  const getRandomChar = (chars) => {
+    const randomIndex = Math.floor(Math.random() * chars.length);
+    return chars.charAt(randomIndex);
+  };
+
+  const password = [
+    getRandomChar(symbols),
+    getRandomChar(uppercase),
+    getRandomChar(lowercase),
+    getRandomChar(numbers),
+  ];
+  while (password.length < 8) {
+    const charSet = symbols + uppercase + lowercase + numbers;
+    password.push(getRandomChar(charSet));
+  }
+  password.sort(() => Math.random() - 0.5);
+  return res.status(200).json({
+    statusCode: 200,
+    status: "success",
+    data: password.join(""),
+    message: "Password Generated Successfully",
+  });
+})
