@@ -497,7 +497,6 @@ class Branches {
       secondary_email,
       primary_mobile,
       secondary_mobile,
-      isPrimary,
     } = req.body;
     if (!req.query.contactId) {
       return next(new ApiError("contactId is required", 400));
@@ -546,5 +545,11 @@ class Branches {
       message: "Branch contact updated",
     });
   });
+  setPrimary = catchAsync(async (req,res,next)=>{
+    const {setPrimaryOf} = req.body;
+
+
+
+  })
 }
 export default Branches;
