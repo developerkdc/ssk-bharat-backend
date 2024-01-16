@@ -19,7 +19,7 @@ router.post(
   MulterFunction("./uploads/admin/category").single("category_image"),
   createCategory
 );
-router.get(
+router.post(
   "/getCategory",
   authMiddleware,
   rolesPermissions("category", "view"),

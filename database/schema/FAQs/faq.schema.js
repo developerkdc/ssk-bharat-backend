@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import LogSchemaFunction from "../../utils/Logs.schema";
+import createdBy from "../../utils/createdBy.schema";
 
 const FaqSchema = new mongoose.Schema({
   module_type: {
@@ -24,6 +25,10 @@ const FaqSchema = new mongoose.Schema({
   updated_at: {
     type: Date,
     default: Date.now,
+  },
+  created_by: {
+    type: createdBy,
+    required: [true, "created by is required"],
   },
 });
 

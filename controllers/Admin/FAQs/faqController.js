@@ -1,11 +1,19 @@
 import ApiError from "../../../Utils/ApiError";
 import catchAsync from "../../../Utils/catchAsync";
 import FaqModel from "../../../database/schema/FAQs/faq.schema";
+import { createdByFunction } from "../../HelperFunction/createdByfunction";
 
 export const createFaq = catchAsync(async (req, res, next) => {
+  const user = req.user;
+
   const faq = await FaqModel.create({
     ...req.body,
+    created_by: createdByFunction(user),
   });
+
+  if (!faq) return new ApiError("Error while Creating", 400);
+
+
   if (faq) {
     return res.status(201).json({
       statusCode: 201,
@@ -22,13 +30,13 @@ export const editFaq = catchAsync(async (req, res, next) => {
     {
       $set: {
         ...req.body,
-        updated_at:Date.now()
+        updated_at: Date.now(),
       },
     },
     { new: true, runValidators: true }
   );
   if (!faq) {
-    return next(new ApiError("Invalid Id", 400));
+    return next(new ApiError("error while updating", 400));
   }
   return res.status(200).json({
     statusCode: 200,
@@ -68,7 +76,7 @@ export const getFaqs = catchAsync(async (req, res, next) => {
 export const deleteFaq = catchAsync(async (req, res, next) => {
   const faq = await FaqModel.findByIdAndDelete(req.params.id);
   if (!faq) {
-    return next(new ApiError("Invalid Id", 400));
+    return next(new ApiError("error while deleting", 400));
   }
   return res.status(200).json({
     statusCode: 200,
