@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import ApiError from "../../../../Utils/ApiError";
 import catchAsync from "../../../../Utils/catchAsync";
 import { dynamicSearch } from "../../../../Utils/dynamicSearch";
@@ -32,6 +33,8 @@ export const createRole = catchAsync(async (req, res, next) => {
 });
 
 export const getRoles = catchAsync(async (req, res, next) => {
+  const { string, boolean, numbers } = req?.body?.searchFields || {};
+
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const sortDirection = req.query.sort === "desc" ? -1 : 1;
@@ -146,3 +149,24 @@ export const updateRole = catchAsync(async (req, res, next) => {
     message: "Role Updated",
   });
 });
+
+export const RolesLogs = catchAsync(async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const perPage = 10; // Number of items per page
+  const totalRoles = await mongoose.model("roleslogs").countDocuments({});
+
+  const totalPages = Math.ceil(totalRoles / perPage);
+  const validPage = Math.min(Math.max(page, 1), totalPages);
+  const skip = (validPage - 1) * perPage;
+
+  const log = await mongoose.model("roleslogs").find({}).skip(skip).limit(perPage);
+
+  return res.status(200).json({
+    statusCode: 200,
+    status: "success",
+    data: log,
+    totalPages: totalPages,
+    message: "Logs fetched successfully",
+  });
+});
+
