@@ -31,10 +31,10 @@ const UserSchema = SchemaFunction(
       trim: true,
     },
     profile_pic: { type: String, max: 150, default: null },
-    status: { type: Boolean, default: true },
+    status: { type: Boolean, default: false },
     isActive: {
       type: Boolean,
-      default: true,
+      default: false,
     },
     role_id: {
       type: mongoose.Schema.Types.ObjectId,
