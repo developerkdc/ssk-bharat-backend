@@ -50,7 +50,6 @@ export const METSendOTP = catchAsync(async (req, res) => {
     });
   }
   const met = new METModel(metUser);
-  console.log(met,"meetttt")
   met.current_data.contact_person_details.otp = otp;
   const updatedUser = await met.save();
   const message = `

@@ -59,7 +59,6 @@ export const getFaqs = catchAsync(async (req, res, next) => {
   const faqs = await FaqModel.find({ module_type: type })
     .skip(skip)
     .limit(limit);
-  console.log(faqs);
   if (faqs) {
     return res.status(200).json({
       statusCode: 200,

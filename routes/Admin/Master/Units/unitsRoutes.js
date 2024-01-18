@@ -16,7 +16,7 @@ router.post(
   rolesPermissions("unit", "add"),
   createUnit
 );
-router.get(
+router.post(
   "/getUnits",
   authMiddleware,
   rolesPermissions("unit", "view"),

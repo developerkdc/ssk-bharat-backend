@@ -28,7 +28,6 @@ export const latestSSKPONo = catchAsync(async (req, res, next) => {
       .findOne()
       .sort({ created_at: -1 })
       .select("current_data.purchase_order_no");
-    console.log(latestPurchaseOrder, "lateee");
     if (latestPurchaseOrder) {
       return res.status(200).json({
         latest_po_number:
@@ -115,8 +114,6 @@ export const getSSKPo = catchAsync(async (req, res, next) => {
 export const updatePOStatus = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const user = req.user;
-
-  console.log(req.body, "req.body");
   const updatePO = await sskPOModel.findOneAndUpdate(
     { _id: id }, // Assuming 'id' is the unique identifier field
     {
@@ -140,7 +137,6 @@ export const updatePOStatus = catchAsync(async (req, res, next) => {
 
 export const getPOBasedOnSupplierID = catchAsync(async (req, res, next) => {
   const { id } = req.params;
-  console.log(req.body, "req.body");
   const poDetails = await sskPOModel.aggregate([
     {
       $match: {

@@ -5,6 +5,7 @@ import categoryModel from "../../../../database/schema/Master/Category/category.
 import { approvalData } from "../../../HelperFunction/approvalFunction";
 import { createdByFunction } from "../../../HelperFunction/createdByfunction";
 import adminApprovalFunction from "../../../HelperFunction/AdminApprovalFunction";
+import mongoose from "mongoose";
 
 export const createCategory = catchAsync(async (req, res, next) => {
   const user = req.user;
@@ -120,7 +121,6 @@ export const getCategoryList = catchAsync(async (req, res, next) => {
 export const updateCategory = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const user = req.user;
-  console.log(req.file, "fileeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
   let relativeImagePath;
   // relativeImagePath = oldCategory.category_image;
   if (req.file) {
@@ -149,7 +149,6 @@ export const updateCategory = catchAsync(async (req, res, next) => {
 
   if (!updatedCategory) return new ApiError("Error while updating", 400);
 
-  console.log(user.current_data.role_id);
   adminApprovalFunction({
     module: "category",
     user: user,
@@ -161,5 +160,26 @@ export const updateCategory = catchAsync(async (req, res, next) => {
     status: "success",
     data: updatedCategory,
     message: "Category Updated",
+  });
+});
+
+
+export const CategoryLogs = catchAsync(async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const perPage = 10; // Number of items per page
+  const totalRoles = await mongoose.model("categorylogs").countDocuments({});
+
+  const totalPages = Math.ceil(totalRoles / perPage);
+  const validPage = Math.min(Math.max(page, 1), totalPages);
+  const skip = (validPage - 1) * perPage;
+
+  const log = await mongoose.model("categorylogs").find({}).skip(skip).limit(perPage);
+
+  return res.status(200).json({
+    statusCode: 200,
+    status: "success",
+    data: log,
+    totalPages: totalPages,
+    message: "Logs fetched successfully",
   });
 });
