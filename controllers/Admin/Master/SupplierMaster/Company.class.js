@@ -27,7 +27,7 @@ class CompanyMaster {
       },
       company_type: {
         type: String,
-        required: [true, "Sales Order Type is required"],
+        required: [true, "company Type is required"],
         enum: {
           values: ["retailers", "offlinestores", "suppliers", "sskcompanies"],
           message: "invalid {VALUE}"
@@ -159,7 +159,7 @@ class CompanyMaster {
     });
   });
   GetCompanyList = catchAsync(async (req, res, next) => {
-    const modalName = await this.#modal.find({ "current_data.isActive": true, "current_data.status": true }, { "current_data.company_name": 1 });
+    const modalName = await this.#modal.find({ "current_data.isActive": true, "current_data.status": true }, { "company_name": "$current_data.company_name" });
     return res.status(201).json({
       statusCode: 200,
       status: "Success",

@@ -182,12 +182,6 @@ class Branches {
             secondary_email: {
               type: String,
               trim: true,
-              validate: {
-                validator: function (value) {
-                  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-                },
-                message: "secondary invalid email Id",
-              },
             },
             primary_mobile: {
               type: String,
@@ -324,6 +318,7 @@ class Branches {
   addBranch = catchAsync(async (req, res, next) => {
     const { approver, ...data } = req.body;
     const user = req.user;
+    console.log(data)
     const branch = await this.#modal.create({ current_data: data, approver: approvalData(user), });
 
     adminApprovalFunction({
