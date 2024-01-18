@@ -11,6 +11,7 @@ const RoleSchema = SchemaFunction(
       max: 25,
       required: [true, "Role Name is required"],
       unique: true,
+      trim:true
     },
     permissions: {
       user: {

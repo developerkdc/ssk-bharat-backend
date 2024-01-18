@@ -2,7 +2,6 @@ import ApiError from "../../../../Utils/ApiError";
 import catchAsync from "../../../../Utils/catchAsync";
 import { dynamicSearch } from "../../../../Utils/dynamicSearch";
 import categoryModel from "../../../../database/schema/Master/Category/category.schema";
-import fs from "fs";
 import { approvalData } from "../../../HelperFunction/approvalFunction";
 import { createdByFunction } from "../../../HelperFunction/createdByfunction";
 import adminApprovalFunction from "../../../HelperFunction/AdminApprovalFunction";
@@ -45,6 +44,7 @@ export const getCategory = catchAsync(async (req, res, next) => {
   const sortDirection = req.query.sort === "desc" ? -1 : 1;
   const sortBy = req.query.sortBy || "created_at";
   const search = req.query.search || "";
+  const portal = req.query.portal || "";
 
   let searchQuery = {};
   if (search != "" && req?.body?.searchFields) {
@@ -62,20 +62,19 @@ export const getCategory = catchAsync(async (req, res, next) => {
     searchQuery = searchdata;
   }
 
-  const totalCategory = await categoryModel.countDocuments({
+  const baseQuery = {
     ...searchQuery,
     "current_data.status": true,
-  });
+  };
+
+  const totalCategory = await categoryModel.countDocuments(baseQuery);
 
   const totalPages = Math.ceil(totalCategory / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
   const skip = Math.max((validPage - 1) * limit, 0);
 
   const category = await categoryModel
-    .find({
-      ...searchQuery,
-      "current_data.status": true,
-    })
+    .find(portal!="" ? {...baseQuery, [portal]: true } : baseQuery)
     .sort({ [sortBy]: sortDirection })
     .skip(skip)
     .limit(limit);
@@ -121,13 +120,14 @@ export const getCategoryList = catchAsync(async (req, res, next) => {
 export const updateCategory = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const user = req.user;
-
+  console.log(req.file, "fileeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
   let relativeImagePath;
   // relativeImagePath = oldCategory.category_image;
   if (req.file) {
     // fs.unlinkSync(`./uploads/admin/category/${oldCategory.category_image}`);
     relativeImagePath = req.file.filename;
   }
+
   const updatedCategory = await categoryModel.findByIdAndUpdate(
     id,
     {
