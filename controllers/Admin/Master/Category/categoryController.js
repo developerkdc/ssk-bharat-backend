@@ -120,7 +120,6 @@ export const getCategoryList = catchAsync(async (req, res, next) => {
 export const updateCategory = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const user = req.user;
-  console.log(req.file, "fileeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
   let relativeImagePath;
   // relativeImagePath = oldCategory.category_image;
   if (req.file) {
@@ -148,8 +147,6 @@ export const updateCategory = catchAsync(async (req, res, next) => {
   );
 
   if (!updatedCategory) return new ApiError("Error while updating", 400);
-
-  console.log(user.current_data.role_id);
   adminApprovalFunction({
     module: "category",
     user: user,
