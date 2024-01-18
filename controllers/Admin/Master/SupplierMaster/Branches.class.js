@@ -219,11 +219,12 @@ class Branches {
     const search = req.query.search || "";
     const { filters = {} } = req.body;
     const {
-      page = 1,
-      limit = 10,
       sortBy = "createdAt",
       sort = "desc",
     } = req.query;
+
+    const page = req.query.page || 1;
+    const limit = req.query.limit || 10
 
     let searchQuery = {};
     if (search != "" && req?.body?.searchFields) {
@@ -255,10 +256,13 @@ class Branches {
           $match: { ...filters, ...searchQuery, "current_data.status": true },
         },
         {
-          $limit: limit,
+          $sort:{[sortBy]: sort === "asc" ? 1 : -1}
         },
         {
-          $skip: page * limit - limit,
+          $skip: (page - 1) * limit,
+        },
+        {
+          $limit: limit,
         },
         {
           $lookup: {
@@ -275,7 +279,6 @@ class Branches {
           },
         },
       ])
-      .sort({ [sortBy]: sort });
     return res.status(200).json({
       statusCode: 200,
       status: "Success",
@@ -441,7 +444,7 @@ class Branches {
         data: {
           KYC_Images: updatedImages,
         },
-        message: "images has been uploaded",
+        message: "File has been uploaded",
       });
     });
   };
