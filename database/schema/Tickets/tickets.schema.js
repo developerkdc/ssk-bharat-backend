@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import LogSchemaFunction from "../../utils/Logs.schema";
 
 const TicketSchema = new mongoose.Schema({
   user_id: {
@@ -51,4 +52,5 @@ const TicketSchema = new mongoose.Schema({
 });
 
 const TicketModel = mongoose.model("ticket", TicketSchema);
+LogSchemaFunction("ticket", TicketModel);
 export default TicketModel;

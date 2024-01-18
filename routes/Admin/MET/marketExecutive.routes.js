@@ -6,6 +6,7 @@ import {
   editNominee,
   getMarketExecutive,
   getMarketExecutiveById,
+  getMarketExecutiveList,
   updateMarketExec,
   uploadMarketExecImages,
 } from "../../../controllers/Admin/MET/MarketExecutive.controller.js";
@@ -29,6 +30,8 @@ marketExecutiveRouter.route("/uploadImage/:id").patch(authMiddleware,
   ]),
   uploadMarketExecImages
 );
+
+marketExecutiveRouter.get("/dropdown/list",getMarketExecutiveList)
 
 marketExecutiveRouter.route("/nominee/add/:id").post(authMiddleware,
   MulterFunction("./uploads/marketExecutive/nominee").fields([

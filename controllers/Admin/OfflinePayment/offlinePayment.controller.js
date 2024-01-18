@@ -1,6 +1,7 @@
 import catchAsync from "../../../Utils/catchAsync";
 import { dynamicSearch } from "../../../Utils/dynamicSearch";
 import offlinePaymentModel from "../../../database/schema/OfflinePayment/offlinePayment.schema";
+import adminApprovalFunction from "../../HelperFunction/AdminApprovalFunction";
 import { approvalData } from "../../HelperFunction/approvalFunction";
 
 export const getOfflinePaymentDetails = catchAsync(async (req, res, next) => {
@@ -89,11 +90,18 @@ export const addOfflinePayment = catchAsync(async (req, res, next) => {
       },
       $set: {
         "proposed_changes.paymentStatus": "partailly paid",
+        "proposed.changes.status":false,
         approver: approvalData(req.user)
       },
     },
     { new: true }
   );
+
+  adminApprovalFunction({
+    module: "offlinepayments",
+    user: req.user,
+    documentId: req.params.id
+  })
 
   return res.status(201).json({
     statusCode: 201,
@@ -114,12 +122,19 @@ export const addFollowupAndRemark = catchAsync(async (req, res, next) => {
           remark,
         },
       },
-      $set:{
+      $set: {
+        "proposed.changes.status":false,
         approver: approvalData(req.user)
       }
     },
     { new: true }
   );
+
+  adminApprovalFunction({
+    module: "offlinepayments",
+    user: req.user,
+    documentId: req.params.id
+  })
 
   return res.status(201).json({
     statusCode: 201,

@@ -8,6 +8,7 @@ import retailerinventoryModel from "../../../database/schema/Inventory/RetailerI
 import InventorySchema from "../../../database/schema/Inventory/RetailerInventory.schema.js";
 import { approvalData } from "../../HelperFunction/approvalFunction.js";
 import DynamicModel from "../../../Utils/DynamicModel.js";
+import { createdByFunction } from "../../HelperFunction/createdByfunction.js";
 
 export const latestDispatchNo = catchAsync(async (req, res, next) => {
   try {
@@ -71,6 +72,7 @@ export const createDispatch = catchAsync(async (req, res, next) => {
       total_item_amount: total_item_amount,
       total_gst: total_gst,
       total_amount: total_amount,
+      created_by: createdByFunction(user)
     },
     approver: approvalData(user),
   };

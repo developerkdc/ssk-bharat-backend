@@ -2,6 +2,7 @@ import ApiError from "../../../../Utils/ApiError";
 import catchAsync from "../../../../Utils/catchAsync";
 import { dynamicSearch } from "../../../../Utils/dynamicSearch";
 import tdsModel from "../../../../database/schema/Master/TDS/tds.schema";
+import adminApprovalFunction from "../../../HelperFunction/AdminApprovalFunction";
 import { approvalData } from "../../../HelperFunction/approvalFunction";
 import { createdByFunction } from "../../../HelperFunction/createdByfunction";
 
@@ -11,12 +12,21 @@ export const createTds = catchAsync(async (req, res, next) => {
     current_data: { ...req.body, created_by: createdByFunction(user) },
     approver: approvalData(user),
   });
+
+  if (!tds) return new ApiError("Error while Creating", 400);
+
+  adminApprovalFunction({
+    module: "tds",
+    user: user,
+    documentId: tds._id,
+  });
+
   if (tds) {
     return res.status(201).json({
       statusCode: 201,
       status: "success",
       data: tds,
-      message: "GST Created",
+      message: "TDS Created",
     });
   }
 });
@@ -84,9 +94,7 @@ export const getTDSList = catchAsync(async (req, res, next) => {
     {
       $project: {
         _id: 1,
-        current_data: {
-          tds_percentage: 1,
-        },
+        tds_percentage: "$current_data.tds_percentage",
       },
     },
   ]);
@@ -119,9 +127,13 @@ export const updateTds = catchAsync(async (req, res, next) => {
     { new: true }
   );
 
-  if (!updatedtds) {
-    return next(new ApiError("TDS Not Found", 404));
-  }
+  if (!updatedtds) return new ApiError("Error while updating", 400);
+
+  adminApprovalFunction({
+    module: "tds",
+    user: user,
+    documentId: id,
+  });
 
   return res.status(200).json({
     statusCode: 200,

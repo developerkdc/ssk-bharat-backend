@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import addressSchema from "../../utils/address.schema";
 import userAndApprovals from "../../utils/approval.schema";
 import SchemaFunction from "../../../controllers/HelperFunction/SchemaFunction";
+import LogSchemaFunction from "../../utils/Logs.schema";
 
 const purchaseOrderSchema = SchemaFunction(
   new mongoose.Schema({
@@ -309,4 +310,8 @@ purchaseOrderSchema.index({ "current_data.purchase_order_no": 1 }, { unique: tru
 
 
 const sskPOModel = mongoose.model("sskpurchaseorder", purchaseOrderSchema);
+
+LogSchemaFunction("sskpo", sskPOModel)
+
+
 export default sskPOModel;

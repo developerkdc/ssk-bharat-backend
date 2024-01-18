@@ -19,13 +19,13 @@ router.post(
   MulterFunction("./uploads/admin/category").single("category_image"),
   createCategory
 );
-router.get(
+router.post(
   "/getCategory",
   authMiddleware,
   rolesPermissions("category", "view"),
   getCategory
 );
-router.get("/categoryList", getCategoryList);
+router.get("/categoryList", authMiddleware, getCategoryList);
 router.patch(
   "/updateCategory/:id",
   authMiddleware,

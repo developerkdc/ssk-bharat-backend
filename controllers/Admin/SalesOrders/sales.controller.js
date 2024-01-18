@@ -81,33 +81,82 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
         "current_data.companyId": sales[0].current_data.customer_details.customer_id,
       });
 
+      //appproval
+      // const commission = await payoutAndCommissionTransModel.insertMany(
+      //   marketExecutive.map((marketExec) => {
+      //     return {
+      //       current_data: {
+      //         marketExecutiveId: marketExec.current_data.marketExecutiveId,
+      //         commission: {
+      //           companyDetails: {
+      //             companyId: sales[0].current_data.customer_details.customer_id,
+      //             companyName: sales[0].current_data.customer_details.customer_name,
+      //             companyType: sales[0].current_data.order_type,
+      //             gstNo: sales[0].current_data.customer_details.bill_to.gst_no,
+      //             firstName: sales[0].current_data.customer_details.bill_to.first_name,
+      //             lastName: sales[0].current_data.customer_details.bill_to.last_name,
+      //             email: sales[0].current_data.customer_details.bill_to.primary_email_id,
+      //             mobileNo: sales[0].current_data.customer_details.bill_to.primary_mobile_no,
+      //           },
+      //           salesOrderId: sales[0].current_data._id,
+      //           salesOrderNo: sales[0].current_data.sales_order_no,
+      //           salesOrderDate: sales[0].current_data.sales_order_date,
+      //           salesOrderAmount: Number(sales[0].current_data.total_amount).toFixed(2),
+      //           commissionPercentage: marketExec.current_data.commissionPercentage,
+      //           commissionAmount: Number(
+      //             (sales[0].current_data.total_amount / 100) * marketExec.current_data.commissionPercentage
+      //           ).toFixed(2),
+      //         },
+      //       },
+      //       approver: approvalData(req.user)
+      //     };
+      //   }),
+      //   { session }
+      // );
+
+      // const updateAccountBalance = Promise.all(
+      //   commission.map(async (marketExecutive) => {
+      //     const updateAccountBalance = await MarketExecutiveModel.updateOne(
+      //       { _id: marketExecutive.proposed_changes.marketExecutiveId },
+      //       {
+      //         $inc: {
+      //           "proposed_changes.account_balance": Number(
+      //             marketExecutive.proposed_changes.commission.commissionAmount
+      //           ).toFixed(2),
+      //         },
+      //         $set: {
+      //           approver: approvalData(req.user)
+      //         }
+      //       }
+      //     );
+      //   })
+      // );
+
+
       const commission = await payoutAndCommissionTransModel.insertMany(
         marketExecutive.map((marketExec) => {
           return {
-            current_data: {
-              marketExecutiveId: marketExec.current_data.marketExecutiveId,
-              commission: {
-                companyDetails: {
-                  companyId: sales[0].current_data.customer_details.customer_id,
-                  companyName: sales[0].current_data.customer_details.customer_name,
-                  companyType: sales[0].current_data.order_type,
-                  gstNo: sales[0].current_data.customer_details.bill_to.gst_no,
-                  firstName: sales[0].current_data.customer_details.bill_to.first_name,
-                  lastName: sales[0].current_data.customer_details.bill_to.last_name,
-                  email: sales[0].current_data.customer_details.bill_to.primary_email_id,
-                  mobileNo: sales[0].current_data.customer_details.bill_to.primary_mobile_no,
-                },
-                salesOrderId: sales[0].current_data._id,
-                salesOrderNo: sales[0].current_data.sales_order_no,
-                salesOrderDate: sales[0].current_data.sales_order_date,
-                salesOrderAmount: Number(sales[0].current_data.total_amount).toFixed(2),
-                commissionPercentage: marketExec.current_data.commissionPercentage,
-                commissionAmount: Number(
-                  (sales[0].current_data.total_amount / 100) * marketExec.current_data.commissionPercentage
-                ).toFixed(2),
+            marketExecutiveId: marketExec.current_data.marketExecutiveId,
+            commission: {
+              companyDetails: {
+                companyId: sales[0].current_data.customer_details.customer_id,
+                companyName: sales[0].current_data.customer_details.customer_name,
+                companyType: sales[0].current_data.order_type,
+                gstNo: sales[0].current_data.customer_details.bill_to.gst_no,
+                firstName: sales[0].current_data.customer_details.bill_to.first_name,
+                lastName: sales[0].current_data.customer_details.bill_to.last_name,
+                email: sales[0].current_data.customer_details.bill_to.primary_email_id,
+                mobileNo: sales[0].current_data.customer_details.bill_to.primary_mobile_no,
               },
+              salesOrderId: sales[0].current_data._id,
+              salesOrderNo: sales[0].current_data.sales_order_no,
+              salesOrderDate: sales[0].current_data.sales_order_date,
+              salesOrderAmount: Number(sales[0].current_data.total_amount).toFixed(2),
+              commissionPercentage: marketExec.current_data.commissionPercentage,
+              commissionAmount: Number(
+                (sales[0].current_data.total_amount / 100) * marketExec.current_data.commissionPercentage
+              ).toFixed(2),
             },
-            approver: approvalData(req.user)
           };
         }),
         { session }
@@ -116,16 +165,13 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
       const updateAccountBalance = Promise.all(
         commission.map(async (marketExecutive) => {
           const updateAccountBalance = await MarketExecutiveModel.updateOne(
-            { _id: marketExecutive.proposed_changes.marketExecutiveId },
+            { _id: marketExecutive.marketExecutiveId },
             {
               $inc: {
-                "proposed_changes.account_balance": Number(
-                  marketExecutive.proposed_changes.commission.commissionAmount
+                "account_balance": Number(
+                  marketExecutive.commission.commissionAmount
                 ).toFixed(2),
               },
-              $set: {
-                approver: approvalData(req.user)
-              }
             }
           );
         })
@@ -211,5 +257,5 @@ export const fetchSalesOrders = catchAsync(async (req, res, next) => {
     totalPages: totalPages,
   });
 });
-
+ 
 

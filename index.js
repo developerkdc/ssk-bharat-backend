@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 import express from "express";
+import cors from "cors";
 import expressGroupRoutes from "express-group-routes";
 import connect from "./database/mongo.service.js";
 import usersRouter from "./routes/Admin/Users/UserRoutes.js";
@@ -51,6 +52,13 @@ const port = process.env.PORT || 4001;
 //Middlewares
 app.use(express.static(__dirname));
 app.use(express.json());
+app.use(cors({
+  origin: '*',
+  optionsSuccessStatus: 200 
+}))
+
+
+//database
 connect();
 // Routes for Admin Portal
 app.group("/api/v1/admin", (router) => {

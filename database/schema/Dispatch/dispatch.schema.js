@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import addressSchema from "../../utils/address.schema";
 import SchemaFunction from "../../../controllers/HelperFunction/SchemaFunction";
+import LogSchemaFunction from "../../utils/Logs.schema";
+import createdBy from "../../utils/createdBy.schema";
 
 const dispatchOrder = SchemaFunction(
   new mongoose.Schema({
@@ -429,11 +431,17 @@ const dispatchOrder = SchemaFunction(
         },
       },
     },
+    created_by:{
+      type:createdBy,
+      required:[true,"created by is required"]
+    }
   })
 );
 
 dispatchOrder.index({ "current_data.sales_order_no": 1 }, { unique: true });
 dispatchOrder.index({ "current_data.dispatch_no": 1 }, { unique: true });
 
-const DispatchModel = mongoose.model("dispatchOrders", dispatchOrder);
+const DispatchModel = mongoose.model("dispatchorders", dispatchOrder);
+LogSchemaFunction("dispatchorders", DispatchModel);
+
 export default DispatchModel;

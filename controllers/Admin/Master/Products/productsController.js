@@ -5,6 +5,7 @@ import productModel from "../../../../database/schema/Master/Products/product.sc
 import fs from "fs";
 import { approvalData } from "../../../HelperFunction/approvalFunction";
 import { createdByFunction } from "../../../HelperFunction/createdByfunction";
+import adminApprovalFunction from "../../../HelperFunction/AdminApprovalFunction";
 
 export const createProduct = catchAsync(async (req, res, next) => {
   // Get the relative path of the uploaded image
@@ -27,6 +28,15 @@ export const createProduct = catchAsync(async (req, res, next) => {
     },
     approver: approvalData(user),
   });
+
+  if (!product) return new ApiError("Error while Creating", 400);
+
+  adminApprovalFunction({
+    module: "products",
+    user: user,
+    documentId: product._id,
+  });
+
   if (product) {
     return res.status(201).json({
       statusCode: 201,
@@ -108,7 +118,13 @@ export const getProductList = catchAsync(async (req, res, next) => {
     {
       $project: {
         _id: 1,
-        "current_data.product_name": 1,
+        category: "$current_data.category",
+        product_name: "$current_data.product_name",
+        sku: "$current_data.sku",
+        hsn_code: "$current_data.hsn_code",
+        mrp: "$current_data.mrp",
+        item_weight: "$current_data.item_weight",
+        unit: "$current_data.unit",
       },
     },
   ]);
@@ -151,6 +167,15 @@ export const updateProduct = catchAsync(async (req, res, next) => {
     },
     { new: true }
   );
+  
+
+  if (!updatedProduct) return new ApiError("Error while updating", 400);
+
+  adminApprovalFunction({
+    module: "products",
+    user: user,
+    documentId: id,
+  });
 
   return res.status(200).json({
     statusCode: 200,
@@ -187,6 +212,15 @@ export const updateProductImage = catchAsync(async (req, res, next) => {
   //   }
   // }
 
+  if (!updatedProductImage)
+    return new ApiError("Error while updating image", 400);
+
+  adminApprovalFunction({
+    module: "products",
+    user: user,
+    documentId: id,
+  });
+
   return res.status(200).json({
     statusCode: 200,
     status: "updated",
@@ -214,6 +248,15 @@ export const deleteProductImage = catchAsync(async (req, res, next) => {
       fs.unlinkSync(`./uploads/admin/products/${imageName}`);
     }
   }
+
+  if (!deletedProductImage)
+    return new ApiError("Error while deleting image", 400);
+
+  adminApprovalFunction({
+    module: "products",
+    user: user,
+    documentId: id,
+  });
 
   return res.status(200).json({
     statusCode: 200,

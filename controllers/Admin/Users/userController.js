@@ -115,6 +115,7 @@ export const ChangePassword = catchAsync(async (req, res) => {
 
 export const FetchUsers = catchAsync(async (req, res) => {
   const { string, boolean, numbers } = req?.body?.searchFields || {};
+  console.log(req.query);
   const search = req.query.search || "";
 
   const page = parseInt(req.query.page) || 1;

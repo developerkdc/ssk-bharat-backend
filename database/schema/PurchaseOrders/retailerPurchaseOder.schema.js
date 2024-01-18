@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import addressSchema from "../../utils/address.schema";
 import userAndApprovals from "../../utils/approval.schema";
+import LogSchemaFunction from "../../utils/Logs.schema";
 
 const retailerPurchaseOrderSchema = new mongoose.Schema({
   purchase_order_no: {
@@ -328,4 +329,7 @@ const retailerPOModel = mongoose.model(
   "retailerpurchaseorder",
   retailerPurchaseOrderSchema
 );
+
+LogSchemaFunction("retailerpo", retailerPOModel)
+
 export default retailerPOModel;
