@@ -26,7 +26,7 @@ SupplierRouter.route("/branch/contact/:companyId/:branchId")
   .post(authMiddleware,branch.AddContact)
   .patch(authMiddleware,branch.UpdateContact);
 
-SupplierRouter.get("/BranchSupplier/all", authMiddleware,branch.getAllBranchCompany);
+SupplierRouter.post("/BranchSupplier/all", authMiddleware,branch.getAllBranchCompany);
 
 SupplierRouter.patch(
   "/branch/upload/:companyId/:branchId",authMiddleware,

@@ -217,9 +217,9 @@ class Branches {
   getAllBranchCompany = catchAsync(async (req, res, next) => {
     const { string, boolean, numbers } = req?.body?.searchFields || {};
     const search = req.query.search || "";
-    const { filters = {} } = req.body;
+    const { filters = {} } = req.body;  
     const {
-      sortBy = "createdAt",
+      sortBy = "created_at",
       sort = "desc",
     } = req.query;
 
@@ -344,7 +344,8 @@ class Branches {
     if (!branchId) {
       return next(new ApiError("branch id is required"));
     }
-    const updateBranch = await this.#modal.findByIdAndUpdate(
+    console.log(req.params.companyId,branchId)
+    const updateBranch = await this.#modal.findOneAndUpdate(
       {
         _id: branchId,
         [`proposed_changes.${this.#modalName}Id`]: req.params.companyId,
@@ -352,8 +353,10 @@ class Branches {
       {
         $set: {
           "proposed_changes.branch_name": data?.branch_name,
+          "proposed_changes.branch_onboarding_date": data?.branch_onboarding_date,
           "proposed_changes.kyc.pan.pan_no": data?.kyc?.pan?.pan_no,
           "proposed_changes.kyc.gst.gst_no": data?.kyc?.gst?.gst_no,
+          "proposed_changes.kyc.kyc_status": data?.kyc?.kyc_status,
           "proposed_changes.kyc.bank_details.bank_name":
             data?.kyc?.bank_details?.bank_name,
           "proposed_changes.kyc.bank_details.account_no":
@@ -385,14 +388,14 @@ class Branches {
       { new: true }
     );
 
+    if (!updateBranch)
+      return next(new ApiError("please check the branchId or CompanyId", 400));
+
     adminApprovalFunction({
       module: this.#collectionName,
       user: req.user,
       documentId: branchId
     })
-
-    if (!updateBranch)
-      return next(new ApiError("please check the branchId or CompanyId", 400));
 
     return res.status(200).json({
       statusCode: 200,
@@ -495,6 +498,7 @@ class Branches {
       secondary_email,
       primary_mobile,
       secondary_mobile,
+      isPrimary
     } = req.body;
     if (!req.query.contactId) {
       return next(new ApiError("contactId is required", 400));
