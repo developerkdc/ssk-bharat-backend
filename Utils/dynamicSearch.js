@@ -16,13 +16,13 @@ export const dynamicSearch = (search, boolean, numbers, string) => {
       };
     } else if (/\d/.test(search) && /[a-z]/.test(search) != true) {
       return {
-        // $expr: {
-        //   $regexMatch: {
-        //     input: { $toString: `$${field}` },
-        //     regex: new RegExp(search.toString()),
-        //     options: "i",
-        //   },
-        // },
+        $expr: {
+          $regexMatch: {
+            input: { $toString: `$${field}` },
+            regex: new RegExp(search.toString()),
+            options: "i",
+          },
+        },
 
         [field]: { $eq: parseInt(search, 10) }
       };

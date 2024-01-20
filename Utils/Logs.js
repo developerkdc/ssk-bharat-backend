@@ -33,6 +33,6 @@ export const handleUserChange = async (req, change, logCollection) => {
   // Save the user log only if it's not null (meaning it's either an insert or an update)
   if (userLog) {
     await userLog.save();
-    console.log("User logs:", userLog);
+    // console.log("User logs:", userLog);
   }
 };

@@ -24,7 +24,7 @@ export const createbill = catchAsync(async (req, res, next) => {
         const inventoryProduct = await retailerInveontry.findOne({
           "itemsDetails.product_Id": productId,
         });
-        console.log(inventoryProduct);
+   
         if (inventoryProduct) {
           const updatedQuantity =
             inventoryProduct.itemsDetails.availableQuantity - product.quantity;

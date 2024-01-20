@@ -16,7 +16,7 @@ router.post(
   rolesPermissions("hsn_code", "add"),
   createHSN
 );
-router.get(
+router.post(
   "/getHSNCode",
   authMiddleware,
   rolesPermissions("hsn_code", "view"),

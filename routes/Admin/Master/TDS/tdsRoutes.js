@@ -16,7 +16,7 @@ router.post(
   rolesPermissions("tds", "add"),
   createTds
 );
-router.get("/getTds", authMiddleware, rolesPermissions("tds", "view"), getTDS);
+router.post("/getTds", authMiddleware, rolesPermissions("tds", "view"), getTDS);
 router.get("/tdsList", authMiddleware, getTDSList);
 router.patch(
   "/updateTds/:id",

@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  CategoryLogs,
   createCategory,
   getCategory,
   getCategoryList,
@@ -8,7 +9,6 @@ import {
 import { MulterFunction } from "../../../../Utils/MulterFunction";
 import rolesPermissions from "../../../../middlewares/rolesPermissionAuth";
 import authMiddleware from "../../../../middlewares/adminAuth";
-
 
 const router = express.Router();
 
@@ -25,7 +25,10 @@ router.post(
   rolesPermissions("category", "view"),
   getCategory
 );
-router.get("/categoryList", authMiddleware, getCategoryList);
+router
+  .get("/categoryList", authMiddleware, getCategoryList)
+  .get("/categoryLog", CategoryLogs);
+
 router.patch(
   "/updateCategory/:id",
   authMiddleware,

@@ -241,7 +241,6 @@ class Branches {
       }
       searchQuery = searchdata;
     }
-    console.log({ ...filters, ...searchQuery });
 
     //total pages
     const totalDocuments = await this.#modal.countDocuments({
@@ -352,6 +351,7 @@ class Branches {
       },
       {
         $set: {
+          "proposed_changes.supplierId": data?.supplierId,
           "proposed_changes.branch_name": data?.branch_name,
           "proposed_changes.branch_onboarding_date": data?.branch_onboarding_date,
           "proposed_changes.kyc.pan.pan_no": data?.kyc?.pan?.pan_no,
