@@ -63,17 +63,43 @@ export const getHSNCode = catchAsync(async (req, res, next) => {
   const validPage = Math.min(Math.max(page, 1), totalPages);
   const skip = Math.max((validPage - 1) * limit, 0);
 
-  const hsn = await hsnCodeModel
-    .find({ ...searchQuery, "current_data.status": true })
-    .sort({ [sortField]: sortDirection })
-    .skip(skip)
-    .limit(limit)
-    .populate([
-      {
-        path: "current_data.gst_percentage",
-        select: "_id current_data.gst_percentage",
+  const hsn = await hsnCodeModel.aggregate([
+    {
+      $match: { "current_data.status": true },
+    },
+
+    {
+      $skip: skip,
+    },
+    {
+      $limit: limit,
+    },
+    {
+      $lookup: {
+        from: "gsts", // Replace with the actual name of the collection containing gst_percentage
+        localField: "current_data.gst_percentage",
+        foreignField: "_id",
+        pipeline: [
+          {
+            $project: {
+              _id: 1,
+              "current_data.gst_percentage": 1,
+            },
+          },
+        ],
+        as: "current_data.gst_percentage",
       },
-    ]);
+    },
+    {
+      $unwind: "$current_data.gst_percentage",
+    },
+    {
+      $match: { ...searchQuery },
+    },
+    {
+      $sort: { [sortField]: sortDirection },
+    },
+  ]);
 
   if (hsn) {
     return res.status(200).json({

@@ -167,7 +167,6 @@ export const updateProduct = catchAsync(async (req, res, next) => {
     },
     { new: true }
   );
-  
 
   if (!updatedProduct) return new ApiError("Error while updating", 400);
 

@@ -17,7 +17,7 @@ router.post(
   rolesPermissions("term_days", "add"),
   createTermDays
 );
-router.get(
+router.post(
   "/get",
   authMiddleware,
   rolesPermissions("term_days", "view"),
