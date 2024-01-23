@@ -79,21 +79,96 @@ export const getProducts = catchAsync(async (req, res, next) => {
   const validPage = Math.min(Math.max(page, 1), totalPages);
   const skip = Math.max((validPage - 1) * limit, 0);
   const sortField = req?.query?.sortBy || "created_at";
-  const product = await productModel
-    .find({ ...searchQuery, "current_data.status": true })
-    .sort({ [sortField]: sortDirection })
-    .skip(skip)
-    .limit(limit)
-    .populate([
-      {
-        path: "current_data.category",
-        select: "_id current_data.category_name",
+  
+  const product = await productModel.aggregate([
+    {
+      $match: { "current_data.status": true },
+    },
+
+    {
+      $skip: skip,
+    },
+    {
+      $limit: limit,
+    },
+    {
+      $lookup: {
+        from: "categories",
+        localField: "current_data.category",
+        foreignField: "_id",
+        as: "current_data.category",
+        pipeline: [
+          {
+            $project: {
+              _id: 1,
+              category_name: "$current_data.category_name",
+            },
+          },
+        ],
       },
-      {
-        path: "current_data.unit",
-        select: "_id current_data.unit_name current_data.unit_symbol",
+    },
+    {
+      $lookup: {
+        from: "hsncodes", // Replace with the actual name of the "hsn_codes" collection
+        localField: "current_data.hsn_code",
+        foreignField: "_id",
+        as: "current_data.hsn_code",
+        pipeline: [
+          {
+            $lookup: {
+              from: "gsts",
+              localField: "current_data.gst_percentage",
+              foreignField: "_id",
+              as: "current_data.gst_percentage",
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+              hsn_code: "$current_data.hsn_code",
+              gst_percentage:
+                "$current_data.gst_percentage.current_data.gst_percentage",
+            },
+          },
+          {
+            $unwind: "$gst_percentage",
+          },
+        ],
       },
-    ]);
+    },
+    {
+      $lookup: {
+        from: "units", // Replace with the actual name of the "units" collection
+        localField: "current_data.unit",
+        foreignField: "_id",
+        as: "current_data.unit",
+        pipeline: [
+          {
+            $project: {
+              _id: 1,
+              unit_name: "$current_data.unit_name",
+              unit_symbol: "$current_data.unit_symbol",
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unwind: "$current_data.category",
+    },
+    {
+      $unwind: "$current_data.unit",
+    },
+    {
+      $unwind: "$current_data.hsn_code",
+    },
+    {
+      $sort: { [sortField]: sortDirection },
+    },
+    {
+      $match: { ...searchQuery },
+    },
+  ]);
 
   if (product) {
     return res.status(200).json({
@@ -199,6 +274,47 @@ export const updateProductImage = catchAsync(async (req, res, next) => {
     },
     {
       arrayFilters: [{ e: imageName }],
+    }
+  );
+
+  // if (
+  //   updatedProductImage.acknowledged &&
+  //   updatedProductImage.modifiedCount > 0
+  // ) {
+  //   if (fs.existsSync(`./uploads/admin/products/${imageName}`)) {
+  //     fs.unlinkSync(`./uploads/admin/products/${imageName}`);
+  //   }
+  // }
+
+  if (!updatedProductImage)
+    return new ApiError("Error while updating image", 400);
+
+  adminApprovalFunction({
+    module: "products",
+    user: user,
+    documentId: id,
+  });
+
+  return res.status(200).json({
+    statusCode: 200,
+    status: "updated",
+    data: updatedProductImage,
+    message: "Product images Updated",
+  });
+});
+
+export const AddProductImage = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  const user = req.user;
+
+  const updatedProductImage = await productModel.updateOne(
+    { _id: id },
+    {
+      $push: {
+        "proposed_changes.product_images": {
+          $each: req.files.map((e) => e.filename),
+        },
+      },
     }
   );
 
