@@ -34,7 +34,6 @@ export const SendOTP = catchAsync(async (req, res) => {
   const user = await userModel.findOne({ primary_email_id: email });
   user.otp = otp;
   const updatedUser = await user.save();
-  console.log(updatedUser);
   const message = `
    <!DOCTYPE html>
 <html>
@@ -139,7 +138,6 @@ export const VerifyOTPAndUpdatePassword = catchAsync(async (req, res) => {
   const { email, otp, newPassword } = req.body;
 
   const user = await userModel.findOne({ primary_email_id: email });
-  console.log(user);
   if (!otp || otp !== user.otp) {
     return res.status(400).json({
       success: false,

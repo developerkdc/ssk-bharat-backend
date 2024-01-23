@@ -211,7 +211,6 @@ export const ViewProductHistory = catchAsync(async (req, res) => {
   const sortField = req.query.sortField || "product_Id";
   const sortOrder = req.query.sortOrder || "asc";
   // const {invoiceDate,receiveDate,...data } = req?.body?.filters || {};
-  console.log(req.body.filters);
   const limit = 10;
   const matchQuery = {
     "itemsDetails.product_Id": new mongoose.Types.ObjectId(id),
@@ -306,7 +305,6 @@ export const reseverdQuantity = catchAsync(async (req, res) => {
       "current_data.itemsDetails.balanceQuantity": { $gt: 0 },
     })
     .sort({ receivedDate: 1 });
-    console.log(products);
   for (const product of products) {
     const availableQty = product.itemsDetails.availableQuantity;
     const balanceQty = product.itemsDetails.balanceQuantity;

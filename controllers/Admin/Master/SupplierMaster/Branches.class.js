@@ -240,7 +240,6 @@ class Branches {
       }
       searchQuery = searchdata;
     }
-    console.log({ ...filters, ...searchQuery });
 
     //total pages
     const totalDocuments = await this.#modal.countDocuments({

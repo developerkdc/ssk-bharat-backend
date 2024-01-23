@@ -19,17 +19,19 @@ router.post(
   createRole
 );
 router
-  .post("/getRoles",
-   authMiddleware, rolesPermissions("roles", "view"),getRoles)
+  .post(
+    "/getRoles",
+    authMiddleware,
+    rolesPermissions("roles", "view"),
+    getRoles
+  )
   .get("/rolesList", getRolesList)
-  .get("/rolesLog",RolesLogs)
+  .get("/rolesLog", RolesLogs);
 router.patch(
   "/updateRole/:id",
   authMiddleware,
   rolesPermissions("roles", "edit"),
   updateRole
 );
-
-
 
 export default router;

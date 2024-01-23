@@ -20,7 +20,8 @@ router.post(
   MulterFunction("./uploads/admin/products").array("product_images", 4),
   createProduct
 );
-router.get(
+
+router.post(
   "/getProduct",
   authMiddleware,
   rolesPermissions("product", "view"),

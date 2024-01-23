@@ -17,7 +17,6 @@ export const createOfflineStorePO = catchAsync(async (req, res, next) => {
 
     // Create a new order
     const storePO = await storePOModel.create([req.body], { session });
-    console.log(storePO, "storee");
     // Create a new store purchase order
     let latestOrderNo = 1;
     const OrderNo = await OrdersModel.findOne()

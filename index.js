@@ -34,6 +34,7 @@ import InventoryRouter from "./routes/Admin/Inventory/InventoryRoutes.js";
 import SampleRouter from "./routes/Admin/Samples/sampleRoutes.js";
 import FaqRouter from "./routes/Admin/FAQs/faqRoutes.js";
 import TicketRouter from "./routes/Admin/Tickets/ticketRoutes.js";
+import addressDropdownRouter from "./routes/Admin/AddressDropdown/addressDropdownRoutes.js";
 import metAuthRouter from "./routes/METAuthRoutes/metAuthRoutes.js";
 import approvalRouter from "./routes/Approval/getPendingApprovalList.route.js"
 import offlinePORouter from "./routes/OfflineStore/PurchaseOrder/offlinePORoute.js";
@@ -92,6 +93,7 @@ app.group("/api/v1/admin", (router) => {
   router.use('/faq',FaqRouter);
   router.use('/met',metAuthRouter);
   router.use('/ticket',TicketRouter);
+  router.use('/address/dropdown',addressDropdownRouter);
   
 });
 //retailers

@@ -30,7 +30,6 @@ export const createRetailerPO = catchAsync(async (req, res, next) => {
     } else {
       latestOrderNo = 1;
     }
-    console.log(latestOrderNo,"latesss")
     const addNewOrder = await OrdersModel.create(
       [
         {
