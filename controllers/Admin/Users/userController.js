@@ -10,6 +10,14 @@ import { createdByFunction } from "../../HelperFunction/createdByfunction.js";
 export const AddUser = catchAsync(async (req, res) => {
   const user = req.user;
   const userData = req.body;
+  const address = JSON.parse(req.body.address);
+  const kyc = JSON.parse(req.body.kyc);
+  userData.address = address;
+  userData.kyc = kyc;
+  userData.profile_pic=req.files.profile_pic[0].path ;
+  userData.kyc.pan_card_detail.pan_image=req.files.pan_image[0].path;
+  userData.kyc.aadhar_card_detail.aadhar_image=req.files.aadhar_image[0].path;
+  userData.kyc.bank_details.passbook_image=req.files.passbook_image[0].path;
   const saltRounds = 10;
   userData.password = await bcrypt.hash(userData.password, saltRounds);
   const newUser = new userModel({
