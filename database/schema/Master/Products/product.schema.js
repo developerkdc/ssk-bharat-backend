@@ -45,13 +45,9 @@ const ProductSchema = SchemaFunction(
       maxlength: 500,
     },
     hsn_code: {
-      type: String,
-      required: [true, "Hsn Code is required"],
-    },
-    gst: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "gst",
-      required: [true, "GST is required"],
+      ref: "hsncode",
+      required: [true, "Hsn Code is required"],
     },
     show_in_website: { type: Boolean, default: false },
     show_in_retailer: { type: Boolean, default: false },
