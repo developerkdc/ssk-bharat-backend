@@ -42,7 +42,10 @@ class Branches {
         },
         kyc: {
           type: {
-            kyc_status: Boolean,
+            kyc_status: {
+              type: Boolean,
+              default: false
+            },
             pan: {
               type: {
                 pan_no: {
@@ -164,6 +167,10 @@ class Branches {
               trim: true,
               required: [true, "last name is required"],
             },
+            isActive:{
+              type:Boolean,
+              default:true
+            },
             role: {
               type: String,
               trim: true,
@@ -217,7 +224,7 @@ class Branches {
   getAllBranchCompany = catchAsync(async (req, res, next) => {
     const { string, boolean, numbers } = req?.body?.searchFields || {};
     const search = req.query.search || "";
-    const { filters = {} } = req.body;  
+    const { filters = {} } = req.body;
     const {
       sortBy = "created_at",
       sort = "desc",
@@ -242,6 +249,7 @@ class Branches {
       searchQuery = searchdata;
     }
 
+
     //total pages
     const totalDocuments = await this.#modal.countDocuments({
       ...filters,
@@ -255,7 +263,7 @@ class Branches {
           $match: { ...filters, ...searchQuery, "current_data.status": true },
         },
         {
-          $sort:{[sortBy]: sort === "asc" ? 1 : -1}
+          $sort: { [sortBy]: sort === "asc" ? 1 : -1 }
         },
         {
           $skip: (page - 1) * limit,
@@ -343,7 +351,6 @@ class Branches {
     if (!branchId) {
       return next(new ApiError("branch id is required"));
     }
-    console.log(req.params.companyId,branchId)
     const updateBranch = await this.#modal.findOneAndUpdate(
       {
         _id: branchId,
@@ -469,7 +476,7 @@ class Branches {
       },
       { runValidators: true, new: true }
     );
-    if(!addConatct){
+    if (!addConatct) {
       return next(new ApiError("companyId or BranchId is not exits", 400))
     }
 
@@ -498,12 +505,12 @@ class Branches {
       secondary_email,
       primary_mobile,
       secondary_mobile,
-      isPrimary
+      isActive
     } = req.body;
     if (!req.query.contactId) {
       return next(new ApiError("contactId is required", 400));
     }
-    const updatedContact = await this.#modal.findByIdAndUpdate(
+    const updatedContact = await this.#modal.findOneAndUpdate(
       {
         _id: branchId,
         [`proposed_changes.${this.#modalName}Id`]: companyId,
@@ -520,7 +527,7 @@ class Branches {
           "proposed_changes.contact_person.$[e].primary_mobile": primary_mobile,
           "proposed_changes.contact_person.$[e].secondary_mobile":
             secondary_mobile,
-          "proposed_changes.contact_person.$[e].isPrimary": isPrimary,
+          "proposed_changes.contact_person.$[e].isActive": isActive,
           "proposed_changes.status": false,
           approver: approvalData(req.user)
         },
@@ -547,10 +554,41 @@ class Branches {
       message: "Branch contact updated",
     });
   });
-  setPrimary = catchAsync(async (req,res,next)=>{
-    const {setPrimaryOf} = req.body;
+  setPrimary = catchAsync(async (req, res, next) => {
+    const { companyId, branchId } = req.params;
+    const { contactId } = req.query
+    const user = req.user;
+    const contactPrimary = await this.#modal.updateOne({
+      _id: branchId,
+      [`current_data.${this.#modalName}Id`]: companyId,
+      "current_data.contact_person._id": contactId
+    }, {
+      $set:{
+        "proposed_changes.contact_person.$[ele].isPrimary": false,
+        "proposed_changes.contact_person.$[e].isPrimary": true,
+        "proposed_change.status":false,
+        approver: approvalData(user)
+      }
+    }, {
+      arrayFilters: [{ "e._id": contactId },{ "ele._id": {$ne:contactId} }]
+    })
+
+    adminApprovalFunction({
+      module:this.#collectionName,
+      user:user,
+      documentId:branchId
+    })
 
 
+
+    return res.status(200).json({
+      statusCode: 200,
+      status: "success",
+      data: {
+        contactPrimary
+      },
+      message: `set to primary`
+    })
 
   })
 }
