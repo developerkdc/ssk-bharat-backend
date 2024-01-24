@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import ApiError from "../../../../Utils/ApiError";
 import catchAsync from "../../../../Utils/catchAsync";
 import { dynamicSearch } from "../../../../Utils/dynamicSearch";
@@ -142,5 +143,29 @@ export const updateUnit = catchAsync(async (req, res, next) => {
     status: "success",
     data: updatedUnit,
     message: "Unit Updated",
+  });
+});
+
+export const UnitLogs = catchAsync(async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const perPage = 10; // Number of items per page
+  const totalRoles = await mongoose.model("unitslogs").countDocuments({});
+
+  const totalPages = Math.ceil(totalRoles / perPage);
+  const validPage = Math.min(Math.max(page, 1), totalPages);
+  const skip = (validPage - 1) * perPage;
+
+  const log = await mongoose
+    .model("unitslogs")
+    .find({})
+    .skip(skip)
+    .limit(perPage);
+
+  return res.status(200).json({
+    statusCode: 200,
+    status: "success",
+    data: log,
+    totalPages: totalPages,
+    message: "Logs fetched successfully",
   });
 });

@@ -79,7 +79,7 @@ export const getProducts = catchAsync(async (req, res, next) => {
   const validPage = Math.min(Math.max(page, 1), totalPages);
   const skip = Math.max((validPage - 1) * limit, 0);
   const sortField = req?.query?.sortBy || "created_at";
-  
+
   const product = await productModel.aggregate([
     {
       $match: { "current_data.status": true },
@@ -346,11 +346,12 @@ export const AddProductImage = catchAsync(async (req, res, next) => {
 
 export const deleteProductImage = catchAsync(async (req, res, next) => {
   const { id, imageName } = req.params;
+  const user = req.user;
   const deletedProductImage = await productModel.updateOne(
-    { _id: id, product_images: imageName },
+    { _id: id, "proposed_changes.product_images": imageName },
     {
       $pull: {
-        product_images: imageName,
+        "proposed_changes.product_images": imageName,
       },
     }
   );
