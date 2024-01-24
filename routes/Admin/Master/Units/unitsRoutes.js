@@ -2,6 +2,7 @@ import express from "express";
 import rolesPermissions from "../../../../middlewares/rolesPermissionAuth";
 import authMiddleware from "../../../../middlewares/adminAuth";
 import {
+  UnitLogs,
   createUnit,
   getUnitList,
   getUnits,
@@ -22,7 +23,7 @@ router.post(
   rolesPermissions("unit", "view"),
   getUnits
 );
-router.get("/unitsList", getUnitList);
+router.get("/unitsList", getUnitList).get("/unitsLog", UnitLogs);
 router.patch(
   "/updateUnit/:id",
   authMiddleware,
