@@ -33,6 +33,7 @@ class CompanyMaster {
           message: "invalid {VALUE}"
         },
         trim: true,
+        default:collectionName.toLowerCase()
       },
       isActive: {
         type: Boolean,
