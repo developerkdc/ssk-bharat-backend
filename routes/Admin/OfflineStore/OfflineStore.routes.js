@@ -45,7 +45,7 @@ offlineStoreRouter
   .post(authMiddleware,branch.AddContact)
   .patch(authMiddleware,branch.UpdateContact);
 
-offlineStoreRouter.get("/BranchofflineStore/all", authMiddleware,branch.getAllBranchCompany);
+offlineStoreRouter.post("/BranchOfflineStore/all", authMiddleware,branch.getAllBranchCompany);
 
 offlineStoreRouter.patch(
   "/branch/upload/:companyId/:branchId",authMiddleware,
@@ -56,5 +56,10 @@ offlineStoreRouter.patch(
   ]),
   branch.uploadDocument("./uploads/admin/offlineStoreDocument")
 );
+
+offlineStoreRouter.get("/dropdown/list",authMiddleware,offlineStore.GetCompanyList)
+offlineStoreRouter.get("/branch/dropdown/list",authMiddleware,branch.GetBranchList)
+
+offlineStoreRouter.patch('/contact/setprimary/:companyId/:branchId',authMiddleware,branch.setPrimary)
 
 export default offlineStoreRouter;

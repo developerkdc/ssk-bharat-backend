@@ -39,7 +39,7 @@ retailerRouter
   .post(authMiddleware,branch.AddContact)
   .patch(authMiddleware,branch.UpdateContact);
 
-retailerRouter.get("/Branchretailer/all", authMiddleware,branch.getAllBranchCompany);
+retailerRouter.post("/BranchRetailer/all", authMiddleware,branch.getAllBranchCompany);
 
 retailerRouter.patch(
   "/branch/upload/:companyId/:branchId",authMiddleware,
@@ -50,5 +50,10 @@ retailerRouter.patch(
   ]),
   branch.uploadDocument("./uploads/admin/retailerDocument")
 );
+
+retailerRouter.get("/dropdown/list",authMiddleware,retailer.GetCompanyList)
+retailerRouter.get("/branch/dropdown/list",authMiddleware,branch.GetBranchList)
+
+retailerRouter.patch('/contact/setprimary/:companyId/:branchId',authMiddleware,branch.setPrimary)
 
 export default retailerRouter;

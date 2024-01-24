@@ -26,7 +26,7 @@ SupplierRouter.route("/branch/contact/:companyId/:branchId")
   .post(authMiddleware,branch.AddContact)
   .patch(authMiddleware,branch.UpdateContact);
 
-SupplierRouter.get("/BranchSupplier/all", authMiddleware,branch.getAllBranchCompany);
+SupplierRouter.post("/BranchSupplier/all", authMiddleware,branch.getAllBranchCompany);
 
 SupplierRouter.patch(
   "/branch/upload/:companyId/:branchId",authMiddleware,
@@ -40,6 +40,8 @@ SupplierRouter.patch(
 
 SupplierRouter.get("/dropdown/list",authMiddleware,supplier.GetCompanyList)
 SupplierRouter.get("/branch/dropdown/list",authMiddleware,branch.GetBranchList)
+
+SupplierRouter.patch('/contact/setprimary/:companyId/:branchId',authMiddleware,branch.setPrimary)
 
 
 export default SupplierRouter;
