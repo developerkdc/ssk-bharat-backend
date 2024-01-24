@@ -26,6 +26,7 @@ class Branches {
         branch_name: {
           type: String,
           trim: true,
+          lowercase: true,
           required: [true, "branch name is required"],
         },
         branch_onboarding_date: {
@@ -77,6 +78,7 @@ class Branches {
                 bank_name: {
                   type: String,
                   trim: true,
+                  lowercase: true,
                   required: [true, "bank name is required"],
                 },
                 account_no: {
@@ -112,46 +114,55 @@ class Branches {
           address: {
             type: String,
             trim: true,
+            lowercase: true,
             required: [true, "address is required"],
           },
           location: {
             type: String,
             trim: true,
+            lowercase: true,
             required: [true, "location is required"],
           },
           area: {
             type: String,
             trim: true,
+            lowercase: true,
             required: [true, "area is required"],
           },
           district: {
             type: String,
             trim: true,
+            lowercase: true,
             required: [true, "district is required"],
           },
           taluka: {
             type: String,
             trim: true,
+            lowercase: true,
             required: [true, "taluka is required"],
           },
           state: {
             type: String,
             trim: true,
+            lowercase: true,
             required: [true, "state is required"],
           },
           city: {
             type: String,
             trim: true,
+            lowercase: true,
             required: [true, "city is required"],
           },
           country: {
             type: String,
             trim: true,
+            lowercase: true,
             required: [true, "country is required"],
           },
           pincode: {
             type: String,
             trim: true,
+            lowercase: true,
             required: [true, "pincode is required"],
           },
         },
@@ -160,20 +171,23 @@ class Branches {
             first_name: {
               type: String,
               trim: true,
+              lowercase: true,
               required: [true, "first name is required"],
             },
             last_name: {
               type: String,
               trim: true,
+              lowercase: true,
               required: [true, "last name is required"],
             },
-            isActive:{
-              type:Boolean,
-              default:true
+            isActive: {
+              type: Boolean,
+              default: true
             },
             role: {
               type: String,
               trim: true,
+              lowercase: true,
             },
             primary_email: {
               type: String,
@@ -193,6 +207,7 @@ class Branches {
             primary_mobile: {
               type: String,
               trim: true,
+              lowercase: true,
               required: [true, "primary_mobile Number is required"],
             },
             secondary_mobile: {
@@ -563,20 +578,20 @@ class Branches {
       [`current_data.${this.#modalName}Id`]: companyId,
       "current_data.contact_person._id": contactId
     }, {
-      $set:{
+      $set: {
         "proposed_changes.contact_person.$[ele].isPrimary": false,
         "proposed_changes.contact_person.$[e].isPrimary": true,
-        "proposed_change.status":false,
+        "proposed_change.status": false,
         approver: approvalData(user)
       }
     }, {
-      arrayFilters: [{ "e._id": contactId },{ "ele._id": {$ne:contactId} }]
+      arrayFilters: [{ "e._id": contactId }, { "ele._id": { $ne: contactId } }]
     })
 
     adminApprovalFunction({
-      module:this.#collectionName,
-      user:user,
-      documentId:branchId
+      module: this.#collectionName,
+      user: user,
+      documentId: branchId
     })
 
 
