@@ -6,7 +6,7 @@ import createdBy from "../../utils/createdBy.schema";
 
 const UserSchema = SchemaFunction(
   new mongoose.Schema({
-    employee_id: { type: Number, min: 1,indexedDB: true, trim: true },
+    employee_id: { type: String, min: 1,indexedDB: true, trim: true },
     first_name: { type: String, min: 2, max: 25, required: true, trim: true },
     last_name: { type: String, min: 2, max: 25, required: true, trim: true },
     primary_email_id: {

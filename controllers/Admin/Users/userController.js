@@ -6,6 +6,7 @@ import ExcelJS from "exceljs";
 import { dynamicSearch } from "../../../Utils/dynamicSearch.js";
 import { approvalData } from "../../HelperFunction/approvalFunction.js";
 import { createdByFunction } from "../../HelperFunction/createdByfunction.js";
+import ApiError from "../../../Utils/ApiError.js";
 
 export const AddUser = catchAsync(async (req, res) => {
   const user = req.user;
@@ -168,6 +169,9 @@ export const FetchUsers = catchAsync(async (req, res) => {
     .skip(skip)
     .limit(limit)
     .populate("current_data.role_id");
+    if(!users){
+      throw new Error(new ApiError("Error during fetching", 400));
+    }
 
   //total pages
   const totalDocuments = await userModel.countDocuments({
@@ -176,11 +180,13 @@ export const FetchUsers = catchAsync(async (req, res) => {
     "current_data.status": true,
   });
   const totalPages = Math.ceil(totalDocuments / limit);
+  let usersdata = users;
+  usersdata["imagePath"] = `${process.env.IMAGE_PATH}/admin/users/`;
 
   return res.json({
     statusCode: 200,
     status: "Success",
-    data: users,
+    data: usersdata,
     message: "Fetched successfully",
     totalPages: totalPages,
   });
