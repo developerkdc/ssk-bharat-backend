@@ -45,6 +45,6 @@ sskCompanyRouter.patch(
 sskCompanyRouter.get("/dropdown/list",authMiddleware,sskCompany.GetCompanyList)
 sskCompanyRouter.get("/branch/dropdown/list",authMiddleware,branch.GetBranchList)
 
-sskCompanyRouter.patch('/contact/setprimary/:companyId/:branchId',authMiddleware,branch.setPrimary)
+sskCompanyRouter.patch('/contact/setprimary/:companyId/:branchId',authMiddleware,branch.setPrimary);
 
 export default sskCompanyRouter;
