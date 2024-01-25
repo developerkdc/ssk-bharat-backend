@@ -1,6 +1,7 @@
 import express from "express";
 import { MulterFunction } from "../../../../Utils/MulterFunction";
 import {
+  AddProductImage,
   createProduct,
   deleteProductImage,
   getProductList,
@@ -48,5 +49,13 @@ router.delete(
   rolesPermissions("product", "edit"),
   deleteProductImage
 );
+router.post(
+  "/addProductImage/:id",
+  authMiddleware,
+  rolesPermissions("product", "view"),
+  MulterFunction("./uploads/admin/products").array("product_images"),
+  AddProductImage
+);
+
 
 export default router;

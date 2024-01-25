@@ -259,7 +259,7 @@ export const updateProduct = catchAsync(async (req, res, next) => {
   });
 });
 
-export const updateProductImage = catchAsync(async (req, res, next) => {
+export const  updateProductImage = catchAsync(async (req, res, next) => {
   const { id, imageName } = req.params;
   const user = req.user;
 
@@ -306,7 +306,7 @@ export const updateProductImage = catchAsync(async (req, res, next) => {
 export const AddProductImage = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const user = req.user;
-
+  console.log(req.files)
   const updatedProductImage = await productModel.updateOne(
     { _id: id },
     {
