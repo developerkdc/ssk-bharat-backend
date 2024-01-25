@@ -57,6 +57,10 @@ const userAndApprovals = new mongoose.Schema({
             isApprove: {
                 type: Boolean,
                 default: false
+            },
+            isRejected:{
+                type:Boolean,
+                default:false
             }
         },
         default: null,
@@ -88,6 +92,10 @@ const userAndApprovals = new mongoose.Schema({
             isApprove: {
                 type: Boolean,
                 default: false
+            },
+            isRejected:{
+                type:Boolean,
+                default:false
             }
         },
         default: null,

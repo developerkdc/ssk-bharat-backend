@@ -26,6 +26,7 @@ class Branches {
         branch_name: {
           type: String,
           trim: true,
+          lowercase: true,
           required: [true, "branch name is required"],
         },
         branch_onboarding_date: {
@@ -42,7 +43,10 @@ class Branches {
         },
         kyc: {
           type: {
-            kyc_status: Boolean,
+            kyc_status: {
+              type: Boolean,
+              default: false
+            },
             pan: {
               type: {
                 pan_no: {
@@ -74,6 +78,7 @@ class Branches {
                 bank_name: {
                   type: String,
                   trim: true,
+                  lowercase: true,
                   required: [true, "bank name is required"],
                 },
                 account_no: {
@@ -109,46 +114,55 @@ class Branches {
           address: {
             type: String,
             trim: true,
+            lowercase: true,
             required: [true, "address is required"],
           },
           location: {
             type: String,
             trim: true,
+            lowercase: true,
             required: [true, "location is required"],
           },
           area: {
             type: String,
             trim: true,
+            lowercase: true,
             required: [true, "area is required"],
           },
           district: {
             type: String,
             trim: true,
+            lowercase: true,
             required: [true, "district is required"],
           },
           taluka: {
             type: String,
             trim: true,
+            lowercase: true,
             required: [true, "taluka is required"],
           },
           state: {
             type: String,
             trim: true,
+            lowercase: true,
             required: [true, "state is required"],
           },
           city: {
             type: String,
             trim: true,
+            lowercase: true,
             required: [true, "city is required"],
           },
           country: {
             type: String,
             trim: true,
+            lowercase: true,
             required: [true, "country is required"],
           },
           pincode: {
             type: String,
             trim: true,
+            lowercase: true,
             required: [true, "pincode is required"],
           },
         },
@@ -157,16 +171,23 @@ class Branches {
             first_name: {
               type: String,
               trim: true,
+              lowercase: true,
               required: [true, "first name is required"],
             },
             last_name: {
               type: String,
               trim: true,
+              lowercase: true,
               required: [true, "last name is required"],
+            },
+            isActive: {
+              type: Boolean,
+              default: true
             },
             role: {
               type: String,
               trim: true,
+              lowercase: true,
             },
             primary_email: {
               type: String,
@@ -182,16 +203,11 @@ class Branches {
             secondary_email: {
               type: String,
               trim: true,
-              validate: {
-                validator: function (value) {
-                  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-                },
-                message: "secondary invalid email Id",
-              },
             },
             primary_mobile: {
               type: String,
               trim: true,
+              lowercase: true,
               required: [true, "primary_mobile Number is required"],
             },
             secondary_mobile: {
@@ -225,11 +241,12 @@ class Branches {
     const search = req.query.search || "";
     const { filters = {} } = req.body;
     const {
-      page = 1,
-      limit = 10,
-      sortBy = "createdAt",
+      sortBy = "created_at",
       sort = "desc",
     } = req.query;
+
+    const page = req.query.page || 1;
+    const limit = req.query.limit || 10
 
     let searchQuery = {};
     if (search != "" && req?.body?.searchFields) {
@@ -247,6 +264,7 @@ class Branches {
       searchQuery = searchdata;
     }
 
+
     //total pages
     const totalDocuments = await this.#modal.countDocuments({
       ...filters,
@@ -260,10 +278,13 @@ class Branches {
           $match: { ...filters, ...searchQuery, "current_data.status": true },
         },
         {
-          $limit: limit,
+          $sort: { [sortBy]: sort === "asc" ? 1 : -1 }
         },
         {
-          $skip: page * limit - limit,
+          $skip: (page - 1) * limit,
+        },
+        {
+          $limit: limit,
         },
         {
           $lookup: {
@@ -280,7 +301,6 @@ class Branches {
           },
         },
       ])
-      .sort({ [sortBy]: sort });
     return res.status(200).json({
       statusCode: 200,
       status: "Success",
@@ -323,6 +343,7 @@ class Branches {
   addBranch = catchAsync(async (req, res, next) => {
     const { approver, ...data } = req.body;
     const user = req.user;
+    console.log(data)
     const branch = await this.#modal.create({ current_data: data, approver: approvalData(user), });
 
     adminApprovalFunction({
@@ -345,16 +366,19 @@ class Branches {
     if (!branchId) {
       return next(new ApiError("branch id is required"));
     }
-    const updateBranch = await this.#modal.findByIdAndUpdate(
+    const updateBranch = await this.#modal.findOneAndUpdate(
       {
         _id: branchId,
         [`proposed_changes.${this.#modalName}Id`]: req.params.companyId,
       },
       {
         $set: {
+          "proposed_changes.supplierId": data?.supplierId,
           "proposed_changes.branch_name": data?.branch_name,
+          "proposed_changes.branch_onboarding_date": data?.branch_onboarding_date,
           "proposed_changes.kyc.pan.pan_no": data?.kyc?.pan?.pan_no,
           "proposed_changes.kyc.gst.gst_no": data?.kyc?.gst?.gst_no,
+          "proposed_changes.kyc.kyc_status": data?.kyc?.kyc_status,
           "proposed_changes.kyc.bank_details.bank_name":
             data?.kyc?.bank_details?.bank_name,
           "proposed_changes.kyc.bank_details.account_no":
@@ -386,14 +410,14 @@ class Branches {
       { new: true }
     );
 
+    if (!updateBranch)
+      return next(new ApiError("please check the branchId or CompanyId", 400));
+
     adminApprovalFunction({
       module: this.#collectionName,
       user: req.user,
       documentId: branchId
     })
-
-    if (!updateBranch)
-      return next(new ApiError("please check the branchId or CompanyId", 400));
 
     return res.status(200).json({
       statusCode: 200,
@@ -445,7 +469,7 @@ class Branches {
         data: {
           KYC_Images: updatedImages,
         },
-        message: "images has been uploaded",
+        message: "File has been uploaded",
       });
     });
   };
@@ -467,7 +491,7 @@ class Branches {
       },
       { runValidators: true, new: true }
     );
-    if(!addConatct){
+    if (!addConatct) {
       return next(new ApiError("companyId or BranchId is not exits", 400))
     }
 
@@ -496,12 +520,12 @@ class Branches {
       secondary_email,
       primary_mobile,
       secondary_mobile,
-      isPrimary,
+      isActive
     } = req.body;
     if (!req.query.contactId) {
       return next(new ApiError("contactId is required", 400));
     }
-    const updatedContact = await this.#modal.findByIdAndUpdate(
+    const updatedContact = await this.#modal.findOneAndUpdate(
       {
         _id: branchId,
         [`proposed_changes.${this.#modalName}Id`]: companyId,
@@ -518,7 +542,7 @@ class Branches {
           "proposed_changes.contact_person.$[e].primary_mobile": primary_mobile,
           "proposed_changes.contact_person.$[e].secondary_mobile":
             secondary_mobile,
-          "proposed_changes.contact_person.$[e].isPrimary": isPrimary,
+          "proposed_changes.contact_person.$[e].isActive": isActive,
           "proposed_changes.status": false,
           approver: approvalData(req.user)
         },
@@ -545,5 +569,42 @@ class Branches {
       message: "Branch contact updated",
     });
   });
+  setPrimary = catchAsync(async (req, res, next) => {
+    const { companyId, branchId } = req.params;
+    const { contactId } = req.query
+    const user = req.user;
+    const contactPrimary = await this.#modal.updateOne({
+      _id: branchId,
+      [`current_data.${this.#modalName}Id`]: companyId,
+      "current_data.contact_person._id": contactId
+    }, {
+      $set: {
+        "proposed_changes.contact_person.$[ele].isPrimary": false,
+        "proposed_changes.contact_person.$[e].isPrimary": true,
+        "proposed_change.status": false,
+        approver: approvalData(user)
+      }
+    }, {
+      arrayFilters: [{ "e._id": contactId }, { "ele._id": { $ne: contactId } }]
+    })
+
+    adminApprovalFunction({
+      module: this.#collectionName,
+      user: user,
+      documentId: branchId
+    })
+
+
+
+    return res.status(200).json({
+      statusCode: 200,
+      status: "success",
+      data: {
+        contactPrimary
+      },
+      message: `set to primary`
+    })
+
+  })
 }
 export default Branches;
