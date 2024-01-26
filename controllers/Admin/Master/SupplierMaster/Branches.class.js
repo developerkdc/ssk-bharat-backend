@@ -569,7 +569,7 @@ class Branches {
       message: "Branch contact updated",
     });
   });
-  setPrimary = catchAsync(async (req, res, next) => {
+  setPrimaryContact = catchAsync(async (req, res, next) => {
     const { companyId, branchId } = req.params;
     const { contactId } = req.query
     const user = req.user;

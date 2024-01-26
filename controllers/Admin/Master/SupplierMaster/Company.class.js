@@ -10,13 +10,15 @@ import LogSchemaFunction from "../../../../database/utils/Logs.schema";
 import createdBy from "../../../../database/utils/createdBy.schema";
 import { createdByFunction } from "../../../HelperFunction/createdByfunction";
 import adminApprovalFunction from "../../../HelperFunction/AdminApprovalFunction";
+import ApiError from "../../../../Utils/ApiError";
 
 class CompanyMaster {
   #Schema;
   #collectionName;
+  #branchCollectionName;
   #modalName;
   #modal;
-  constructor(modalName, collectionName) {
+  constructor(modalName, collectionName,branchCollectionName) {
     this.#Schema = SchemaFunction(new mongoose.Schema({
       company_name: {
         type: String,
@@ -56,6 +58,10 @@ class CompanyMaster {
         trim: true,
         default: null,
       },
+      primaryBranch:{
+        type:mongoose.Schema.Types.ObjectId,
+        default:null
+      },
       inventorySchema: {
         type: String,
         default: function () {
@@ -93,9 +99,10 @@ class CompanyMaster {
       }
     };
     this.#collectionName = collectionName;
+    this.#branchCollectionName = branchCollectionName;
     this.#modalName = modalName;
     this.#modal = mongoose.model(this.#collectionName, this.#Schema);
-    LogSchemaFunction(this.#collectionName, this.#modal)
+    LogSchemaFunction(this.#collectionName, this.#modal);
   }
   GetCompany = catchAsync(async (req, res, next) => {
     const { string, boolean, numbers } = req?.body?.searchFields || {};
@@ -143,6 +150,7 @@ class CompanyMaster {
       statusCode: 200,
       status: "Success",
       totalPages: totalPages,
+      length:modalName.length,
       data: {
         [this.#modalName]: modalName,
       },
@@ -242,5 +250,47 @@ class CompanyMaster {
       message: `${this.#modalName} has Updated`,
     });
   });
+  setPrimaryBranch = catchAsync(async (req,res,next)=>{
+    const {companyId,branchId} = req.params;
+    if(!mongoose.Types.ObjectId.isValid(branchId)) return next(new ApiError(`${branchId} this is not valid Id`,400));
+
+    const user = req.user;
+    if(!user) return next(new ApiError("please Login and try again",404))
+
+    const branchData = await mongoose.model(this.#branchCollectionName).findOne({
+      _id:branchId,
+      [`current_data.${this.#modalName}Id`]:companyId,
+      "proposed_changes.isActive":true,
+      "proposed_changes.status":true,
+    });
+    if(!branchData) return next(new ApiError(`Branch is not exits`,404))
+    
+    const setPrimary = await this.#modal.updateOne({_id:companyId},{
+      $set:{
+        "proposed_changes.primaryBranch":branchId,
+        approver:approvalData(user),
+        updated_at: Date.now(),
+      }
+    })
+
+    if(!setPrimary.acknowledged && setPrimary.modifiedCount === 0){
+      return next(new ApiError("Unable to set primary branch",400))
+    }
+
+    adminApprovalFunction({
+      user:user,
+      documentId:companyId,
+      module:this.#collectionName
+    })
+
+    return res.status(201).json({
+      statusCode:201,
+      status:"success",
+      data:{
+        [this.#modalName]:setPrimary
+      },
+      message:"Branch set as primary"
+    })
+  }) 
 }
 export default CompanyMaster;
