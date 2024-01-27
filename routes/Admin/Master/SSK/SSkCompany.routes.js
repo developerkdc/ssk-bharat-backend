@@ -5,13 +5,15 @@ import Branches from "../../../../controllers/Admin/Master/SupplierMaster/Branch
 import authMiddleware from "../../../../middlewares/adminAuth";
 const sskCompanyRouter = express.Router();
 
-const sskCompany = new CompanyMaster("sskCompany", "sskCompanies","sskCompanybranches");
+const sskCompany = new CompanyMaster("sskCompany", "sskCompanies", "sskCompanybranches");
 const branch = new Branches("sskCompany", "sskCompanybranches", "sskcompanies");
 
 sskCompanyRouter
   .route("/")
-  .get(authMiddleware, sskCompany.GetCompany)
   .post(authMiddleware, sskCompany.AddCompany);
+
+sskCompanyRouter.route("/getAllCompany")
+  .post(authMiddleware, sskCompany.GetCompany)
 
 sskCompanyRouter
   .route("/:id")

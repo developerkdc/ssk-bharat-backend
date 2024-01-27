@@ -25,6 +25,7 @@ class CompanyMaster {
         minlength: [2, "Length should be greater than two"],
         maxlength: [25, "Length should be less than or equal to 25"],
         trim: true,
+        lowercase:true,
         required: [true, "Company name is required"],
       },
       company_type: {
@@ -35,6 +36,7 @@ class CompanyMaster {
           message: "invalid {VALUE}"
         },
         trim: true,
+        lowercase:true,
         default:collectionName.toLowerCase()
       },
       isActive: {
@@ -64,6 +66,7 @@ class CompanyMaster {
       },
       inventorySchema: {
         type: String,
+        lowercase:true,
         default: function () {
           if (this.company_type === "retailers" || this.company_type === "offlinestores") {
             return `${this.company_type}_${this.company_name}_${this.parent()._id.toString().slice(-5)}`
@@ -74,6 +77,7 @@ class CompanyMaster {
       },
       billingSchema: {
         type: String,
+        lowercase:true,
         default: function () {
           if (this.company_type === "retailers" || this.company_type === "offlinestores") {
             return `${this.company_type}_billing_${this.company_name}_${this.parent()._id.toString().slice(-5)}`

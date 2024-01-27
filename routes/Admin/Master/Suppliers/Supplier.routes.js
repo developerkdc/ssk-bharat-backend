@@ -9,8 +9,10 @@ const supplier = new CompanyMaster("supplier", "suppliers","supplierbranches");
 const branch = new Branches("supplier", "supplierbranches", "suppliers");
 
 SupplierRouter.route("/")
-  .get(authMiddleware,supplier.GetCompany)
   .post(authMiddleware,supplier.AddCompany);
+
+SupplierRouter.route("/getAllCompany")
+  .post(authMiddleware,supplier.GetCompany)
 
 SupplierRouter.route("/:id")
   .get(authMiddleware,supplier.GetCompanyById)

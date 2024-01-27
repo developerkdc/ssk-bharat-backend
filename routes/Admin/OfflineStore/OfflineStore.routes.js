@@ -16,8 +16,8 @@ offlineStoreRouter.post("/create/PO", authMiddleware, createOfflineStorePO);
 offlineStoreRouter.get("/latestStorePoNo", authMiddleware, latestStorePONo);
 offlineStoreRouter.get("/fetch", authMiddleware, getStorePo);
 
-const offlineStore = new CompanyMaster("offlinestore", "offlinestores","offlinestorebranches");
-const branch = new Branches("offlinestore","offlinestorebranches","offlinestores");
+const offlineStore = new CompanyMaster("offlinestore", "offlinestores", "offlinestorebranches");
+const branch = new Branches("offlinestore", "offlinestorebranches", "offlinestores");
 
 offlineStoreRouter
   .route("/")
@@ -26,8 +26,10 @@ offlineStoreRouter
 
 offlineStoreRouter
   .route("/:id")
-  .get(authMiddleware, offlineStore.GetCompanyById)
   .patch(authMiddleware, offlineStore.UpdateCompany);
+
+offlineStoreRouter.route("/getAllCompany")
+  .post(authMiddleware, offlineStore.GetCompany)
 
 offlineStoreRouter.route('/primaryBranch/:companyId/:branchId')
   .patch(authMiddleware, offlineStore.setPrimaryBranch)
