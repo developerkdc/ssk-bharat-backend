@@ -24,6 +24,7 @@ export const LoginUser = catchAsync(async (req, res, next) => {
   return res.status(200).cookie("token", token).cookie("userId", user.id).json({
     statusCode: 200,
     token: token,
+    user:user,
     message: "Login success",
   });
 });
