@@ -36,7 +36,12 @@ offlineStoreRouter.route('/primaryBranch/:companyId/:branchId')
 
 //branch
 
-offlineStoreRouter.route("/branch").post(authMiddleware, branch.addBranch);
+offlineStoreRouter.route("/branch").post(authMiddleware, 
+  MulterFunction("./uploads/admin/offlineStoreDocument").fields([
+    { name: "pan_image", maxCount: 1 },
+    { name: "gst_image", maxCount: 1 },
+    { name: "passbook_image", maxCount: 1 },
+  ]),branch.addBranch);
 
 offlineStoreRouter
   .route("/branch/:companyId")

@@ -35,7 +35,12 @@ retailerRouter.route('/primaryBranch/:companyId/:branchId')
   .patch(authMiddleware, retailer.setPrimaryBranch)
 
 //branch
-retailerRouter.route("/branch").post(authMiddleware, branch.addBranch);
+retailerRouter.route("/branch").post(authMiddleware,
+  MulterFunction("./uploads/admin/retailerDocument").fields([
+    { name: "pan_image", maxCount: 1 },
+    { name: "gst_image", maxCount: 1 },
+    { name: "passbook_image", maxCount: 1 },
+  ]), branch.addBranch);
 
 retailerRouter
   .route("/branch/:companyId")

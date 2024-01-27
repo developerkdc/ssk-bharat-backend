@@ -22,9 +22,13 @@ sskCompanyRouter
 
 sskCompanyRouter.route('/primaryBranch/:companyId/:branchId')
   .patch(authMiddleware, sskCompany.setPrimaryBranch)
-
 //branch
-sskCompanyRouter.route("/branch").post(authMiddleware, branch.addBranch);
+sskCompanyRouter.route("/branch").post(authMiddleware,
+  MulterFunction("./uploads/admin/sskCompanyDocument").fields([
+    { name: "pan_image", maxCount: 1 },
+    { name: "gst_image", maxCount: 1 },
+    { name: "passbook_image", maxCount: 1 },
+  ]), branch.addBranch);
 
 sskCompanyRouter
   .route("/branch/:companyId")
@@ -40,12 +44,12 @@ sskCompanyRouter.post("/BranchSskcompany/all", authMiddleware, branch.getAllBran
 
 sskCompanyRouter.patch(
   "/branch/upload/:companyId/:branchId", authMiddleware,
-  MulterFunction("./uploads/admin/SskCompanyDocument").fields([
+  MulterFunction("./uploads/admin/sskCompanyDocument").fields([
     { name: "pan_image", maxCount: 1 },
     { name: "gst_image", maxCount: 1 },
     { name: "passbook_image", maxCount: 1 },
   ]),
-  branch.uploadDocument("./uploads/admin/SskCompanyDocument")
+  branch.uploadDocument("./uploads/admin/sskCompanyDocument")
 );
 
 sskCompanyRouter.get("/dropdown/list", authMiddleware, sskCompany.GetCompanyList)
