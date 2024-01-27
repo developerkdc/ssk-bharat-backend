@@ -19,6 +19,7 @@ router.post(
   rolesPermissions("user", "add"),
   AddUser
 );
+
 router.patch(
   "/edituser/:userId",
   authMiddleware,
@@ -31,12 +32,14 @@ router.patch(
   rolesPermissions("user", "edit"),
   ChangePassword
 );
-router.get(
-  "/userslist",
-  authMiddleware,
-  rolesPermissions("user", "view"),
-  FetchUsers
-);
+router
+  .get(
+    "/userslist",
+    authMiddleware,
+    rolesPermissions("user", "view"),
+    FetchUsers
+  )
+  
 router.get("/userslogsfile", UserLogsFile);
 router.get(
   "/userslogs",
@@ -44,11 +47,6 @@ router.get(
   rolesPermissions("user", "view"),
   UserLogs
 );
-router.get(
-  "/list",
-  authMiddleware,
-  getUserList
-);
-
+router.get("/list", authMiddleware, getUserList);
 
 export default router;
