@@ -341,10 +341,37 @@ class Branches {
     });
   })
   addBranch = catchAsync(async (req, res, next) => {
-    const { approver, ...data } = req.body;
     const user = req.user;
-    console.log(data)
-    const branch = await this.#modal.create({ current_data: data, approver: approvalData(user), });
+    const { approver, kyc: { pan, gst, bank_details }, ...data } = JSON.parse(req.body?.branchData);
+    const images = {};
+    if (req.files) {
+      for (let i in req.files) {
+        images[i] = req.files[i][0].filename;
+      }
+    }
+    const branch = await this.#modal.create({
+      current_data: {
+        ...data,
+        kyc: {
+          pan: {
+            pan_no: pan?.pan_no,
+            pan_image:images["pan_image"]
+          },
+          gst: {
+            gst_no: gst?.gst_no,
+            gst_image:images["gst_image"]
+          },
+          bank_details: {
+            bank_name: bank_details?.bank_name,
+            account_no: bank_details?.account_no,
+            confirm_account_no: bank_details?.confirm_account_no,
+            ifsc_code: bank_details?.ifsc_code,
+            passbook_image:images["passbook_image"]
+          }
+        }
+      },
+      approver: approvalData(user),
+    });
 
     adminApprovalFunction({
       module: this.#collectionName,
@@ -433,7 +460,6 @@ class Branches {
       const { branchId, companyId } = req.params;
       // const branch = await this.#modal.findOne({ _id: branchId, [`${this.#modalName}Id`]: companyId });
       const images = {};
-      // console.log(req.files)
       if (req.files) {
         for (let i in req.files) {
           images[i] = req.files[i][0].filename;

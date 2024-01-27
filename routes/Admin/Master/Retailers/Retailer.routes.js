@@ -12,7 +12,7 @@ import {
 
 const retailerRouter = express.Router();
 
-const retailer = new CompanyMaster("retailer", "retailers","retailerbranches");
+const retailer = new CompanyMaster("retailer", "retailers", "retailerbranches");
 const branch = new Branches("retailer", "retailerbranches", "retailers");
 
 retailerRouter.post("/create/PO", authMiddleware, createRetailerPO);
@@ -20,7 +20,11 @@ retailerRouter.post("/create/PO", authMiddleware, createRetailerPO);
 retailerRouter.get("/latestRetailerPoNo", authMiddleware, latestRetailerPONo);
 retailerRouter.get("/fetch", authMiddleware, getRetailerPo);
 
-retailerRouter.route("/").get(retailer.GetCompany).post(authMiddleware, retailer.AddCompany);
+retailerRouter.route("/")
+  .post(authMiddleware, retailer.AddCompany);
+
+retailerRouter.route("/getAllCompany")
+  .post(authMiddleware, retailer.GetCompany)
 
 retailerRouter
   .route("/:id")
@@ -31,7 +35,12 @@ retailerRouter.route('/primaryBranch/:companyId/:branchId')
   .patch(authMiddleware, retailer.setPrimaryBranch)
 
 //branch
-retailerRouter.route("/branch").post(authMiddleware, branch.addBranch);
+retailerRouter.route("/branch").post(authMiddleware,
+  MulterFunction("./uploads/admin/retailerDocument").fields([
+    { name: "pan_image", maxCount: 1 },
+    { name: "gst_image", maxCount: 1 },
+    { name: "passbook_image", maxCount: 1 },
+  ]), branch.addBranch);
 
 retailerRouter
   .route("/branch/:companyId")
