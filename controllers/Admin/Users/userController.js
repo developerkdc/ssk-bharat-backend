@@ -47,9 +47,11 @@ export const AddUser = catchAsync(async (req, res) => {
 });
 
 export const EditUser = catchAsync(async (req, res) => {
+  console.log(req.params.userId)
   const userId = req.params.userId;
   const loginUser = req.user;
   const updateData = req.body;
+  console.log(updateData);
   updateData.updated_at = new Date().toLocaleString();
   if (!mongoose.Types.ObjectId.isValid(userId)) {
     return res.status(400).json({ message: "Invalid user ID" });
@@ -85,7 +87,7 @@ export const EditUser = catchAsync(async (req, res) => {
     });
   }
 
-  res.json({
+  return res.json({
     statusCode: 200,
     status: "Success",
     data: user,
