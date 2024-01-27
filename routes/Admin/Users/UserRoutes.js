@@ -39,7 +39,7 @@ router.patch(
   rolesPermissions("user", "edit"),
   ChangePassword
 );
-router.get(
+router.post(
   "/userslist",
   authMiddleware,
   rolesPermissions("user", "view"),
