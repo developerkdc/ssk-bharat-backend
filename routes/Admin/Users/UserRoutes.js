@@ -27,6 +27,7 @@ router.post(
   rolesPermissions("user", "add"),
   AddUser
 );
+
 router.patch(
   "/edituser/:userId",
   authMiddleware,

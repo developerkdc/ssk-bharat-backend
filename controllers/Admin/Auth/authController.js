@@ -3,17 +3,23 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import userModel from "../../../database/schema/Users/user.schema.js";
 import sendEmail from "../../../Utils/SendEmail.js";
+import mongoose from "mongoose";
 
 const saltRounds = 10;
 
 export const LoginUser = catchAsync(async (req, res, next) => {
   const { username, password } = req.body;
   const secretKey = process.env.JWT_SECRET;
-  const user = await userModel.findOne({ "current_data.primary_email_id": username });
+  const user = await userModel.findOne({
+    "current_data.primary_email_id": username,
+  });
   if (!user) {
     return res.status(401).json({ message: "Invalid credentials" });
   }
-  const passwordMatch = await bcrypt.compare(password, user.current_data.password);
+  const passwordMatch = await bcrypt.compare(
+    password,
+    user.current_data.password
+  );
 
   if (!passwordMatch) {
     return res.status(401).json({ message: "Invalid Password" });
@@ -24,7 +30,7 @@ export const LoginUser = catchAsync(async (req, res, next) => {
   return res.status(200).cookie("token", token).cookie("userId", user.id).json({
     statusCode: 200,
     token: token,
-    user:user,
+    user: user,
     message: "Login success",
   });
 });
@@ -156,5 +162,26 @@ export const VerifyOTPAndUpdatePassword = catchAsync(async (req, res) => {
       user: updatedUser,
     },
     message: "Password updated successfully",
+  });
+});
+
+export const getUserById = catchAsync(async (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return res.status(200).json({
+      statusCode: 200,
+      status: "Failed",
+      message: "Invalid ID",
+    });
+  }
+  const user = await userModel
+    .findOne({ _id: req.params.id })
+    .populate({ path: "current_data.role_id" });
+  return res.status(200).json({
+    statusCode: 200,
+    status: "Success",
+    data: {
+      user: user,
+    },
+    message: "User Details",
   });
 });
