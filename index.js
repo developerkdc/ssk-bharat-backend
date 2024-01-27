@@ -66,7 +66,7 @@ app.group("/api/v1/admin", (router) => {
   router.use("/auth", authRouter);
   router.use("/users", usersRouter);
   router.use("/roles", rolesRouter);
-  router.use("/suppliers", SupplierRouter);
+  router.use("/supplier", SupplierRouter);
   router.use("/sskcompany", sskCompanyRouter);
   router.use("/offlineStore", offlineStoreRouter);
   router.use("/retailer", retailerRouter);

@@ -5,7 +5,7 @@ import Branches from "../../../../controllers/Admin/Master/SupplierMaster/Branch
 import authMiddleware from "../../../../middlewares/adminAuth";
 const sskCompanyRouter = express.Router();
 
-const sskCompany = new CompanyMaster("sskCompany", "sskCompanies");
+const sskCompany = new CompanyMaster("sskCompany", "sskCompanies","sskCompanybranches");
 const branch = new Branches("sskCompany", "sskCompanybranches", "sskcompanies");
 
 sskCompanyRouter
@@ -18,6 +18,10 @@ sskCompanyRouter
   .get(authMiddleware, sskCompany.GetCompanyById)
   .patch(authMiddleware, sskCompany.UpdateCompany);
 
+sskCompanyRouter.route('/primaryBranch/:companyId/:branchId')
+  .patch(authMiddleware, sskCompany.setPrimaryBranch)
+
+//branch
 sskCompanyRouter.route("/branch").post(authMiddleware, branch.addBranch);
 
 sskCompanyRouter
@@ -42,9 +46,9 @@ sskCompanyRouter.patch(
   branch.uploadDocument("./uploads/admin/SskCompanyDocument")
 );
 
-sskCompanyRouter.get("/dropdown/list",authMiddleware,sskCompany.GetCompanyList)
-sskCompanyRouter.get("/branch/dropdown/list",authMiddleware,branch.GetBranchList)
+sskCompanyRouter.get("/dropdown/list", authMiddleware, sskCompany.GetCompanyList)
+sskCompanyRouter.get("/branch/dropdown/list", authMiddleware, branch.GetBranchList)
 
-sskCompanyRouter.patch('/contact/setprimary/:companyId/:branchId',authMiddleware,branch.setPrimary);
+sskCompanyRouter.patch('/contact/setprimary/:companyId/:branchId', authMiddleware, branch.setPrimaryContact);
 
 export default sskCompanyRouter;

@@ -5,7 +5,7 @@ import CompanyMaster from "../../../../controllers/Admin/Master/SupplierMaster/C
 import Branches from "../../../../controllers/Admin/Master/SupplierMaster/Branches.class";
 const SupplierRouter = express.Router();
 
-const supplier = new CompanyMaster("supplier", "suppliers");
+const supplier = new CompanyMaster("supplier", "suppliers","supplierbranches");
 const branch = new Branches("supplier", "supplierbranches", "suppliers");
 
 SupplierRouter.route("/")
@@ -15,6 +15,11 @@ SupplierRouter.route("/")
 SupplierRouter.route("/:id")
   .get(authMiddleware,supplier.GetCompanyById)
   .patch(authMiddleware,supplier.UpdateCompany);
+
+SupplierRouter.route('/primaryBranch/:companyId/:branchId')
+  .patch(authMiddleware,supplier.setPrimaryBranch)
+
+  //branch
 
 SupplierRouter.route("/branch").post(authMiddleware,branch.addBranch);
 
@@ -41,7 +46,7 @@ SupplierRouter.patch(
 SupplierRouter.get("/dropdown/list",authMiddleware,supplier.GetCompanyList)
 SupplierRouter.get("/branch/dropdown/list",authMiddleware,branch.GetBranchList)
 
-SupplierRouter.patch('/contact/setprimary/:companyId/:branchId',authMiddleware,branch.setPrimary)
+SupplierRouter.patch('/contact/setprimary/:companyId/:branchId',authMiddleware,branch.setPrimaryContact)
 
 
 export default SupplierRouter;
