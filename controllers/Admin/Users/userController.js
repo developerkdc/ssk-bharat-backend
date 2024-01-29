@@ -13,6 +13,10 @@ export const AddUser = catchAsync(async (req, res) => {
   const userData = req.body;
   const address = JSON.parse(req.body.address);
   const kyc = JSON.parse(req.body.kyc);
+  const approver_one = JSON.parse(req.body.approver_one);
+  const approver_two = JSON.parse(req.body.approver_two);
+  userData.approver_one = approver_one;
+  userData.approver_two = approver_two;
   userData.address = address;
   userData.kyc = kyc;
   userData.profile_pic=req.files.profile_pic[0].path ;
@@ -21,9 +25,10 @@ export const AddUser = catchAsync(async (req, res) => {
   userData.kyc.bank_details.passbook_image=req.files.passbook_image[0].path;
   const saltRounds = 10;
   userData.password = await bcrypt.hash(userData.password, saltRounds);
+  console.log(userData)
   const newUser = new userModel({
     current_data: {
-      ...req.body,
+      ...userData,
       created_by: createdByFunction(user),
     },
     approver: approvalData(user, user?.current_data.role_id.role_name),
@@ -42,9 +47,11 @@ export const AddUser = catchAsync(async (req, res) => {
 });
 
 export const EditUser = catchAsync(async (req, res) => {
+  console.log(req.params.userId)
   const userId = req.params.userId;
   const loginUser = req.user;
   const updateData = req.body;
+  console.log(updateData);
   updateData.updated_at = new Date().toLocaleString();
   if (!mongoose.Types.ObjectId.isValid(userId)) {
     return res.status(400).json({ message: "Invalid user ID" });
@@ -80,7 +87,7 @@ export const EditUser = catchAsync(async (req, res) => {
     });
   }
 
-  res.json({
+  return res.json({
     statusCode: 200,
     status: "Success",
     data: user,

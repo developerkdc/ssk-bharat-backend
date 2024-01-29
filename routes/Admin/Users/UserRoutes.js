@@ -31,6 +31,12 @@ router.post(
 router.patch(
   "/edituser/:userId",
   authMiddleware,
+  MulterFunction("./uploads/admin/userDocument").fields([
+    { name: "profile_pic", maxCount: 1 },
+    { name: "pan_image", maxCount: 1 },
+    { name: "aadhar_image", maxCount: 1 },
+    { name: "passbook_image", maxCount: 1 },
+  ]),
   rolesPermissions("user", "edit"),
   EditUser
 );
@@ -40,14 +46,12 @@ router.patch(
   rolesPermissions("user", "edit"),
   ChangePassword
 );
-router
-  .get(
-    "/userslist",
-    authMiddleware,
-    rolesPermissions("user", "view"),
-    FetchUsers
-  )
-  
+router.post(
+  "/userslist",
+  authMiddleware,
+  rolesPermissions("user", "view"),
+  FetchUsers
+);
 router.get("/userslogsfile", UserLogsFile);
 router.get(
   "/userslogs",

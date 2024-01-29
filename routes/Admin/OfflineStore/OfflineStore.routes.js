@@ -16,39 +16,47 @@ offlineStoreRouter.post("/create/PO", authMiddleware, createOfflineStorePO);
 offlineStoreRouter.get("/latestStorePoNo", authMiddleware, latestStorePONo);
 offlineStoreRouter.get("/fetch", authMiddleware, getStorePo);
 
-const offlineStore = new CompanyMaster("offlinestore", "offlinestores");
-const branch = new Branches(
-  "offlinestore",
-  "offlinestorebranches",
-  "offlinestores"
-);
+const offlineStore = new CompanyMaster("offlinestore", "offlinestores", "offlinestorebranches");
+const branch = new Branches("offlinestore", "offlinestorebranches", "offlinestores");
 
 offlineStoreRouter
   .route("/")
-  .get(authMiddleware,offlineStore.GetCompany)
-  .post(authMiddleware,offlineStore.AddCompany);
+  .get(authMiddleware, offlineStore.GetCompany)
+  .post(authMiddleware, offlineStore.AddCompany);
 
 offlineStoreRouter
   .route("/:id")
-  .get(authMiddleware,offlineStore.GetCompanyById)
-  .patch(authMiddleware,offlineStore.UpdateCompany);
+  .patch(authMiddleware, offlineStore.UpdateCompany);
 
-offlineStoreRouter.route("/branch").post(authMiddleware,branch.addBranch);
+offlineStoreRouter.route("/getAllCompany")
+  .post(authMiddleware, offlineStore.GetCompany)
+
+offlineStoreRouter.route('/primaryBranch/:companyId/:branchId')
+  .patch(authMiddleware, offlineStore.setPrimaryBranch)
+
+//branch
+
+offlineStoreRouter.route("/branch").post(authMiddleware, 
+  MulterFunction("./uploads/admin/offlineStoreDocument").fields([
+    { name: "pan_image", maxCount: 1 },
+    { name: "gst_image", maxCount: 1 },
+    { name: "passbook_image", maxCount: 1 },
+  ]),branch.addBranch);
 
 offlineStoreRouter
   .route("/branch/:companyId")
-  .get(authMiddleware,branch.getBranchOfCompany)
-  .patch(authMiddleware,branch.updateBranch);
+  .get(authMiddleware, branch.getBranchOfCompany)
+  .patch(authMiddleware, branch.updateBranch);
 
 offlineStoreRouter
   .route("/branch/contact/:companyId/:branchId")
-  .post(authMiddleware,branch.AddContact)
-  .patch(authMiddleware,branch.UpdateContact);
+  .post(authMiddleware, branch.AddContact)
+  .patch(authMiddleware, branch.UpdateContact);
 
-offlineStoreRouter.post("/BranchOfflineStore/all", authMiddleware,branch.getAllBranchCompany);
+offlineStoreRouter.post("/BranchOfflineStore/all", authMiddleware, branch.getAllBranchCompany);
 
 offlineStoreRouter.patch(
-  "/branch/upload/:companyId/:branchId",authMiddleware,
+  "/branch/upload/:companyId/:branchId", authMiddleware,
   MulterFunction("./uploads/admin/offlineStoreDocument").fields([
     { name: "pan_image", maxCount: 1 },
     { name: "gst_image", maxCount: 1 },
@@ -57,9 +65,9 @@ offlineStoreRouter.patch(
   branch.uploadDocument("./uploads/admin/offlineStoreDocument")
 );
 
-offlineStoreRouter.get("/dropdown/list",authMiddleware,offlineStore.GetCompanyList)
-offlineStoreRouter.get("/branch/dropdown/list",authMiddleware,branch.GetBranchList)
+offlineStoreRouter.get("/dropdown/list", authMiddleware, offlineStore.GetCompanyList)
+offlineStoreRouter.get("/branch/dropdown/list", authMiddleware, branch.GetBranchList)
 
-offlineStoreRouter.patch('/contact/setprimary/:companyId/:branchId',authMiddleware,branch.setPrimary)
+offlineStoreRouter.patch('/contact/setprimary/:companyId/:branchId', authMiddleware, branch.setPrimaryContact)
 
 export default offlineStoreRouter;

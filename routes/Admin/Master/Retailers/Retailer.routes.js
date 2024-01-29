@@ -12,7 +12,7 @@ import {
 
 const retailerRouter = express.Router();
 
-const retailer = new CompanyMaster("retailer", "retailers");
+const retailer = new CompanyMaster("retailer", "retailers", "retailerbranches");
 const branch = new Branches("retailer", "retailerbranches", "retailers");
 
 retailerRouter.post("/create/PO", authMiddleware, createRetailerPO);
@@ -20,29 +20,42 @@ retailerRouter.post("/create/PO", authMiddleware, createRetailerPO);
 retailerRouter.get("/latestRetailerPoNo", authMiddleware, latestRetailerPONo);
 retailerRouter.get("/fetch", authMiddleware, getRetailerPo);
 
-retailerRouter.route("/").get(retailer.GetCompany).post(authMiddleware,retailer.AddCompany);
+retailerRouter.route("/")
+  .post(authMiddleware, retailer.AddCompany);
+
+retailerRouter.route("/getAllCompany")
+  .post(authMiddleware, retailer.GetCompany)
 
 retailerRouter
   .route("/:id")
-  .get(authMiddleware,retailer.GetCompanyById)
-  .patch(authMiddleware,retailer.UpdateCompany);
+  .get(authMiddleware, retailer.GetCompanyById)
+  .patch(authMiddleware, retailer.UpdateCompany);
 
-retailerRouter.route("/branch").post(authMiddleware,branch.addBranch);
+retailerRouter.route('/primaryBranch/:companyId/:branchId')
+  .patch(authMiddleware, retailer.setPrimaryBranch)
+
+//branch
+retailerRouter.route("/branch").post(authMiddleware,
+  MulterFunction("./uploads/admin/retailerDocument").fields([
+    { name: "pan_image", maxCount: 1 },
+    { name: "gst_image", maxCount: 1 },
+    { name: "passbook_image", maxCount: 1 },
+  ]), branch.addBranch);
 
 retailerRouter
   .route("/branch/:companyId")
-  .get(authMiddleware,branch.getBranchOfCompany)
-  .patch(authMiddleware,branch.updateBranch);
+  .get(authMiddleware, branch.getBranchOfCompany)
+  .patch(authMiddleware, branch.updateBranch);
 
 retailerRouter
   .route("/branch/contact/:companyId/:branchId")
-  .post(authMiddleware,branch.AddContact)
-  .patch(authMiddleware,branch.UpdateContact);
+  .post(authMiddleware, branch.AddContact)
+  .patch(authMiddleware, branch.UpdateContact);
 
-retailerRouter.post("/BranchRetailer/all", authMiddleware,branch.getAllBranchCompany);
+retailerRouter.post("/BranchRetailer/all", authMiddleware, branch.getAllBranchCompany);
 
 retailerRouter.patch(
-  "/branch/upload/:companyId/:branchId",authMiddleware,
+  "/branch/upload/:companyId/:branchId", authMiddleware,
   MulterFunction("./uploads/admin/retailerDocument").fields([
     { name: "pan_image", maxCount: 1 },
     { name: "gst_image", maxCount: 1 },
@@ -51,9 +64,9 @@ retailerRouter.patch(
   branch.uploadDocument("./uploads/admin/retailerDocument")
 );
 
-retailerRouter.get("/dropdown/list",authMiddleware,retailer.GetCompanyList)
-retailerRouter.get("/branch/dropdown/list",authMiddleware,branch.GetBranchList)
+retailerRouter.get("/dropdown/list", authMiddleware, retailer.GetCompanyList)
+retailerRouter.get("/branch/dropdown/list", authMiddleware, branch.GetBranchList)
 
-retailerRouter.patch('/contact/setprimary/:companyId/:branchId',authMiddleware,branch.setPrimary)
+retailerRouter.patch('/contact/setprimary/:companyId/:branchId', authMiddleware, branch.setPrimaryContact)
 
 export default retailerRouter;
