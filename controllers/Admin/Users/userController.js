@@ -6,10 +6,19 @@ import ExcelJS from "exceljs";
 import { dynamicSearch } from "../../../Utils/dynamicSearch.js";
 import { approvalData } from "../../HelperFunction/approvalFunction.js";
 import { createdByFunction } from "../../HelperFunction/createdByfunction.js";
+import ApiError from "../../../Utils/ApiError.js";
 
 export const AddUser = catchAsync(async (req, res) => {
   const user = req.user;
   const userData = req.body;
+  const address = JSON.parse(req.body.address);
+  const kyc = JSON.parse(req.body.kyc);
+  userData.address = address;
+  userData.kyc = kyc;
+  userData.profile_pic=req.files.profile_pic[0].path ;
+  userData.kyc.pan_card_detail.pan_image=req.files.pan_image[0].path;
+  userData.kyc.aadhar_card_detail.aadhar_image=req.files.aadhar_image[0].path;
+  userData.kyc.bank_details.passbook_image=req.files.passbook_image[0].path;
   const saltRounds = 10;
   userData.password = await bcrypt.hash(userData.password, saltRounds);
   const newUser = new userModel({
@@ -115,6 +124,7 @@ export const ChangePassword = catchAsync(async (req, res) => {
 
 export const FetchUsers = catchAsync(async (req, res) => {
   const { string, boolean, numbers } = req?.body?.searchFields || {};
+  console.log(req.query);
   const search = req.query.search || "";
 
   const page = parseInt(req.query.page) || 1;
@@ -159,6 +169,9 @@ export const FetchUsers = catchAsync(async (req, res) => {
     .skip(skip)
     .limit(limit)
     .populate("current_data.role_id");
+    if(!users){
+      throw new Error(new ApiError("Error during fetching", 400));
+    }
 
   //total pages
   const totalDocuments = await userModel.countDocuments({
@@ -167,11 +180,13 @@ export const FetchUsers = catchAsync(async (req, res) => {
     "current_data.status": true,
   });
   const totalPages = Math.ceil(totalDocuments / limit);
+  let usersdata = users;
+  usersdata["imagePath"] = `${process.env.IMAGE_PATH}/admin/users/`;
 
   return res.json({
     statusCode: 200,
     status: "Success",
-    data: users,
+    data: usersdata,
     message: "Fetched successfully",
     totalPages: totalPages,
   });
@@ -248,3 +263,33 @@ export const UserLogs = catchAsync(async (req, res) => {
     message: "Logs fetched successfully",
   });
 });
+
+export const generatePassword = catchAsync(async(req,res)=>{
+  const symbols = "!@#$%^&*()_-+=<>?/{}";
+  const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const lowercase = "abcdefghijklmnopqrstuvwxyz";
+  const numbers = "0123456789";
+
+  const getRandomChar = (chars) => {
+    const randomIndex = Math.floor(Math.random() * chars.length);
+    return chars.charAt(randomIndex);
+  };
+
+  const password = [
+    getRandomChar(symbols),
+    getRandomChar(uppercase),
+    getRandomChar(lowercase),
+    getRandomChar(numbers),
+  ];
+  while (password.length < 8) {
+    const charSet = symbols + uppercase + lowercase + numbers;
+    password.push(getRandomChar(charSet));
+  }
+  password.sort(() => Math.random() - 0.5);
+  return res.status(200).json({
+    statusCode: 200,
+    status: "success",
+    data: password.join(""),
+    message: "Password Generated Successfully",
+  });
+})

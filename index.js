@@ -44,6 +44,7 @@ import retailerSalesRouter from "./routes/Retailer/ConfirmSalesOrder/retailerCon
 
 import RetailerAuthRouter from "./routes/Retailer/Auth/Auth.route.js";
 import RetailerPRoutes from "./routes/Retailer/Billing/BillingRoutes.js";
+import RetailerInventory from "./routes/Retailer/Inventory/RetailerInventoryRoutes.js";
 
 const app = express();
 
@@ -101,12 +102,14 @@ app.group("/api/v1/retailer-portal", (router) => {
   router.use("/retailerp", RetailerPRoutes);
   router.use("/purchase-order", retailerPORouter);
   router.use("/confirm-sales", retailerSalesRouter);
+  router.use("/inventory", RetailerInventory);
 });
 
 //offline store
 app.group("/api/v1/offline-store-portal", (router) => {
   router.use('/purchase-order',offlinePORouter);
   router.use('/confirm-sales',offlineSalesRouter);
+  
 
 });
 

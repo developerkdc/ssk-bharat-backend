@@ -9,4 +9,5 @@ RetailerPRoutes.post("/createbills", authMiddleware, createbill);
 RetailerPRoutes.get("/bills", Bills);
 RetailerPRoutes.get("/latestbillno", latestRetailerBillNo);
 
+
 export default RetailerPRoutes
