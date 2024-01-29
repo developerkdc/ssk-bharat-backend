@@ -82,8 +82,8 @@ export const getMarketExecutiveById = catchAsync(async (req, res, next) => {
 });
 
 export const getMarketExecutiveList = catchAsync(async (req, res, next) => {
-  const marketExec = await MarketExecutiveModel.find({"current_data.isActive":true,"current_data.status":true},
-  {"current_data.contact_person_details":1,"current_data.company_details":1});
+  const marketExec = await MarketExecutiveModel.find({ "current_data.isActive": true, "current_data.status": true },
+    { "current_data.contact_person_details": 1, "current_data.company_details": 1 });
 
   return res.status(200).json({
     statusCode: 200,
@@ -95,14 +95,46 @@ export const getMarketExecutiveList = catchAsync(async (req, res, next) => {
 });
 
 export const addMarketExec = catchAsync(async (req, res, next) => {
-  const { approver, ...data } = req.body;
+  const METdata = JSON.parse(req.body?.METdata);
 
   let Password = crypto.randomBytes(8).toString("hex");
   let protectedPassword = bcrypt.hashSync(Password, 12);
-  data.contact_person_details.password = protectedPassword
+  data.contact_person_details.password = protectedPassword;
+
+  const images = {};
+  if (req.files) {
+    for (let i in req.files) {
+      images[i] = req.files[i][0].filename;
+    }
+  }
 
   const addME = await MarketExecutiveModel.create({
-    current_data: { ...data },
+    current_data: {
+      ...METdata,
+      kyc: {
+        ...METdata.kyc,
+        pan:{
+          ...METdata.kyc.pan,
+          pan_image:images.pan_image
+        },
+        gst:{
+          ...METdata.kyc.gst,
+          gst_image:images.gst_image
+        },
+        aadhar:{
+          ...METdata.kyc.aadhar,
+          aadhar_image:images.aadhar_image
+        },
+        bank_details:{
+          ...METdata.kyc.bank_details,
+          passbook_image:images.passbook_image
+        }
+      },
+      insurance:{
+        ...METdata.insurance,
+        policy_image:images.policy_image
+      }
+    },
     approver: approvalData(req.user)
   });
 
@@ -424,7 +456,7 @@ export const editNominee = catchAsync(async (req, res, next) => {
   adminApprovalFunction({
     module: "MarketExecutive",
     user: req.user,
-    documentId:req.params.id
+    documentId: req.params.id
   })
 
   return res.status(201).json({
