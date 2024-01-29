@@ -54,7 +54,7 @@ const port = process.env.PORT || 4001;
 app.use(express.static(__dirname));
 app.use(express.json());
 app.use(cors({
-  origin: '*',
+  origin: ["https://sskbharat.kdcstaging.in","http://localhost:3000",'*'],
   optionsSuccessStatus: 200 
 }))
 
