@@ -54,8 +54,12 @@ const port = process.env.PORT || 4001;
 app.use(express.static(__dirname));
 app.use(express.json());
 app.use(cors({
-  origin: ["https://sskbharat.kdcstaging.in","http://localhost:3000",'*'],
-  optionsSuccessStatus: 200 
+  origin: [
+    "https://sskbharat.kdcstaging.in/",
+    "https://sskbharat.kdcstaging.in",
+    "http://localhost:3000"
+  ],
+  optionsSuccessStatus: 200
 }))
 
 
@@ -89,16 +93,16 @@ app.group("/api/v1/admin", (router) => {
   router.use("/offlinePayment", offlinePaymentRouter);
   router.use('/ssk/inventory', InventoryRouter);
   router.use('/sample', SampleRouter);
-  router.use('/approval',approvalRouter);
-  router.use('/faq',FaqRouter);
-  router.use('/met',metAuthRouter);
-  router.use('/ticket',TicketRouter);
-  router.use('/address/dropdown',addressDropdownRouter);
-  
+  router.use('/approval', approvalRouter);
+  router.use('/faq', FaqRouter);
+  router.use('/met', metAuthRouter);
+  router.use('/ticket', TicketRouter);
+  router.use('/address/dropdown', addressDropdownRouter);
+
 });
 //retailers
 app.group("/api/v1/retailer-portal", (router) => {
-  router.use("/auth",RetailerAuthRouter)
+  router.use("/auth", RetailerAuthRouter)
   router.use("/retailerp", RetailerPRoutes);
   router.use("/purchase-order", retailerPORouter);
   router.use("/confirm-sales", retailerSalesRouter);
@@ -107,9 +111,9 @@ app.group("/api/v1/retailer-portal", (router) => {
 
 //offline store
 app.group("/api/v1/offline-store-portal", (router) => {
-  router.use('/purchase-order',offlinePORouter);
-  router.use('/confirm-sales',offlineSalesRouter);
-  
+  router.use('/purchase-order', offlinePORouter);
+  router.use('/confirm-sales', offlineSalesRouter);
+
 
 });
 
