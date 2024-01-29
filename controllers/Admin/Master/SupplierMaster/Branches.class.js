@@ -355,18 +355,18 @@ class Branches {
         kyc: {
           pan: {
             pan_no: pan?.pan_no,
-            pan_image:images["pan_image"]
+            pan_image: images["pan_image"]
           },
           gst: {
             gst_no: gst?.gst_no,
-            gst_image:images["gst_image"]
+            gst_image: images["gst_image"]
           },
           bank_details: {
             bank_name: bank_details?.bank_name,
             account_no: bank_details?.account_no,
             confirm_account_no: bank_details?.confirm_account_no,
             ifsc_code: bank_details?.ifsc_code,
-            passbook_image:images["passbook_image"]
+            passbook_image: images["passbook_image"]
           }
         }
       },
@@ -475,9 +475,8 @@ class Branches {
           $set: {
             "proposed_changes.kyc.pan.pan_image": images?.pan_image,
             "proposed_changes.kyc.gst.gst_image": images?.gst_image,
+            "proposed_changes.kyc.bank_details.passbook_image": images?.passbook_image,
             "proposed_changes.status": false,
-            "proposed_changes.kyc.bank_details.passbook_image":
-              images?.passbook_image,
             approver: approvalData(req.user),
           },
         }
