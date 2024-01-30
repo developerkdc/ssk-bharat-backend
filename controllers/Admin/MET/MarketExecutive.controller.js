@@ -82,8 +82,8 @@ export const getMarketExecutiveById = catchAsync(async (req, res, next) => {
 });
 
 export const getMarketExecutiveList = catchAsync(async (req, res, next) => {
-  const marketExec = await MarketExecutiveModel.find({"current_data.isActive":true,"current_data.status":true},
-  {"current_data.contact_person_details":1,"current_data.company_details":1});
+  const marketExec = await MarketExecutiveModel.find({ "current_data.isActive": true, "current_data.status": true },
+    { "current_data.contact_person_details": 1, "current_data.company_details": 1 });
 
   return res.status(200).json({
     statusCode: 200,
@@ -95,16 +95,36 @@ export const getMarketExecutiveList = catchAsync(async (req, res, next) => {
 });
 
 export const addMarketExec = catchAsync(async (req, res, next) => {
-  const { approver, ...data } = req.body;
-
+  const METdata = JSON.parse(req.body?.METdata);
+  
   let Password = crypto.randomBytes(8).toString("hex");
   let protectedPassword = bcrypt.hashSync(Password, 12);
-  data.contact_person_details.password = protectedPassword
+  
+  const images = {};
+  if (req.files) {
+    for (let i in req.files) {
+      images[i] = req.files[i][0].path;
+    } 
+  }
 
-  const addME = await MarketExecutiveModel.create({
-    current_data: { ...data },
+  METdata.contact_person_details.password = protectedPassword;
+
+  METdata.insurance.policy_image = images?.policy_image
+  METdata.kyc.pan.pan_image = images?.pan_image
+  METdata.kyc.gst.gst_image = images?.gst_image
+  METdata.kyc.aadhar.aadhar_image = images?.aadhar_image
+  METdata.kyc.bank_details.passbook_image = images?.passbook_image
+
+  const addME = await MarketExecutiveModel.create({       
+    current_data: {
+      ...METdata,
+    },
     approver: approvalData(req.user)
   });
+
+  if(!addME){
+    return next(new ApiError("market executive is unable to add",400))
+  }
 
   adminApprovalFunction({
     module: "MarketExecutive",
@@ -118,6 +138,7 @@ export const addMarketExec = catchAsync(async (req, res, next) => {
     data: {
       MarketExecutive: addME,
     },
+    message:`${addME?.current_data?.company_details?.companyName || addME?.current_data?.contact_person_details?.first_name} has been added`
   });
 });
 
@@ -199,7 +220,7 @@ export const uploadMarketExecImages = catchAsync(async (req, res, next) => {
   if (req.files) {
     for (let i in req.files) {
       const name = i.split("_")[0];
-      images[i] = req.files[i][0].filename;
+      images[i] = req.files[i][0].path;
       // if (name === "policy") {
       //   if (
       //     fs.existsSync(
@@ -383,7 +404,7 @@ export const editNominee = catchAsync(async (req, res, next) => {
   const images = {};
   if (req.files) {
     for (let i in req.files) {
-      images[i] = req.files[i][0].filename;
+      images[i] = req.files[i][0].path;
     }
   }
 
@@ -424,7 +445,7 @@ export const editNominee = catchAsync(async (req, res, next) => {
   adminApprovalFunction({
     module: "MarketExecutive",
     user: req.user,
-    documentId:req.params.id
+    documentId: req.params.id
   })
 
   return res.status(201).json({

@@ -346,7 +346,7 @@ class Branches {
     const images = {};
     if (req.files) {
       for (let i in req.files) {
-        images[i] = req.files[i][0].filename;
+        images[i] = req.files[i][0].path;
       }
     }
     const branch = await this.#modal.create({
@@ -462,7 +462,7 @@ class Branches {
       const images = {};
       if (req.files) {
         for (let i in req.files) {
-          images[i] = req.files[i][0].filename;
+          images[i] = req.files[i][0].path;
           // need to change i needed proposed_changes
           // if (fs.existsSync(`${fileName}/${i.split("_")[0] === "passbook" ? branch?.kyc?.bank_details[i] : branch?.kyc[i?.split("_")[0]][i]}`)) {
           //     fs.unlinkSync(`${fileName}/${i.split("_")[0] === "passbook" ? branch?.kyc?.bank_details[i] : branch?.kyc[i?.split("_")[0]][i]}`)
