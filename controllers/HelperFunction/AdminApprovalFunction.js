@@ -6,8 +6,8 @@ const adminApprovalFunction = async function (obj) {
   if (!module) return next(new ApiError("please provide module name", 400));
 
   if (
-    user.current_data.role_id.current_data.role_name === "Admin" ||
-    (!user.approver.approver_one && !user.approver.approver_two)
+    user?.current_data?.role_id?.current_data?.role_name === "Admin" ||
+    (!user?.approver?.approver_one && !user?.approver?.approver_two)
   ) {
     const model = mongoose.model(module);
     const data = await model.findOne({ _id: documentId });
@@ -17,7 +17,7 @@ const adminApprovalFunction = async function (obj) {
     let poModel;
     if (
       module === "orders" &&
-      data.current_data.order_type === "offlinestores"
+      data?.current_data?.order_type === "offlinestores"
     ) {
       poModel = storePOModel;
     }
@@ -27,7 +27,7 @@ const adminApprovalFunction = async function (obj) {
       {
         $set: {
           "proposed_changes.status": true,
-          current_data: Object.assign(data.proposed_changes, { status: true }),
+          current_data: Object.assign(data?.proposed_changes, { status: true }),
         },
       }
     );
