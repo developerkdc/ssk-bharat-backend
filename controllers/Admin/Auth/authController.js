@@ -38,9 +38,12 @@ export const LoginUser = catchAsync(async (req, res, next) => {
 export const SendOTP = catchAsync(async (req, res) => {
   const { email } = req.body;
   let otp = Math.floor(Math.random() * 100000);
-  const user = await userModel.findOne({ primary_email_id: email });
-  user.otp = otp;
-  const updatedUser = await user.save();
+  const user = await userModel.findOne({
+    "current_data.primary_email_id": email,
+  });
+  console.log(user, "------------------->");
+  const updatedUser = await userModel.findByIdAndUpdate(user._id,{$set:{"otp":otp}});
+  // console.log(updatedUser);
   const message = `
    <!DOCTYPE html>
 <html>
@@ -144,7 +147,8 @@ export const SendOTP = catchAsync(async (req, res) => {
 export const VerifyOTPAndUpdatePassword = catchAsync(async (req, res) => {
   const { email, otp, newPassword } = req.body;
 
-  const user = await userModel.findOne({ primary_email_id: email });
+  const user = await userModel.findOne({ "current_data.primary_email_id": email });
+  console.log(user,"<-------------------------------")
   if (!otp || otp !== user.otp) {
     return res.status(400).json({
       success: false,
@@ -152,7 +156,7 @@ export const VerifyOTPAndUpdatePassword = catchAsync(async (req, res) => {
     });
   }
   const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
-  user.password = hashedPassword;
+  user.current_data.password = hashedPassword;
   user.otp = null;
   const updatedUser = await user.save();
   return res.status(200).json({

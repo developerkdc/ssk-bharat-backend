@@ -86,7 +86,7 @@ const UserSchema = SchemaFunction(
         },
       },
     },
-    otp: { type: String, trim: true },
+    
     isActive: {
       type: Boolean,
       default: true,
@@ -146,7 +146,8 @@ const UserSchema = SchemaFunction(
    created_by:{
         type:createdBy,
         required:[true,"created by is required"]
-      }
+      },
+      otp: { type: String, trim: true },
   })
 );
 UserSchema.methods.jwtToken = function (next) {
