@@ -7,7 +7,6 @@ import { dynamicSearch } from "../../../Utils/dynamicSearch.js";
 import { approvalData } from "../../HelperFunction/approvalFunction.js";
 import ApiError from "../../../Utils/ApiError.js";
 import { createdByFunction } from "../../HelperFunction/createdByfunction.js";
-import ApiError from "../../../Utils/ApiError.js";
 import adminApprovalFunction from "../../HelperFunction/AdminApprovalFunction.js";
 
 export const AddUser = catchAsync(async (req, res) => {
