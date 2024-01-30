@@ -122,12 +122,12 @@ const UserSchema = SchemaFunction(
         user_id: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "Users",
-          required: [true, "user_id for approvar two is required"],
+          // required: [true, "user_id for approvar two is required"],
         },
         name: {
           type: String,
           trim: true,
-          required: [true, "name for approvar two is required"],
+          // required: [true, "name for approvar two is required"],
         },
         email_id: {
           type: String,
@@ -137,7 +137,7 @@ const UserSchema = SchemaFunction(
             },
             message: "approver two invalid email Id",
           },
-          required: [true, "email id for approvar two is required"],
+          // required: [true, "email id for approvar two is required"],
         },
         employee_id: String,
       },
@@ -167,7 +167,7 @@ UserSchema.methods.jwtToken = function (next) {
 
 UserSchema.index({ "current_data.primary_mobile_no": 1 }, { unique: true });
 
-const userModel = mongoose.model("Users", UserSchema);
+const userModel = mongoose.model("user", UserSchema);
 
 LogSchemaFunction("user", userModel);
 

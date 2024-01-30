@@ -7,6 +7,7 @@ import { dynamicSearch } from "../../../Utils/dynamicSearch.js";
 import { approvalData } from "../../HelperFunction/approvalFunction.js";
 import { createdByFunction } from "../../HelperFunction/createdByfunction.js";
 import ApiError from "../../../Utils/ApiError.js";
+import adminApprovalFunction from "../../HelperFunction/AdminApprovalFunction.js";
 
 export const AddUser = catchAsync(async (req, res) => {
   const user = req.user;
@@ -14,18 +15,20 @@ export const AddUser = catchAsync(async (req, res) => {
   const address = JSON.parse(req.body.address);
   const kyc = JSON.parse(req.body.kyc);
   const approver_one = JSON.parse(req.body.approver_one);
-  const approver_two = JSON.parse(req.body.approver_two);
+  if (req.body.approver_two) {
+    const approver_two = JSON.parse(req.body.approver_two);
+    userData.approver_two = approver_two;
+  }
   userData.approver_one = approver_one;
-  userData.approver_two = approver_two;
   userData.address = address;
   userData.kyc = kyc;
-  userData.profile_pic=req.files.profile_pic[0].path ;
-  userData.kyc.pan_card_detail.pan_image=req.files.pan_image[0].path;
-  userData.kyc.aadhar_card_detail.aadhar_image=req.files.aadhar_image[0].path;
-  userData.kyc.bank_details.passbook_image=req.files.passbook_image[0].path;
+  userData.profile_pic = req.files.profile_pic[0].path;
+  userData.kyc.pan_card_detail.pan_image = req.files.pan_image[0].path;
+  userData.kyc.aadhar_card_detail.aadhar_image = req.files.aadhar_image[0].path;
+  userData.kyc.bank_details.passbook_image = req.files.passbook_image[0].path;
   const saltRounds = 10;
+
   userData.password = await bcrypt.hash(userData.password, saltRounds);
-  console.log(userData)
   const newUser = new userModel({
     current_data: {
       ...userData,
@@ -34,7 +37,11 @@ export const AddUser = catchAsync(async (req, res) => {
     approver: approvalData(user, user?.current_data.role_id.role_name),
   });
   const savedUser = await newUser.save();
-
+  adminApprovalFunction({
+    module: "user",
+    user: user,
+    documentId: savedUser._id,
+  });
   // Send a success response
   return res.status(201).json({
     statusCode: 201,
@@ -47,15 +54,49 @@ export const AddUser = catchAsync(async (req, res) => {
 });
 
 export const EditUser = catchAsync(async (req, res) => {
-  console.log(req.params.userId)
   const userId = req.params.userId;
   const loginUser = req.user;
   const updateData = req.body;
-  console.log(updateData);
+  if (req.body.isActive) {
+    updateData.isActive = req.body.isActive;
+  }
+  if (req.body.address) {
+    const address = JSON.parse(req.body.address);
+    updateData.address = address;
+  }
+  if (req.body.kyc) {
+    const kyc = JSON.parse(req.body.kyc);
+    updateData.kyc = kyc;
+  }
+  if (req.body.approver_one) {
+    const approver_one = JSON.parse(req.body.approver_one);
+    updateData.approver_one = approver_one;
+  }
+  if (req.body.approver_two) {
+    const approver_two = JSON.parse(req.body.approver_two);
+    updateData.approver_two = approver_two;
+  }
+  if (req.files?.profile_pic) {
+    updateData.profile_pic = req.files.profile_pic[0].path;
+  }
+  if (req.files?.pan_image) {
+    updateData.kyc.pan_card_detail.pan_image = req.files.pan_image[0].path;
+  }
+  if (req.files?.aadhar_image) {
+    updateData.kyc.aadhar_card_detail.aadhar_image =
+      req.files.aadhar_image[0].path;
+  }
+  if (req.files?.passbook_image) {
+    updateData.kyc.bank_details.passbook_image =
+      req.files.passbook_image[0].path;
+  }
+
   updateData.updated_at = new Date().toLocaleString();
+
   if (!mongoose.Types.ObjectId.isValid(userId)) {
     return res.status(400).json({ message: "Invalid user ID" });
   }
+  console.log(updateData);
   const user = await userModel.findByIdAndUpdate(
     userId,
     {
@@ -65,20 +106,23 @@ export const EditUser = catchAsync(async (req, res) => {
         "proposed_changes.last_name": updateData?.last_name,
         "proposed_changes.primary_email_id": updateData?.primary_email_id,
         "proposed_changes.secondary_email_id": updateData?.secondary_email_id,
-        "proposed_changes.password": updateData?.password,
         "proposed_changes.primary_mobile_no": updateData?.primary_mobile_no,
         "proposed_changes.secondary_mobile_no": updateData?.secondary_mobile_no,
         "proposed_changes.address": updateData?.address,
+        "proposed_changes.profile_pic": updateData?.profile_pic,
         "proposed_changes.role_id": updateData?.role_id,
         "proposed_changes.kyc": updateData?.kyc,
         "proposed_changes.status": false,
         "proposed_changes.isActive": updateData?.isActive,
+        "proposed_changes.approver_one": updateData?.approver_one,
+        "proposed_changes.approver_two": updateData?.approver_two,
         approver: approvalData(loginUser),
         updated_at: Date.now(),
       },
     },
     { new: true }
   );
+
   if (!user) {
     return res.status(404).json({
       statusCode: 404,
@@ -86,7 +130,11 @@ export const EditUser = catchAsync(async (req, res) => {
       message: "User not found",
     });
   }
-
+  adminApprovalFunction({
+    module: "user",
+    user: loginUser,
+    documentId: userId,
+  });
   return res.json({
     statusCode: 200,
     status: "Success",
@@ -131,7 +179,6 @@ export const ChangePassword = catchAsync(async (req, res) => {
 
 export const FetchUsers = catchAsync(async (req, res) => {
   const { string, boolean, numbers } = req?.body?.searchFields || {};
-  console.log(req.query);
   const search = req.query.search || "";
 
   const page = parseInt(req.query.page) || 1;
@@ -176,9 +223,9 @@ export const FetchUsers = catchAsync(async (req, res) => {
     .skip(skip)
     .limit(limit)
     .populate("current_data.role_id");
-    if(!users){
-      throw new Error(new ApiError("Error during fetching", 400));
-    }
+  if (!users) {
+    throw new Error(new ApiError("Error during fetching", 400));
+  }
 
   //total pages
   const totalDocuments = await userModel.countDocuments({
@@ -271,7 +318,7 @@ export const UserLogs = catchAsync(async (req, res) => {
   });
 });
 
-export const generatePassword = catchAsync(async(req,res)=>{
+export const generatePassword = catchAsync(async (req, res) => {
   const symbols = "!@#$%^&*()_-+=<>?/{}";
   const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const lowercase = "abcdefghijklmnopqrstuvwxyz";
@@ -299,4 +346,4 @@ export const generatePassword = catchAsync(async(req,res)=>{
     data: password.join(""),
     message: "Password Generated Successfully",
   });
-})
+});
