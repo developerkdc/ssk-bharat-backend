@@ -4,6 +4,7 @@ import {
   AddProductImage,
   createProduct,
   deleteProductImage,
+  getProductById,
   getProductList,
   getProducts,
   updateProduct,
@@ -44,7 +45,7 @@ router.patch(
   updateProductImage
 );
 router.delete(
-  "/deleteProductImage/:id/:imageName",
+  "/deleteProductImage/:id",
   authMiddleware,
   rolesPermissions("product", "edit"),
   deleteProductImage
@@ -55,6 +56,13 @@ router.post(
   rolesPermissions("product", "view"),
   MulterFunction("./uploads/admin/products").array("product_images"),
   AddProductImage
+);
+
+router.get(
+  "/getProduct/:id",
+  authMiddleware,
+  rolesPermissions("product", "view"),
+  getProductById
 );
 
 

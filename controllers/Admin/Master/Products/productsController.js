@@ -12,7 +12,7 @@ export const createProduct = catchAsync(async (req, res, next) => {
   const user = req.user;
   let relativeImagePath = [];
   for (let file of req.files) {
-    relativeImagePath.push(file.filename);
+    relativeImagePath.push(file.path);
   }
   const prices = {
     retailer_sales_price: req?.body?.retailer_sales_price || 0,
@@ -54,6 +54,7 @@ export const getProducts = catchAsync(async (req, res, next) => {
   const limit = parseInt(req.query.limit) || 10;
   const sortDirection = req.query.sort === "desc" ? -1 : 1;
   const search = req.query.search || "";
+  const portal = req.query.portal || "";
 
   let searchQuery = {};
   if (search != "" && req?.body?.searchFields) {
@@ -82,9 +83,11 @@ export const getProducts = catchAsync(async (req, res, next) => {
 
   const product = await productModel.aggregate([
     {
-      $match: { "current_data.status": true },
+      $match:
+        portal != ""
+          ? { "current_data.status": true, [portal]: true }
+          : { "current_data.status": true },
     },
-
     {
       $skip: skip,
     },
@@ -131,7 +134,10 @@ export const getProducts = catchAsync(async (req, res, next) => {
             },
           },
           {
-            $unwind: "$gst_percentage",
+            $unwind: {
+              path: "$gst_percentage",
+              preserveNullAndEmptyArrays: true,
+            },
           },
         ],
       },
@@ -154,13 +160,22 @@ export const getProducts = catchAsync(async (req, res, next) => {
       },
     },
     {
-      $unwind: "$current_data.category",
+      $unwind: {
+        path: "$current_data.category",
+        preserveNullAndEmptyArrays: true,
+      },
     },
     {
-      $unwind: "$current_data.unit",
+      $unwind: {
+        path: "$current_data.unit",
+        preserveNullAndEmptyArrays: true,
+      },
     },
     {
-      $unwind: "$current_data.hsn_code",
+      $unwind: {
+        path: "$current_data.hsn_code",
+        preserveNullAndEmptyArrays: true,
+      },
     },
     {
       $sort: { [sortField]: sortDirection },
@@ -218,10 +233,11 @@ export const updateProduct = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const user = req.user;
   const { product_images, ...data } = req.body;
+  console.log(data?.category, "cattt");
+  console.log(req.body, "body");
   const updatedProduct = await productModel.findByIdAndUpdate(
     id,
     {
-      "proposed_changes.category": data?.category, // Replace with a valid category ObjectId
       "proposed_changes.product_name": data?.product_name,
       "proposed_changes.sku": data?.sku,
       "proposed_changes.short_description": data?.short_description,
@@ -232,11 +248,17 @@ export const updateProduct = catchAsync(async (req, res, next) => {
       "proposed_changes.show_in_website": data?.show_in_website,
       "proposed_changes.show_in_retailer": data?.show_in_retailer,
       "proposed_changes.show_in_offline_store": data?.show_in_offline_store,
+      "proposed_changes.prices.offline_store_sales_price":
+        data?.offline_store_sales_price,
+      "proposed_changes.prices.retailer_sales_price":
+        data?.retailer_sales_price,
+      "proposed_changes.prices.website_sales_price": data?.website_sales_price,
       "proposed_changes.prices": data?.prices,
       "proposed_changes.mrp": data?.mrp,
       "proposed_changes.item_weight": data?.item_weight,
       "proposed_changes.unit": data?.unit, // Replace with a valid unit ObjectId
       "proposed_changes.isActive": data?.isActive,
+      "proposed_changes.category": data?.category, // Replace with a valid category ObjectId
       approver: approvalData(user),
       updated_at: Date.now(),
     },
@@ -259,7 +281,7 @@ export const updateProduct = catchAsync(async (req, res, next) => {
   });
 });
 
-export const  updateProductImage = catchAsync(async (req, res, next) => {
+export const updateProductImage = catchAsync(async (req, res, next) => {
   const { id, imageName } = req.params;
   const user = req.user;
 
@@ -267,7 +289,7 @@ export const  updateProductImage = catchAsync(async (req, res, next) => {
     { _id: id, product_images: imageName },
     {
       $set: {
-        "proposed_changes.product_images.$[e]": req.file.filename,
+        "proposed_changes.product_images.$[e]": req.file.path,
         approver: approvalData(user),
         updated_at: Date.now(),
       },
@@ -306,13 +328,13 @@ export const  updateProductImage = catchAsync(async (req, res, next) => {
 export const AddProductImage = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const user = req.user;
-  console.log(req.files)
+  console.log(req.files);
   const updatedProductImage = await productModel.updateOne(
     { _id: id },
     {
       $push: {
         "proposed_changes.product_images": {
-          $each: req.files.map((e) => e.filename),
+          $each: req.files.map((e) => e.path),
         },
       },
     }
@@ -345,7 +367,8 @@ export const AddProductImage = catchAsync(async (req, res, next) => {
 });
 
 export const deleteProductImage = catchAsync(async (req, res, next) => {
-  const { id, imageName } = req.params;
+  const { id } = req.params;
+  const { imageName } = req.query;
   const user = req.user;
   const deletedProductImage = await productModel.updateOne(
     { _id: id, "proposed_changes.product_images": imageName },
@@ -356,14 +379,14 @@ export const deleteProductImage = catchAsync(async (req, res, next) => {
     }
   );
 
-  if (
-    deletedProductImage.acknowledged &&
-    deletedProductImage.modifiedCount > 0
-  ) {
-    if (fs.existsSync(`./uploads/admin/products/${imageName}`)) {
-      fs.unlinkSync(`./uploads/admin/products/${imageName}`);
-    }
-  }
+  // if (
+  //   deletedProductImage.acknowledged &&
+  //   deletedProductImage.modifiedCount > 0
+  // ) {
+  //   if (fs.existsSync(`./${imageName}`)) {
+  //     fs.unlinkSync(`./${imageName}`);
+  //   }
+  // }
 
   if (!deletedProductImage)
     return new ApiError("Error while deleting image", 400);
@@ -380,4 +403,16 @@ export const deleteProductImage = catchAsync(async (req, res, next) => {
     data: deletedProductImage,
     message: "Product images deleted",
   });
+});
+
+export const getProductById = catchAsync(async (req, res, next) => {
+  const product = await productModel.findById(req.params.id);
+  if (product) {
+    return res.status(200).json({
+      statusCode: 200,
+      status: true,
+      data: product,
+      message: "Product Details",
+    });
+  }
 });

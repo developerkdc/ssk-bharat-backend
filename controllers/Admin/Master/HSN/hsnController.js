@@ -91,7 +91,10 @@ export const getHSNCode = catchAsync(async (req, res, next) => {
       },
     },
     {
-      $unwind: "$current_data.gst_percentage",
+      $unwind: {
+        path: "$current_data.gst_percentage",
+        preserveNullAndEmptyArrays: true,
+      },
     },
     {
       $match: { ...searchQuery },
@@ -100,6 +103,7 @@ export const getHSNCode = catchAsync(async (req, res, next) => {
       $sort: { [sortField]: sortDirection },
     },
   ]);
+  console.log(hsn, "hsssnnnn");
 
   if (hsn) {
     return res.status(200).json({
@@ -129,7 +133,10 @@ export const getHSNCodeList = catchAsync(async (req, res, next) => {
       },
     },
     {
-      $unwind: "$current_data.gst_percentage",
+      $unwind: {
+        path: "$current_data.gst_percentage",
+        preserveNullAndEmptyArrays: true,
+      },
     },
     {
       $project: {

@@ -9,7 +9,7 @@ import mongoose from "mongoose";
 
 export const createCategory = catchAsync(async (req, res, next) => {
   const user = req.user;
-  const relativeImagePath = req.file ? req.file.filename : null;
+  const relativeImagePath = req.file ? req.file.path : null;
   const category = await categoryModel.create({
     current_data: {
       ...req.body,
@@ -125,7 +125,7 @@ export const updateCategory = catchAsync(async (req, res, next) => {
   // relativeImagePath = oldCategory.category_image;
   if (req.file) {
     // fs.unlinkSync(`./uploads/admin/category/${oldCategory.category_image}`);
-    relativeImagePath = req.file.filename;
+    relativeImagePath = req.file.path;
   }
 
   const updatedCategory = await categoryModel.findByIdAndUpdate(
