@@ -140,7 +140,8 @@ export const getPOBasedOnSupplierID = catchAsync(async (req, res, next) => {
   const poDetails = await sskPOModel.aggregate([
     {
       $match: {
-        "supplier_details.supplier_id": new mongoose.Types.ObjectId(id),
+        "current_data.supplier_details.supplier_id":
+          new mongoose.Types.ObjectId(id),
       },
     },
   ]);
