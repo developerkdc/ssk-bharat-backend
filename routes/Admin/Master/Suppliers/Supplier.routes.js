@@ -51,7 +51,7 @@ SupplierRouter.patch(
 );
 
 SupplierRouter.get("/dropdown/list", authMiddleware, supplier.GetCompanyList)
-SupplierRouter.get("/branch/dropdown/list", authMiddleware, branch.GetBranchList)
+SupplierRouter.get("/branch/dropdown/list/:companyId", authMiddleware, branch.GetBranchList)
 
 SupplierRouter.patch('/contact/setprimary/:companyId/:branchId', authMiddleware, branch.setPrimaryContact)
 
