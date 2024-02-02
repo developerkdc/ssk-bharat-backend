@@ -13,14 +13,16 @@ import {
 import authMiddleware from "../../../middlewares/adminAuth.js";
 const marketExecutiveRouter = express.Router();
 
-marketExecutiveRouter.route("/").get(getMarketExecutive).post(authMiddleware,
-  MulterFunction("./uploads/admin/marketExecutive").fields([
-    { name: "policy_image", maxCount: 1 },
-    { name: "gst_image", maxCount: 1 },
-    { name: "pan_image", maxCount: 1 },
-    { name: "aadhar_image", maxCount: 1 },
-    { name: "passbook_image", maxCount: 1 },
-  ]), addMarketExec);
+marketExecutiveRouter.route("/")
+  .get(getMarketExecutive)
+  .post(authMiddleware,
+    MulterFunction("./uploads/admin/marketExecutive").fields([
+      { name: "policy_image", maxCount: 1 },
+      { name: "gst_image", maxCount: 1 },
+      { name: "pan_image", maxCount: 1 },
+      { name: "aadhar_image", maxCount: 1 },
+      { name: "passbook_image", maxCount: 1 },
+    ]), addMarketExec);
 
 marketExecutiveRouter
   .route("/:id")
