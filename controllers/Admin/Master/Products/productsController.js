@@ -6,6 +6,7 @@ import fs from "fs";
 import { approvalData } from "../../../HelperFunction/approvalFunction";
 import { createdByFunction } from "../../../HelperFunction/createdByfunction";
 import adminApprovalFunction from "../../../HelperFunction/AdminApprovalFunction";
+import mongoose from "mongoose";
 
 export const createProduct = catchAsync(async (req, res, next) => {
   // Get the relative path of the uploaded image
@@ -55,6 +56,13 @@ export const getProducts = catchAsync(async (req, res, next) => {
   const sortDirection = req.query.sort === "desc" ? -1 : 1;
   const search = req.query.search || "";
   const portal = req.query.portal || "";
+  const sortField = req?.query?.sortBy || "created_at";
+  const filter = {};
+  if (req?.body?.filters["current_data.category._id"] != "") {
+    filter["current_data.category"] = new mongoose.Types.ObjectId(
+      req?.body?.filters["current_data.category._id"]
+    );
+  }
 
   let searchQuery = {};
   if (search != "" && req?.body?.searchFields) {
@@ -79,7 +87,6 @@ export const getProducts = catchAsync(async (req, res, next) => {
   const totalPages = Math.ceil(totalProduct / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
   const skip = Math.max((validPage - 1) * limit, 0);
-  const sortField = req?.query?.sortBy || "created_at";
 
   const product = await productModel.aggregate([
     {
@@ -87,6 +94,11 @@ export const getProducts = catchAsync(async (req, res, next) => {
         portal != ""
           ? { "current_data.status": true, [portal]: true }
           : { "current_data.status": true },
+    },
+    {
+      $match: {
+        ...filter,
+      },
     },
     {
       $skip: skip,
