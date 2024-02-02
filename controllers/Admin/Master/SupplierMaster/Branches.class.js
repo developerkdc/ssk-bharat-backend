@@ -328,10 +328,11 @@ class Branches {
     });
   });
   GetBranchList = catchAsync(async (req, res, next) => {
-    const modalName = await this.#modal.find({ "current_data.isActive": true, "current_data.status": true }, { "current_data.branch_name": 1, "current_data.company_name": 1 }).populate({
-      path: `current_data.${this.#modalName}Id`,
-      select: "current_data.company_name current_data.company_type"
-    });
+    const {companyId} = req.params
+    const modalName = await this.#modal.find(
+      { [`current_data.${this.#modalName}Id`]: companyId, "current_data.isActive": true, "current_data.status": true },
+      { "current_data": 1, });
+
     return res.status(201).json({
       statusCode: 200,
       status: "Success",
@@ -503,6 +504,17 @@ class Branches {
     if (!companyId || !branchId) {
       return next(new ApiError("companyId or BranchId is required", 400));
     }
+
+    const max5Contact = await this.#modal.findOne({ _id: branchId, [`proposed_changes.${this.#modalName}Id`]: companyId });
+
+    if (!max5Contact) {
+      return next(new ApiError("can't find branch", 400));
+    }
+
+    if (max5Contact?.current_data?.contact_person.length >= 5) {
+      return next(new ApiError("you cannot add contact person more than 5", 400));
+    }
+
     const addConatct = await this.#modal.findByIdAndUpdate(
       { _id: branchId, [`proposed_changes.${this.#modalName}Id`]: companyId },
       {
@@ -630,6 +642,26 @@ class Branches {
       message: `set to primary`
     })
 
+  });
+  deleteContactPerson = catchAsync(async (req, res, next) => {
+    const { companyId, branchId } = req.params;
+    if (!companyId || !branchId) {
+      return next(new ApiError("companyId or BranchId is required", 400));
+    }
+
+    const max5Contact = await this.#modal.findOne({ _id: branchId, [`proposed_changes.${this.#modalName}Id`]: companyId });
+
+    if (!max5Contact) {
+      return next(new ApiError("can't find branch", 400));
+    }
+
+
+
+    return res.status(201).json({
+      statusCode: 201,
+      status: "deleted",
+      message: "contact deleted"
+    })
   })
 }
 export default Branches;

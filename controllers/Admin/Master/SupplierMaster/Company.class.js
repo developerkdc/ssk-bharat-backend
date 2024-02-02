@@ -62,6 +62,7 @@ class CompanyMaster {
       },
       primaryBranch:{
         type:mongoose.Schema.Types.ObjectId,
+        ref:branchCollectionName,
         default:null
       },
       inventorySchema: {
@@ -162,7 +163,10 @@ class CompanyMaster {
     });
   });
   GetCompanyById = catchAsync(async (req, res, next) => {
-    const modalName = await this.#modal.findOne({ _id: req.params.id });
+    const modalName = await this.#modal.findOne({ _id: req.params.id }).populate({
+      path:"current_data.primaryBranch",
+      select:"_id current_data"
+    });
     return res.status(201).json({
       statusCode: 200,
       status: "Success",
@@ -184,6 +188,7 @@ class CompanyMaster {
   AddCompany = catchAsync(async (req, res, next) => {
     const { approver, inventorySchema, billingSchema, ...data } = req.body;
     const user = req.user;
+    console.log(user)
     let protectedPassword;
 
     if (
@@ -295,6 +300,6 @@ class CompanyMaster {
       },
       message:"Branch set as primary"
     })
-  }) 
+  });
 }
 export default CompanyMaster;
