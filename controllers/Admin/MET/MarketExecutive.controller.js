@@ -66,11 +66,7 @@ export const getMarketExecutive = catchAsync(async (req, res, next) => {
 });
 
 export const getMarketExecutiveById = catchAsync(async (req, res, next) => {
-  const marketExec = await MarketExecutiveModel.aggregate([
-    {
-      $match: { _id: new mongoose.Types.ObjectId(req.params.id) },
-    },
-  ]);
+  const marketExec = await MarketExecutiveModel.findOne({ _id: req.params.id});
 
   return res.status(200).json({
     statusCode: 200,
@@ -203,8 +199,8 @@ export const updateMarketExec = catchAsync(async (req, res) => {
     documentId: req.params.id
   })
 
-  return res.status(201).json({
-    statusCode: 201,
+  return res.status(200).json({
+    statusCode: 200,
     status: "updated",
     data: {
       MarketExecutive: updateME,
