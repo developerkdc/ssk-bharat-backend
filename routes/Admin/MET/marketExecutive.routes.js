@@ -14,7 +14,6 @@ import authMiddleware from "../../../middlewares/adminAuth.js";
 const marketExecutiveRouter = express.Router();
 
 marketExecutiveRouter.route("/")
-  .get(getMarketExecutive)
   .post(authMiddleware,
     MulterFunction("./uploads/admin/marketExecutive").fields([
       { name: "policy_image", maxCount: 1 },
@@ -40,6 +39,7 @@ marketExecutiveRouter.route("/uploadImage/:id").patch(authMiddleware,
   uploadMarketExecImages
 );
 
+marketExecutiveRouter.post('/getAllMet',getMarketExecutive)
 marketExecutiveRouter.get("/dropdown/list", getMarketExecutiveList)
 
 marketExecutiveRouter.route("/nominee/add/:id").post(authMiddleware,
