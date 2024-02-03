@@ -46,7 +46,7 @@ marketExecutiveRouter.route("/nominee/add/:id").post(authMiddleware,
   MulterFunction("./uploads/admin/marketExecutive/nominee").fields([
     { name: "pan_image", maxCount: 1 },
     { name: "aadhar_image", maxCount: 1 },
-    { name: "passbook_image", maxCount: 1 },
+    { name: "gst_image", maxCount: 1 },
   ]),
   addNominee
 );
@@ -55,7 +55,7 @@ marketExecutiveRouter.route("/nominee/update/:id/:nomineeId").patch(authMiddlewa
   MulterFunction("./uploads/admin/marketExecutive/nominee").fields([
     { name: "pan_image", maxCount: 1 },
     { name: "aadhar_image", maxCount: 1 },
-    { name: "passbook_image", maxCount: 1 },
+    { name: "gst_image", maxCount: 1 },
   ]),
   editNominee
 );

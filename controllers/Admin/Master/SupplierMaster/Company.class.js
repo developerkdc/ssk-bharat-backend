@@ -167,7 +167,7 @@ class CompanyMaster {
       path:"current_data.primaryBranch",
       select:"_id current_data"
     });
-    return res.status(201).json({
+    return res.status(200).json({
       statusCode: 200,
       status: "Success",
       data: {
