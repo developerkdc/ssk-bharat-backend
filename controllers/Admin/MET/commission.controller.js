@@ -9,7 +9,7 @@ export const listingMECommissionBasedOnCompany = catchAsync(
   async (req, res, next) => {
     const companyMarketExective = await marketExectiveCommissionModel
       .find({ "current_data.companyId": req.params.id, "current_data.status": true })
-      .populate("current_data.companyId");
+      .populate("current_data.companyId").populate("current_data.marketExecutiveId");
 
     const listMarketExecutiveNotPresent = await MarketExecutiveModel.find({
       "current_data.status": true,

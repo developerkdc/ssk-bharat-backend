@@ -12,7 +12,7 @@ const marketExectiveCommissionSchema = SchemaFunction(new mongoose.Schema({
     marketExecutiveId:{
         type:mongoose.Schema.Types.ObjectId,
         trim:true,
-        ref:"marketexecutives",
+        ref:"MarketExecutive",
         required:[true,"market executive id is required"]
     },
     companyType:{
