@@ -18,8 +18,7 @@ const rolesPermissions = (name, key) => {
       }
       next();
     } catch (error) {
-      console.error("Error in roles Permissions middleware:", error);
-      next(new ApiError("Internal Server Error", 500));
+      next(new ApiError(error.message, 500));
     }
   };
 };

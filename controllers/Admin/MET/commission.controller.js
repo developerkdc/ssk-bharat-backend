@@ -3,23 +3,40 @@ import catchAsync from "../../../Utils/catchAsync";
 import marketExectiveCommissionModel from "../../../database/schema/MET/marketExectiveCommission.schema";
 import { approvalData } from "../../HelperFunction/approvalFunction";
 import adminApprovalFunction from "../../HelperFunction/AdminApprovalFunction"
+import MarketExecutiveModel from "../../../database/schema/MET/MarketExecutive.schema";
 
-export const listingMECommissionBasedOnReatiler = catchAsync(
+export const listingMECommissionBasedOnCompany = catchAsync(
   async (req, res, next) => {
-    const retailerMarketExective = await marketExectiveCommissionModel
-      .find({ "current_data.companyId": req.params.id,"current_data.status":true})
+    const companyMarketExective = await marketExectiveCommissionModel
+      .find({ "current_data.companyId": req.params.id, "current_data.status": true })
       .populate("current_data.companyId");
+
+    const listMarketExecutiveNotPresent = await MarketExecutiveModel.find({
+      "current_data.status": true,
+      "current_data.isActive": true,
+      _id: { $nin: companyMarketExective.map(e => e.current_data.marketExecutiveId) }
+    }, {
+      "current_data.company_details": 1,
+      "current_data.contact_person_details.first_name": 1,
+      "current_data.contact_person_details.last_name": 1,
+      "current_data.contact_person_details.primary_email_id": 1,
+      "current_data.contact_person_details.primary_mobile_no": 1,
+    })
+
+
     return res.status(200).json({
       statusCode: 200,
       status: "success",
+      marketExecutiveList: listMarketExecutiveNotPresent,
       data: {
-        MarketExecutiveCommission: retailerMarketExective,
+        MarketExecutiveCommission: companyMarketExective,
       },
     });
   }
 );
 
 export const addMECommission = catchAsync(async (req, res, next) => {
+
   const addCommission = await marketExectiveCommissionModel.create({ current_data: { ...req.body }, approver: approvalData(req.user) });
 
   adminApprovalFunction({
@@ -49,7 +66,7 @@ export const EditMECommission = catchAsync(async (req, res, next) => {
         "proposed_changes.commissionPercentage": req.body.commissionPercentage,
         "proposed_changes.isActive": req.body.isActive,
         "proposed_changes.status": req.body.status,
-        updated_at:Date.now(),
+        updated_at: Date.now(),
         approver: approvalData(req.user)
       }
     }

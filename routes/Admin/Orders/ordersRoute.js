@@ -12,14 +12,14 @@ const router = express.Router();
 router.post(
   "/newOrder",
   authMiddleware,
-  rolesPermissions("new_order", "add"),
+  rolesPermissions("order", "add"),
   createNewOrder
 );
 router.get("/latestOrderNo", authMiddleware, latestOrderNo);
 router.get(
   "/fetch",
   authMiddleware,
-  rolesPermissions("new_order", "view"),
+  rolesPermissions("order", "view"),
   fetchOrders
 );
 // router.get("/supplierId/:id", authMiddleware, getPOBasedOnSupplierID);
