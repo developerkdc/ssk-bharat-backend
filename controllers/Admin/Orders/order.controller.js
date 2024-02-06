@@ -53,7 +53,7 @@ export const createNewOrder = catchAsync(async (req, res, next) => {
           current_data: {
             ...req.body,
             purchase_order_id: storePO[0]?._id,
-            purchase_order_no: storePO[0]?.purchase_order_no  
+            purchase_order_no: storePO[0]?.purchase_order_no
           },
           approver: approvalData(user),
         },
@@ -150,11 +150,11 @@ export const fetchOrders = catchAsync(async (req, res, next) => {
   const totalDocuments = await OrdersModel.countDocuments({
     ...matchQuery,
     ...searchQuery,
-    "current_data.status":true
+    "current_data.status": true
   });
   const totalPages = Math.ceil(totalDocuments / limit);
 
-  const orders = await OrdersModel.find({ ...matchQuery, ...searchQuery,"current_data.status":true})
+  const orders = await OrdersModel.find({ ...matchQuery, ...searchQuery, "current_data.status": true })
     .skip(skip)
     .limit(limit)
     .sort({ [sortBy]: sort })
