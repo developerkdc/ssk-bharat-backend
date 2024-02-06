@@ -180,7 +180,7 @@ export const ChangePassword = catchAsync(async (req, res) => {
 export const FetchUsers = catchAsync(async (req, res) => {
   const { string, boolean, numbers } = req?.body?.searchFields || {};
   const search = req.query.search || "";
-
+  console.log(search);
   const page = parseInt(req.query.page) || 1;
   const limit = 10;
   const skip = (page - 1) * limit;
@@ -188,7 +188,7 @@ export const FetchUsers = catchAsync(async (req, res) => {
   const sortField = req.query.sortField || "created_at";
   const sortOrder = req.query.sortOrder || "asc";
   const sort = {};
-  sort[sortField] = sortOrder === "asc" ? 1 : -1;
+  sort[sortOrder] = sortOrder === "asc" ? 1 : -1;
 
   const filter = {};
   if (req.query.district)

@@ -18,8 +18,38 @@ const ItemsSchema = new mongoose.Schema({
   ratePerUnit: { type: Number, required: true, trim: true },
   quantity: { type: Number, required: true, trim: true },
   itemAmount: { type: Number, required: true, trim: true },
-  gstpercentage: { type: Number, required: true, trim: true },
-  gstAmount: { type: Number, required: true, trim: true },
+  gst: {
+    cgst: {
+      percentage: {
+        type: Number,
+        default: null,
+      },
+      cgst_value: {
+        type: Number,
+        default: null,
+      },
+    },
+    sgst: {
+      percentage: {
+        type: Number,
+        default: null,
+      },
+      sgst_value: {
+        type: Number,
+        default: null,
+      },
+    },
+    igst: {
+      percentage: {
+        type: Number,
+        default: null,
+      },
+      igst_value: {
+        type: Number,
+        default: null,
+      },
+    },
+  },
   totalAmount: { type: Number, required: true, trim: true },
   receivedQuantity: { type: Number, required: true, trim: true },
   availableQuantity: { type: Number, trim: true },
