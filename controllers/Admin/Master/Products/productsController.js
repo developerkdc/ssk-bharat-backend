@@ -215,7 +215,7 @@ export const getProducts = catchAsync(async (req, res, next) => {
 export const getProductList = catchAsync(async (req, res, next) => {
   const product = await productModel.aggregate([
     {
-      $match: { "current_data.status": true },
+      $match: { "current_data.status": true, "current_data.isActive": true },
     },
     {
       $lookup: {
@@ -320,8 +320,6 @@ export const updateProduct = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const user = req.user;
   const { product_images, ...data } = req.body;
-  console.log(data?.category, "cattt");
-  console.log(req.body, "body");
   const updatedProduct = await productModel.findByIdAndUpdate(
     id,
     {
@@ -502,4 +500,34 @@ export const getProductById = catchAsync(async (req, res, next) => {
       message: "Product Details",
     });
   }
+});
+
+export const updateProductStatus = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  const user = req.user;
+  const { product_images, ...data } = req.body;
+  const updatedProduct = await productModel.findByIdAndUpdate(
+    id,
+    {
+      "proposed_changes.isActive": data?.isActive,
+      approver: approvalData(user),
+      updated_at: Date.now(),
+    },
+    { new: true }
+  );
+
+  if (!updatedProduct) return new ApiError("Error while updating", 400);
+
+  adminApprovalFunction({
+    module: "products",
+    user: user,
+    documentId: id,
+  });
+
+  return res.status(200).json({
+    statusCode: 200,
+    status: "updated",
+    data: updatedProduct,
+    message: "Product Status Updated",
+  });
 });
