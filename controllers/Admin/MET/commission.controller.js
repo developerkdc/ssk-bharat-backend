@@ -5,6 +5,7 @@ import { approvalData } from "../../HelperFunction/approvalFunction";
 import adminApprovalFunction from "../../HelperFunction/AdminApprovalFunction"
 import MarketExecutiveModel from "../../../database/schema/MET/MarketExecutive.schema";
 import mongoose from "mongoose";
+import { dynamicSearch } from "../../../Utils/dynamicSearch";
 
 export const listingMECommissionBasedOnCompany = catchAsync(
   async (req, res, next) => {
