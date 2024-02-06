@@ -2,6 +2,7 @@ import express from "express";
 import {
   EditMECommission,
   addMECommission,
+  listMECommissionDropdown,
   listingMECommissionBasedOnCompany,
 } from "../../../controllers/Admin/MET/commission.controller";
 import authMiddleware from "../../../middlewares/adminAuth";
@@ -11,7 +12,9 @@ marketExecutiveCommissionRouter.route("/").post(authMiddleware,addMECommission);
 
 marketExecutiveCommissionRouter
   .route("/:id")
-  .get(authMiddleware,listingMECommissionBasedOnCompany)
+  .post(authMiddleware,listingMECommissionBasedOnCompany)
   .patch(authMiddleware,EditMECommission);
+
+marketExecutiveCommissionRouter.route("/dropdown/:id").get(authMiddleware,listMECommissionDropdown)
 
 export default marketExecutiveCommissionRouter;

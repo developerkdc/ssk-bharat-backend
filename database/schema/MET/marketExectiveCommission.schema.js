@@ -37,8 +37,11 @@ const marketExectiveCommissionSchema = SchemaFunction(new mongoose.Schema({
     }
 }));
 
+marketExectiveCommissionSchema.index({"current_data.companyId":1})
+marketExectiveCommissionSchema.index({"current_data.marketExecutiveId":1})
+
 const marketExectiveCommissionModel = mongoose.model('marketExectiveCommission',marketExectiveCommissionSchema);
 
-LogSchemaFunction("marketExectiveCommission", marketExectiveCommissionModel)
+// LogSchemaFunction("marketExectiveCommission", marketExectiveCommissionModel)
 
 export default marketExectiveCommissionModel;

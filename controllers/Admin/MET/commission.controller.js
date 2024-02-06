@@ -4,12 +4,93 @@ import marketExectiveCommissionModel from "../../../database/schema/MET/marketEx
 import { approvalData } from "../../HelperFunction/approvalFunction";
 import adminApprovalFunction from "../../HelperFunction/AdminApprovalFunction"
 import MarketExecutiveModel from "../../../database/schema/MET/MarketExecutive.schema";
+import mongoose from "mongoose";
 
 export const listingMECommissionBasedOnCompany = catchAsync(
   async (req, res, next) => {
-    const companyMarketExective = await marketExectiveCommissionModel
-      .find({ "current_data.companyId": req.params.id, "current_data.status": true })
-      .populate("current_data.companyId").populate("current_data.marketExecutiveId");
+    const { string, boolean, numbers } = req?.body?.searchFields || {};
+    const search = req.query.search || "";
+    const page = req.query.page || 1;
+    const limit = req.query.limit || 10;
+    const sort = req.query.sort || "desc";
+    const sortBy = req.query.sortBy || "current_data.commisionPercentage"
+
+    let searchQuery = {};
+    if (search != "" && req?.body?.searchFields) {
+      const searchdata = dynamicSearch(search, boolean, numbers, string);
+      searchQuery = searchdata;
+    }
+    const companyMarketExective = await marketExectiveCommissionModel.aggregate([
+      {
+        $match: { "current_data.companyId": new mongoose.Types.ObjectId(req.params.id), "current_data.status": true }
+      },
+      {
+        $skip: (page - 1) * limit
+      },
+      {
+        $limit: limit
+      },
+      {
+        $lookup: {
+          from: "marketexecutives",
+          foreignField: "_id",
+          localField: "current_data.marketExecutiveId",
+          pipeline: [
+            {
+              $project: {
+                "current_data": {
+                  company_details: 1,
+                  contact_person_details: {
+                    first_name: 1,
+                    last_name: 1,
+                    primary_email_id: 1,
+                    primary_mobile_no: 1,
+                  }
+                }
+              }
+            }
+          ],
+          as: "current_data.marketExecutiveId"
+        },
+      },
+      {
+        $unwind: {
+          path: "$current_data.marketExecutiveId",
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $match: { ...searchQuery }
+      },
+      {
+        $sort: { [sortBy]: sort === "desc" ? -1 : 1 }
+      },
+    ])
+
+    const totalDocuments = await marketExectiveCommissionModel.countDocuments({
+      ...searchQuery,
+      "current_data.companyId": new mongoose.Types.ObjectId(req.params.id),
+      "current_data.status": true
+    })
+    const totalPages = Math.ceil(totalDocuments / limit);
+
+
+    return res.status(200).json({
+      statusCode: 200,
+      status: "success",
+      length:companyMarketExective.length,
+      data: {
+        MarketExecutiveCommission: companyMarketExective,
+      },
+      totalPage:totalPages,
+      message: "Commission Listing based on company"
+    });
+  }
+);
+
+export const listMECommissionDropdown = catchAsync(
+  async (req, res, next) => {
+    const companyMarketExective = await marketExectiveCommissionModel.find({ "current_data.companyId": req.params.id, "current_data.status": true })
 
     const listMarketExecutiveNotPresent = await MarketExecutiveModel.find({
       "current_data.status": true,
@@ -27,9 +108,8 @@ export const listingMECommissionBasedOnCompany = catchAsync(
     return res.status(200).json({
       statusCode: 200,
       status: "success",
-      marketExecutiveList: listMarketExecutiveNotPresent,
       data: {
-        MarketExecutiveCommission: companyMarketExective,
+        marketExecutiveList: listMarketExecutiveNotPresent,
       },
     });
   }
@@ -86,5 +166,6 @@ export const EditMECommission = catchAsync(async (req, res, next) => {
     data: {
       MarketExecutiveCommission: EditCommission,
     },
+    message: "market executive commission has been updated"
   });
 });
