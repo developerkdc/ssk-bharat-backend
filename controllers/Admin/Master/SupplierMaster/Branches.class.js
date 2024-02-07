@@ -66,6 +66,7 @@ class Branches {
                 gst_no: {
                   type: String,
                   trim: true,
+                  unique:true,
                   required: [true, "gst no is required"],
                 },
                 gst_image: {

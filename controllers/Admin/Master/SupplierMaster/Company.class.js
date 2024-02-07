@@ -52,6 +52,7 @@ class CompanyMaster {
           pan_no: {
             type: String,
             trim: true,
+            unique:true,
             required: [true, "pan no is required"],
           },
           pan_image: {
