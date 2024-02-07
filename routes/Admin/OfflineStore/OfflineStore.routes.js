@@ -22,11 +22,11 @@ const branch = new Branches("offlinestore", "offlinestorebranches", "offlinestor
 offlineStoreRouter
   .route("/")
   .get(authMiddleware, offlineStore.GetCompany)
-  .post(authMiddleware, offlineStore.AddCompany);
+  .post(authMiddleware,MulterFunction("./uploads/admin/offlineStoreDocument/company").single("pan_image") ,offlineStore.AddCompany);
 
 offlineStoreRouter
   .route("/:id")
-  .patch(authMiddleware, offlineStore.UpdateCompany);
+  .patch(authMiddleware,MulterFunction("./uploads/admin/offlineStoreDocument/company").single("pan_image") ,offlineStore.UpdateCompany);
 
 offlineStoreRouter.route("/getAllCompany")
   .post(authMiddleware, offlineStore.GetCompany)
@@ -38,7 +38,7 @@ offlineStoreRouter.route('/primaryBranch/:companyId/:branchId')
 
 offlineStoreRouter.route("/branch").post(authMiddleware, 
   MulterFunction("./uploads/admin/offlineStoreDocument").fields([
-    { name: "pan_image", maxCount: 1 },
+    // { name: "pan_image", maxCount: 1 },
     { name: "gst_image", maxCount: 1 },
     { name: "passbook_image", maxCount: 1 },
   ]),branch.addBranch);
@@ -58,7 +58,7 @@ offlineStoreRouter.post("/BranchOfflineStore/all", authMiddleware, branch.getAll
 offlineStoreRouter.patch(
   "/branch/upload/:companyId/:branchId", authMiddleware,
   MulterFunction("./uploads/admin/offlineStoreDocument").fields([
-    { name: "pan_image", maxCount: 1 },
+    // { name: "pan_image", maxCount: 1 },
     { name: "gst_image", maxCount: 1 },
     { name: "passbook_image", maxCount: 1 },
   ]),
