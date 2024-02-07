@@ -95,15 +95,15 @@ export const getSSKPo = catchAsync(async (req, res, next) => {
   const { to, from, ...data } = req?.body?.filters || {};
   const matchQuery = data || {};
   if (to && from) {
-    matchQuery.purchase_order_date = { $gte: new Date(from) };
-    matchQuery.estimate_delivery_date = { $lte: new Date(to) };
+    matchQuery["current_data.purchase_order_date"] = { $gte: new Date(from) };
+    matchQuery["current_data.estimate_delivery_date"] = { $lte: new Date(to) };
   }
 
   const totalUnits = await sskPOModel.countDocuments({
     ...matchQuery,
     ...searchQuery,
   });
-
+  console.log({ ...matchQuery });
   const totalPages = Math.ceil(totalUnits / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
   const skip = Math.max((validPage - 1) * limit, 0);

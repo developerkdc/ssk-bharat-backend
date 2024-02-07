@@ -53,7 +53,7 @@ export const createNewOrder = catchAsync(async (req, res, next) => {
           current_data: {
             ...req.body,
             purchase_order_id: storePO[0]?._id,
-            purchase_order_no: storePO[0]?.purchase_order_no
+            purchase_order_no: storePO[0]?.purchase_order_no,
           },
           approver: approvalData(user),
         },
@@ -150,11 +150,15 @@ export const fetchOrders = catchAsync(async (req, res, next) => {
   const totalDocuments = await OrdersModel.countDocuments({
     ...matchQuery,
     ...searchQuery,
-    "current_data.status": true
+    "current_data.status": true,
   });
   const totalPages = Math.ceil(totalDocuments / limit);
 
-  const orders = await OrdersModel.find({ ...matchQuery, ...searchQuery, "current_data.status": true })
+  const orders = await OrdersModel.find({
+    ...matchQuery,
+    ...searchQuery,
+    "current_data.status": true,
+  })
     .skip(skip)
     .limit(limit)
     .sort({ [sortBy]: sort })
@@ -166,5 +170,35 @@ export const fetchOrders = catchAsync(async (req, res, next) => {
     status: "success",
     message: `All ${type} Orders`,
     totalPages: totalPages,
+  });
+});
+
+export const updateOrderStatus = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  const user = req.user;
+  const updatePO = await OrdersModel.findOneAndUpdate(
+    { _id: id }, // Assuming 'id' is the unique identifier field
+    {
+      $set: {
+        "proposed_changes.order_status": req.body.status,
+        "proposed_changes.status": false,
+        approver: approvalData(user),
+        updated_at: Date.now(),
+      },
+    },
+    { new: true } // This option returns the updated document
+  );
+  if (!updatePO) return next(new ApiError(" Order Not Found", 404));
+
+  adminApprovalFunction({
+    module: "orders",
+    user: user,
+    documentId: id,
+  });
+  return res.status(200).json({
+    statusCode: 200,
+    status: true,
+    data: updatePO,
+    message: "Status Updated",
   });
 });
