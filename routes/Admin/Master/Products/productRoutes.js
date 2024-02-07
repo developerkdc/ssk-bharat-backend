@@ -9,6 +9,7 @@ import {
   getProducts,
   updateProduct,
   updateProductImage,
+  updateProductStatus,
 } from "../../../../controllers/Admin/Master/Products/productsController";
 import authMiddleware from "../../../../middlewares/adminAuth";
 import rolesPermissions from "../../../../middlewares/rolesPermissionAuth";
@@ -65,5 +66,11 @@ router.get(
   getProductById
 );
 
+router.patch(
+  "/updateStatus/:id",
+  authMiddleware,
+  rolesPermissions("product", "edit"),
+  updateProductStatus
+);
 
 export default router;

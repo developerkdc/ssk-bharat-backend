@@ -4,12 +4,30 @@ import catchAsync from "../../../Utils/catchAsync";
 import sskPOModel from "../../../database/schema/PurchaseOrders/SSKPurchaseOrder.schema";
 import { dynamicSearch } from "../../../Utils/dynamicSearch";
 import { approvalData } from "../../HelperFunction/approvalFunction";
+import adminApprovalFunction from "../../HelperFunction/AdminApprovalFunction";
 
 export const createSSKPO = catchAsync(async (req, res, next) => {
   const user = req.user;
+  //latest po number
+  const latestPurchaseOrder = await sskPOModel
+    .findOne()
+    .sort({ created_at: -1 })
+    .select("current_data.purchase_order_no");
+  console.log(latestPurchaseOrder, "dadad");
   const po = await sskPOModel.create({
-    current_data: { ...req.body },
+    current_data: {
+      purchase_order_no: latestPurchaseOrder
+        ? latestPurchaseOrder?.current_data?.purchase_order_no + 1
+        : 1,
+      ...req.body,
+    },
     approver: approvalData(user),
+  });
+  if (!po) return new ApiError("Error while Creating", 400);
+  adminApprovalFunction({
+    module: "sskpurchaseorder",
+    user: user,
+    documentId: po._id,
   });
   if (po) {
     return res.status(201).json({
@@ -77,15 +95,15 @@ export const getSSKPo = catchAsync(async (req, res, next) => {
   const { to, from, ...data } = req?.body?.filters || {};
   const matchQuery = data || {};
   if (to && from) {
-    matchQuery.purchase_order_date = { $gte: new Date(from) };
-    matchQuery.estimate_delivery_date = { $lte: new Date(to) };
+    matchQuery["current_data.purchase_order_date"] = { $gte: new Date(from) };
+    matchQuery["current_data.estimate_delivery_date"] = { $lte: new Date(to) };
   }
 
   const totalUnits = await sskPOModel.countDocuments({
     ...matchQuery,
     ...searchQuery,
   });
-
+  console.log({ ...matchQuery });
   const totalPages = Math.ceil(totalUnits / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
   const skip = Math.max((validPage - 1) * limit, 0);
@@ -96,7 +114,7 @@ export const getSSKPo = catchAsync(async (req, res, next) => {
     .sort({ [sortField]: sortDirection })
     .skip(skip)
     .limit(limit);
-
+  console.log(matchQuery, searchQuery, sortField, sortDirection, "poooo");
   if (purchaseOrder) {
     return res.status(200).json({
       statusCode: 200,
@@ -127,6 +145,12 @@ export const updatePOStatus = catchAsync(async (req, res, next) => {
     { new: true } // This option returns the updated document
   );
   if (!updatePO) return next(new ApiError("Purchase Order Not Found", 404));
+
+  adminApprovalFunction({
+    module: "sskpurchaseorder",
+    user: user,
+    documentId: id,
+  });
   return res.status(200).json({
     statusCode: 200,
     status: true,
