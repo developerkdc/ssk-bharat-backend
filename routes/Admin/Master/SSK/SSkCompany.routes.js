@@ -10,7 +10,7 @@ const branch = new Branches("sskCompany", "sskCompanybranches", "sskcompanies");
 
 sskCompanyRouter
   .route("/")
-  .post(authMiddleware, sskCompany.AddCompany);
+  .post(authMiddleware,MulterFunction("./uploads/admin/sskCompanyDocument/company").single("pan_image") ,sskCompany.AddCompany);
 
 sskCompanyRouter.route("/getAllCompany")
   .post(authMiddleware, sskCompany.GetCompany)
@@ -18,14 +18,14 @@ sskCompanyRouter.route("/getAllCompany")
 sskCompanyRouter
   .route("/:id")
   .get(authMiddleware, sskCompany.GetCompanyById)
-  .patch(authMiddleware, sskCompany.UpdateCompany);
+  .patch(authMiddleware,MulterFunction("./uploads/admin/sskCompanyDocument/company").single("pan_image") ,sskCompany.UpdateCompany);
 
 sskCompanyRouter.route('/primaryBranch/:companyId/:branchId')
   .patch(authMiddleware, sskCompany.setPrimaryBranch)
 //branch
 sskCompanyRouter.route("/branch").post(authMiddleware,
   MulterFunction("./uploads/admin/sskCompanyDocument").fields([
-    { name: "pan_image", maxCount: 1 },
+    // { name: "pan_image", maxCount: 1 },
     { name: "gst_image", maxCount: 1 },
     { name: "passbook_image", maxCount: 1 },
   ]), branch.addBranch);
@@ -45,7 +45,7 @@ sskCompanyRouter.post("/BranchSskcompany/all", authMiddleware, branch.getAllBran
 sskCompanyRouter.patch(
   "/branch/upload/:companyId/:branchId", authMiddleware,
   MulterFunction("./uploads/admin/sskCompanyDocument").fields([
-    { name: "pan_image", maxCount: 1 },
+    // { name: "pan_image", maxCount: 1 },
     { name: "gst_image", maxCount: 1 },
     { name: "passbook_image", maxCount: 1 },
   ]),
@@ -53,7 +53,7 @@ sskCompanyRouter.patch(
 );
 
 sskCompanyRouter.get("/dropdown/list", authMiddleware, sskCompany.GetCompanyList)
-sskCompanyRouter.get("/branch/dropdown/list", authMiddleware, branch.GetBranchList)
+sskCompanyRouter.get("/branch/dropdown/list/:companyId", authMiddleware, branch.GetBranchList)
 
 sskCompanyRouter.patch('/contact/setprimary/:companyId/:branchId', authMiddleware, branch.setPrimaryContact);
 

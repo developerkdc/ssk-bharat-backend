@@ -66,11 +66,7 @@ export const getMarketExecutive = catchAsync(async (req, res, next) => {
 });
 
 export const getMarketExecutiveById = catchAsync(async (req, res, next) => {
-  const marketExec = await MarketExecutiveModel.aggregate([
-    {
-      $match: { _id: new mongoose.Types.ObjectId(req.params.id) },
-    },
-  ]);
+  const marketExec = await MarketExecutiveModel.findOne({ _id: req.params.id});
 
   return res.status(200).json({
     statusCode: 200,
@@ -203,8 +199,8 @@ export const updateMarketExec = catchAsync(async (req, res) => {
     documentId: req.params.id
   })
 
-  return res.status(201).json({
-    statusCode: 201,
+  return res.status(200).json({
+    statusCode: 200,
     status: "updated",
     data: {
       MarketExecutive: updateME,
@@ -291,64 +287,20 @@ export const uploadMarketExecImages = catchAsync(async (req, res, next) => {
 });
 
 export const addNominee = catchAsync(async (req, res, next) => {
-  const {
-    nominee_name,
-    nominee_dob,
-    nominee_age,
-    address,
-    location,
-    area,
-    district,
-    taluka,
-    state,
-    city,
-    country,
-    pincode,
-    pan_no,
-    aadhar_no,
-    bank_name,
-    account_no,
-    confirm_account_no,
-    ifsc_code,
-  } = req.body;
-  const { pan_image, aadhar_image, passbook_image } = req.files;
+  const nomineeData = JSON.parse(req.body?.nomineeData);
+  const { pan_image, aadhar_image, gst_image } = req.files;
+  
+  nomineeData.kyc.pan.pan_image = pan_image?.[0].path;
+  nomineeData.kyc.gst.gst_image = gst_image?.[0].path;
+  nomineeData.kyc.aadhar.aadhar_image = aadhar_image?.[0].path;
+
+  
   const addNominee = await MarketExecutiveModel.updateOne(
     { _id: req.params.id },
     {
       $push: {
         "proposed_changes.nominee": {
-          nominee_name,
-          nominee_dob,
-          nominee_age,
-          address: {
-            address,
-            location,
-            area,
-            district,
-            taluka,
-            state,
-            city,
-            country,
-            pincode,
-          },
-          kyc: {
-            kyc_status: false,
-            pan: {
-              pan_no,
-              pan_image: pan_image?.[0].filename,
-            },
-            aadhar: {
-              aadhar_no,
-              aadhar_image: aadhar_image?.[0].filename,
-            },
-            bank_details: {
-              bank_name,
-              account_no,
-              confirm_account_no,
-              ifsc_code,
-              passbook_image: passbook_image?.[0].filename,
-            },
-          },
+          ...nomineeData
         },
       },
       $set: {
@@ -378,28 +330,8 @@ export const addNominee = catchAsync(async (req, res, next) => {
 });
 
 export const editNominee = catchAsync(async (req, res, next) => {
-  const {
-    nominee_name,
-    nominee_dob,
-    nominee_age,
-    address,
-    isActive,
-    location,
-    area,
-    district,
-    taluka,
-    state,
-    city,
-    country,
-    pincode,
-    pan_no,
-    aadhar_no,
-    bank_name,
-    account_no,
-    confirm_account_no,
-    ifsc_code,
-  } = req.body;
-  const { pan_image, aadhar_image, passbook_image } = req.files;
+  const nomineeData = JSON.parse(req.body?.nomineeData);
+  const isActive = req.body?.isActive
 
   const images = {};
   if (req.files) {
@@ -412,27 +344,30 @@ export const editNominee = catchAsync(async (req, res, next) => {
     { _id: req.params.id, "proposed_changes.nominee._id": req.params.nomineeId },
     {
       $set: {
-        "proposed_changes.nominee.$[e].nominee_name": nominee_name,
-        "proposed_changes.nominee.$[e].nominee_dob": nominee_dob,
-        "proposed_changes.nominee.$[e].nominee_age": nominee_age,
-        "proposed_changes.nominee.$[e].address.address": address,
-        "proposed_changes.nominee.$[e].address.location": location,
-        "proposed_changes.nominee.$[e].address.area": area,
-        "proposed_changes.nominee.$[e].address.district": district,
-        "proposed_changes.nominee.$[e].address.taluka": taluka,
-        "proposed_changes.nominee.$[e].address.state": state,
-        "proposed_changes.nominee.$[e].address.city": city,
-        "proposed_changes.nominee.$[e].address.country": country,
-        "proposed_changes.nominee.$[e].address.pincode": pincode,
-        "proposed_changes.nominee.$[e].kyc.pan.pan_no": pan_no,
+        "proposed_changes.nominee.$[e].nominee_name": nomineeData?.nominee_name,
+        "proposed_changes.nominee.$[e].nominee_dob": nomineeData?.nominee_dob,
+        "proposed_changes.nominee.$[e].nominee_age": nomineeData?.nominee_age,
+        //address
+        "proposed_changes.nominee.$[e].address.address": nomineeData?.address?.address,
+        "proposed_changes.nominee.$[e].address.location": nomineeData?.address?.location,
+        "proposed_changes.nominee.$[e].address.area": nomineeData?.address?.area,
+        "proposed_changes.nominee.$[e].address.district":nomineeData?.address?. district,
+        "proposed_changes.nominee.$[e].address.taluka": nomineeData?.address?.taluka,
+        "proposed_changes.nominee.$[e].address.state": nomineeData?.address?.state,
+        "proposed_changes.nominee.$[e].address.city": nomineeData?.address?.city,
+        "proposed_changes.nominee.$[e].address.country": nomineeData?.address?.country,
+        "proposed_changes.nominee.$[e].address.pincode": nomineeData?.address?.pincode,
+        //kyc
+        //pan
+        "proposed_changes.nominee.$[e].kyc.pan.pan_no": nomineeData?.kyc?.pan?.pan_no,
         "proposed_changes.nominee.$[e].kyc.pan.pan_image": images?.pan_image,
-        "proposed_changes.nominee.$[e].kyc.aadhar.aadhar_no": aadhar_no,
+        //gst
+        "proposed_changes.nominee.$[e].kyc.gst.gst_no": nomineeData?.kyc?.gst?.gst_no,
+        "proposed_changes.nominee.$[e].kyc.gst.gst_image": images?.gst_image,
+        //aadhar
+        "proposed_changes.nominee.$[e].kyc.aadhar.aadhar_no": nomineeData?.kyc?.aadhar?.aadhar_no,
         "proposed_changes.nominee.$[e].kyc.aadhar.aadhar_image": images?.aadhar_image,
-        "proposed_changes.nominee.$[e].kyc.bank_details.bank_name": bank_name,
-        "proposed_changes.nominee.$[e].kyc.bank_details.account_no": account_no,
-        "proposed_changes.nominee.$[e].kyc.bank_details.confirm_account_no": confirm_account_no,
-        "proposed_changes.nominee.$[e].kyc.bank_details.ifsc_code": ifsc_code,
-        "proposed_changes.nominee.$[e].kyc.bank_details.passbook_image": images?.passbook_image,
+
         "proposed_changes.nominee.$[e].isActive": isActive,
         "proposed_changes.status": false,
         approver: approvalData(req.user),
@@ -450,10 +385,10 @@ export const editNominee = catchAsync(async (req, res, next) => {
 
   return res.status(201).json({
     statusCode: 201,
-    status: "added",
+    status: "updated",
     data: {
       MarketExecutive: editNominee,
     },
-    message: "nominee hass been added",
+    message: "nominee hass been updated",
   });
 });
