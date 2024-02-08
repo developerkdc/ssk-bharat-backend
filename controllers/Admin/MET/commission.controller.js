@@ -89,6 +89,21 @@ export const listingMECommissionBasedOnCompany = catchAsync(
   }
 );
 
+export const listMECommissionBasedOnMET = catchAsync(
+  async (req, res, next) => {
+    const companyMarketExective = await marketExectiveCommissionModel.find({ "current_data.companyId": req.params.id, "current_data.status": true })
+
+
+    return res.status(200).json({
+      statusCode: 200,
+      status: "success",
+      data: {
+        marketExecutiveList: listMarketExecutiveNotPresent,
+      },
+    });
+  }
+);
+
 export const listMECommissionDropdown = catchAsync(
   async (req, res, next) => {
     const companyMarketExective = await marketExectiveCommissionModel.find({ "current_data.companyId": req.params.id, "current_data.status": true })

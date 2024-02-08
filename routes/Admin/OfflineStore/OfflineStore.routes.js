@@ -66,7 +66,7 @@ offlineStoreRouter.patch(
 );
 
 offlineStoreRouter.get("/dropdown/list", authMiddleware, offlineStore.GetCompanyList)
-offlineStoreRouter.get("/branch/dropdown/list", authMiddleware, branch.GetBranchList)
+offlineStoreRouter.get("/branch/dropdown/list/:companyId", authMiddleware, branch.GetBranchList)
 
 offlineStoreRouter.patch('/contact/setprimary/:companyId/:branchId', authMiddleware, branch.setPrimaryContact)
 
