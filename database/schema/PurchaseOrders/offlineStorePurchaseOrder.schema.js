@@ -139,7 +139,6 @@ const storePurchaseOrderSchema = new mongoose.Schema({
         type: String,
         default: null,
         trim: true,
-        
       },
       primary_mobile_no: {
         type: Number,
@@ -194,7 +193,6 @@ const storePurchaseOrderSchema = new mongoose.Schema({
         type: String,
         default: null,
         trim: true,
-       
       },
       primary_mobile_no: {
         type: String,
@@ -252,34 +250,16 @@ const storePurchaseOrderSchema = new mongoose.Schema({
       },
       gst: {
         cgst: {
-          percentage: {
-            type: Number,
-            default: null,
-          },
-          cgst_value: {
-            type: Number,
-            default: null,
-          },
+          type: Number,
+          default: 0,
         },
         sgst: {
-          percentage: {
-            type: Number,
-            default: null,
-          },
-          sgst_value: {
-            type: Number,
-            default: null,
-          },
+          type: Number,
+          default: 0,
         },
         igst: {
-          percentage: {
-            type: Number,
-            default: null,
-          },
-          igst_value: {
-            type: Number,
-            default: null,
-          },
+          type: Number,
+          default: 0,
         },
       },
       total_amount: {
@@ -312,7 +292,18 @@ const storePurchaseOrderSchema = new mongoose.Schema({
     type: Number,
     required: [true, "Total Amount is required"],
   },
-  approver: userAndApprovals,
+  total_igst: {
+    type: Number,
+    default: 0,
+  },
+  total_cgst: {
+    type: Number,
+    default: 0,
+  },
+  total_sgst: {
+    type: Number,
+    default: 0,
+  },
   order_status: {
     type: String,
     enum: ["active", "cancelled", "closed"],
@@ -322,20 +313,18 @@ const storePurchaseOrderSchema = new mongoose.Schema({
     type: Number,
     required: [true, "Est Payment Days is required"],
   },
-  status: {
-    type: Boolean,
-    default:false
-  },
-  created_at: { type: Date, default: Date.now },
-  updated_at: { type: Date, default: Date.now },
-  deleted_at: { type: Date, default: null },
 });
+
+storePurchaseOrderSchema.index(
+  { "current_data.purchase_order_no": 1 },
+  { unique: true }
+);
 
 const storePOModel = mongoose.model(
   "offlinestorepurchaseorder",
   storePurchaseOrderSchema
 );
 
-LogSchemaFunction("offlinestorepo", storePOModel)
+LogSchemaFunction("offlinestorepo", storePOModel);
 
 export default storePOModel;

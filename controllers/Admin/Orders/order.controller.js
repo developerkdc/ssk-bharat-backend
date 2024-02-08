@@ -47,11 +47,19 @@ export const createNewOrder = catchAsync(async (req, res, next) => {
       ],
       { session }
     );
+
+    //latest order no
+    const latestPurchaseOrder = await OrdersModel.findOne()
+      .sort({ created_at: -1 })
+      .select("current_data.order_no");
     const newOrder = await OrdersModel.create(
       [
         {
           current_data: {
             ...req.body,
+            order_no: latestPurchaseOrder
+              ? latestPurchaseOrder?.current_data?.order_no + 1
+              : 1,
             purchase_order_id: storePO[0]?._id,
             purchase_order_no: storePO[0]?.purchase_order_no,
           },
@@ -143,8 +151,8 @@ export const fetchOrders = catchAsync(async (req, res, next) => {
     matchQuery["current_data.order_type"] = type;
   }
   if (to && from) {
-    matchQuery.order_date = { $gte: new Date(from) };
-    matchQuery.estimate_delivery_date = { $lte: new Date(to) };
+    matchQuery["current_data.order_date"] = { $gte: new Date(from) };
+    matchQuery["current_data.estimate_delivery_date"] = { $lte: new Date(to) };
   }
 
   const totalDocuments = await OrdersModel.countDocuments({
