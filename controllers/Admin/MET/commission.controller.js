@@ -11,8 +11,8 @@ export const listingMECommissionBasedOnCompany = catchAsync(
   async (req, res, next) => {
     const { string, boolean, numbers } = req?.body?.searchFields || {};
     const search = req.query.search || "";
-    const page = req.query.page || 1;
-    const limit = req.query.limit || 10;
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
     const sort = req.query.sort || "desc";
     const sortBy = req.query.sortBy || "current_data.commisionPercentage"
 
@@ -69,9 +69,9 @@ export const listingMECommissionBasedOnCompany = catchAsync(
     ])
 
     const totalDocuments = await marketExectiveCommissionModel.countDocuments({
-      ...searchQuery,
       "current_data.companyId": new mongoose.Types.ObjectId(req.params.id),
-      "current_data.status": true
+      "current_data.status": true,
+      ...searchQuery,
     })
     const totalPages = Math.ceil(totalDocuments / limit);
 
@@ -79,11 +79,11 @@ export const listingMECommissionBasedOnCompany = catchAsync(
     return res.status(200).json({
       statusCode: 200,
       status: "success",
-      length:companyMarketExective.length,
+      length: companyMarketExective.length,
       data: {
         MarketExecutiveCommission: companyMarketExective,
       },
-      totalPage:totalPages,
+      totalPage: totalPages,
       message: "Commission Listing based on company"
     });
   }
@@ -91,14 +91,39 @@ export const listingMECommissionBasedOnCompany = catchAsync(
 
 export const listMECommissionBasedOnMET = catchAsync(
   async (req, res, next) => {
-    const companyMarketExective = await marketExectiveCommissionModel.find({ "current_data.companyId": req.params.id, "current_data.status": true })
+    const { string, boolean, numbers } = req?.body?.searchFields || {};
+    const search = req.query.search || "";
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const sort = req.query.sort || "desc";
+    const sortBy = req.query.sortBy || "current_data.commisionPercentage"
 
+    const sortDirection = sort === "desc" ? -1 : 1;
+
+    let searchQuery = {};
+    if (search != "" && req?.body?.searchFields) {
+      const searchdata = dynamicSearch(search, boolean, numbers, string);
+      searchQuery = searchdata;
+    }
+
+    const MarketExectiveCompany = await marketExectiveCommissionModel
+      .find({ "current_data.marketExecutiveId": req.params.id, "current_data.status": true })
+      .limit(limit)
+      .skip((page - 1) * limit)
+      .populate({
+        path: "current_data.companyId",
+        select: {
+          "current_data.company_name": 1
+        }
+      })
+      .where("current_data.companyId.current_data.company_name","aaaa")
+      .sort({ [sortBy]: sortDirection })
 
     return res.status(200).json({
       statusCode: 200,
       status: "success",
       data: {
-        marketExecutiveList: listMarketExecutiveNotPresent,
+        MarketExectiveCompany: MarketExectiveCompany,
       },
     });
   }
