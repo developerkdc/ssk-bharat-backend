@@ -20,16 +20,12 @@ const purchaseOrderSchema = SchemaFunction(
       type: Date,
       required: [true, "Purchase Estimate Date is required"],
     },
-  
+
     supplier_details: {
       supplier_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "suppliers",
         required: true,
-      },
-      supplier_name: {
-        type: String,
-        required: [true, "supplier name is required"],
       },
       branch_id: {
         type: mongoose.Schema.Types.ObjectId,
@@ -52,7 +48,7 @@ const purchaseOrderSchema = SchemaFunction(
         type: String,
         // required: [true, "First Name is required"],
         trim: true,
-  
+
         default: null,
       },
       last_name: {
@@ -75,7 +71,7 @@ const purchaseOrderSchema = SchemaFunction(
       secondary_email_id: {
         type: String,
         default: null,
-        trim: true
+        trim: true,
       },
       primary_mobile_no: {
         type: Number,
@@ -86,6 +82,11 @@ const purchaseOrderSchema = SchemaFunction(
       address: addressSchema,
     },
     ssk_details: {
+      sskCompanyId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "sskcompanies",
+        required: true,
+      },
       bill_to: {
         branch_id: {
           type: mongoose.Schema.Types.ObjectId,
@@ -185,13 +186,13 @@ const purchaseOrderSchema = SchemaFunction(
         primary_mobile_no: {
           type: Number,
           required: [true, "Primary Mobile No is required"],
-          trim: true
+          trim: true,
         },
         secondary_mobile_no: { type: Number, default: null },
         address: addressSchema,
       },
     },
-  
+
     Items: [
       {
         product_id: {
@@ -220,7 +221,11 @@ const purchaseOrderSchema = SchemaFunction(
           required: [true, "Item Weight is required"],
           trim: true,
         },
-        unit: { type: String, required: [true, "Unit is required"], trim: true },
+        unit: {
+          type: String,
+          required: [true, "Unit is required"],
+          trim: true,
+        },
         rate_per_unit: {
           type: Number,
           required: [true, "Rate per Unit is required"],
@@ -238,34 +243,16 @@ const purchaseOrderSchema = SchemaFunction(
         },
         gst: {
           cgst: {
-            percentage: {
-              type: Number,
-              default: null,
-            },
-            cgst_value: {
-              type: Number,
-              default: null,
-            },
+            type: Number,
+            default: 0,
           },
           sgst: {
-            percentage: {
-              type: Number,
-              default: null,
-            },
-            sgst_value: {
-              type: Number,
-              default: null,
-            },
+            type: Number,
+            default: 0,
           },
           igst: {
-            percentage: {
-              type: Number,
-              default: null,
-            },
-            igst_value: {
-              type: Number,
-              default: null,
-            },
+            type: Number,
+            default: 0,
           },
         },
         total_amount: {
@@ -294,6 +281,18 @@ const purchaseOrderSchema = SchemaFunction(
       type: Number,
       required: [true, "Total Gst is required"],
     },
+    total_igst: {
+      type: Number,
+      default: 0,
+    },
+    total_cgst: {
+      type: Number,
+      default: 0,
+    },
+    total_sgst: {
+      type: Number,
+      default: 0,
+    },
     total_amount: {
       type: Number,
       required: [true, "Total Amount is required"],
@@ -304,14 +303,15 @@ const purchaseOrderSchema = SchemaFunction(
       default: "active",
     },
   })
-)
+);
 
-purchaseOrderSchema.index({ "current_data.purchase_order_no": 1 }, { unique: true });
-
+purchaseOrderSchema.index(
+  { "current_data.purchase_order_no": 1 },
+  { unique: true }
+);
 
 const sskPOModel = mongoose.model("sskpurchaseorder", purchaseOrderSchema);
 
-LogSchemaFunction("sskpo", sskPOModel)
-
+LogSchemaFunction("sskpo", sskPOModel);
 
 export default sskPOModel;

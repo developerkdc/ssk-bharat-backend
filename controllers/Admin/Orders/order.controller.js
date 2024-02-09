@@ -5,6 +5,8 @@ import storePOModel from "../../../database/schema/PurchaseOrders/offlineStorePu
 import OrdersModel from "../../../database/schema/Orders/order.schema";
 import mongoose from "mongoose";
 import { approvalData } from "../../HelperFunction/approvalFunction";
+import { createdByFunction } from "../../HelperFunction/createdByfunction";
+import adminApprovalFunction from "../../HelperFunction/AdminApprovalFunction";
 
 export const createNewOrder = catchAsync(async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -43,17 +45,27 @@ export const createNewOrder = catchAsync(async (req, res, next) => {
             store_id: customer_details.customer_id,
             store_name: customer_details.customer_name,
           },
+          status: false,
         },
       ],
       { session }
     );
+
+    //latest order no
+    const latestPurchaseOrder = await OrdersModel.findOne()
+      .sort({ created_at: -1 })
+      .select("current_data.order_no");
     const newOrder = await OrdersModel.create(
       [
         {
           current_data: {
             ...req.body,
+            order_no: latestPurchaseOrder
+              ? latestPurchaseOrder?.current_data?.order_no + 1
+              : 1,
             purchase_order_id: storePO[0]?._id,
-            purchase_order_no: storePO[0]?.purchase_order_no  
+            purchase_order_no: storePO[0]?.purchase_order_no,
+            created_by: createdByFunction(user),
           },
           approver: approvalData(user),
         },
@@ -66,6 +78,11 @@ export const createNewOrder = catchAsync(async (req, res, next) => {
     session.endSession();
 
     if (newOrder && storePO) {
+      adminApprovalFunction({
+        module: "orders",
+        user: user,
+        documentId: newOrder?.[0]?._id,
+      });
       return res.status(201).json({
         statusCode: 201,
         status: "success",
@@ -143,18 +160,22 @@ export const fetchOrders = catchAsync(async (req, res, next) => {
     matchQuery["current_data.order_type"] = type;
   }
   if (to && from) {
-    matchQuery.order_date = { $gte: new Date(from) };
-    matchQuery.estimate_delivery_date = { $lte: new Date(to) };
+    matchQuery["current_data.order_date"] = { $gte: new Date(from) };
+    matchQuery["current_data.estimate_delivery_date"] = { $lte: new Date(to) };
   }
 
   const totalDocuments = await OrdersModel.countDocuments({
     ...matchQuery,
     ...searchQuery,
-    "current_data.status":true
+    "current_data.status": true,
   });
   const totalPages = Math.ceil(totalDocuments / limit);
 
-  const orders = await OrdersModel.find({ ...matchQuery, ...searchQuery,"current_data.status":true})
+  const orders = await OrdersModel.find({
+    ...matchQuery,
+    ...searchQuery,
+    "current_data.status": true,
+  })
     .skip(skip)
     .limit(limit)
     .sort({ [sortBy]: sort })
@@ -166,5 +187,35 @@ export const fetchOrders = catchAsync(async (req, res, next) => {
     status: "success",
     message: `All ${type} Orders`,
     totalPages: totalPages,
+  });
+});
+
+export const updateOrderStatus = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  const user = req.user;
+  const updatePO = await OrdersModel.findOneAndUpdate(
+    { _id: id }, // Assuming 'id' is the unique identifier field
+    {
+      $set: {
+        "proposed_changes.order_status": req.body.status,
+        "proposed_changes.status": false,
+        approver: approvalData(user),
+        updated_at: Date.now(),
+      },
+    },
+    { new: true } // This option returns the updated document
+  );
+  if (!updatePO) return next(new ApiError(" Order Not Found", 404));
+
+  adminApprovalFunction({
+    module: "orders",
+    user: user,
+    documentId: id,
+  });
+  return res.status(200).json({
+    statusCode: 200,
+    status: true,
+    data: updatePO,
+    message: "Status Updated",
   });
 });

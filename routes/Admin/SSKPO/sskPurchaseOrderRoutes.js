@@ -18,7 +18,7 @@ router.post(
   createSSKPO
 );
 router.get("/latestPo", authMiddleware, latestSSKPONo);
-router.get(
+router.post(
   "/fetch",
   authMiddleware,
   rolesPermissions("ssk_po", "view"),

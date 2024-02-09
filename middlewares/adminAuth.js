@@ -81,10 +81,11 @@ const authMiddleware = async (req, res, next) => {
     if (!user) {
       return next(new ApiError("User Not Found", 404));
     }
+    console.log(user)
     req.user = user;
-    
+
     next()
-  } catch (error) { 
+  } catch (error) {
     return next(error)
   }
 };

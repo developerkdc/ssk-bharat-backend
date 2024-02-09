@@ -6,6 +6,7 @@ import fs from "fs";
 import { approvalData } from "../../../HelperFunction/approvalFunction";
 import { createdByFunction } from "../../../HelperFunction/createdByfunction";
 import adminApprovalFunction from "../../../HelperFunction/AdminApprovalFunction";
+import mongoose from "mongoose";
 
 export const createProduct = catchAsync(async (req, res, next) => {
   // Get the relative path of the uploaded image
@@ -55,6 +56,13 @@ export const getProducts = catchAsync(async (req, res, next) => {
   const sortDirection = req.query.sort === "desc" ? -1 : 1;
   const search = req.query.search || "";
   const portal = req.query.portal || "";
+  const sortField = req?.query?.sortBy || "created_at";
+  const filter = {};
+  if (req?.body?.filters["current_data.category._id"] != "") {
+    filter["current_data.category"] = new mongoose.Types.ObjectId(
+      req?.body?.filters["current_data.category._id"]
+    );
+  }
 
   let searchQuery = {};
   if (search != "" && req?.body?.searchFields) {
@@ -79,7 +87,6 @@ export const getProducts = catchAsync(async (req, res, next) => {
   const totalPages = Math.ceil(totalProduct / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
   const skip = Math.max((validPage - 1) * limit, 0);
-  const sortField = req?.query?.sortBy || "created_at";
 
   const product = await productModel.aggregate([
     {
@@ -87,6 +94,11 @@ export const getProducts = catchAsync(async (req, res, next) => {
         portal != ""
           ? { "current_data.status": true, [portal]: true }
           : { "current_data.status": true },
+    },
+    {
+      $match: {
+        ...filter,
+      },
     },
     {
       $skip: skip,
@@ -206,19 +218,94 @@ export const getProductList = catchAsync(async (req, res, next) => {
       $match: { "current_data.status": true, "current_data.isActive": true },
     },
     {
+      $lookup: {
+        from: "categories",
+        localField: "current_data.category",
+        foreignField: "_id",
+        as: "current_data.category",
+        pipeline: [
+          {
+            $project: {
+              _id: 1,
+              category_name: "$current_data.category_name",
+            },
+          },
+        ],
+      },
+    },
+    {
+      $lookup: {
+        from: "hsncodes", // Replace with the actual name of the "hsn_codes" collection
+        localField: "current_data.hsn_code",
+        foreignField: "_id",
+        as: "current_data.hsn_code",
+        pipeline: [
+          {
+            $lookup: {
+              from: "gsts",
+              localField: "current_data.gst_percentage",
+              foreignField: "_id",
+              as: "current_data.gst_percentage",
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+              hsn_code: "$current_data.hsn_code",
+              gst_percentage:
+                "$current_data.gst_percentage.current_data.gst_percentage",
+            },
+          },
+          {
+            $unwind: {
+              path: "$gst_percentage",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $lookup: {
+        from: "units", // Replace with the actual name of the "units" collection
+        localField: "current_data.unit",
+        foreignField: "_id",
+        as: "current_data.unit",
+        pipeline: [
+          {
+            $project: {
+              _id: 1,
+              unit_name: "$current_data.unit_name",
+              unit_symbol: "$current_data.unit_symbol",
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unwind: {
+        path: "$current_data.category",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $unwind: {
+        path: "$current_data.unit",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $unwind: {
+        path: "$current_data.hsn_code",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
       $project: {
-        _id: 1,
-        category: "$current_data.category",
-        product_name: "$current_data.product_name",
-        sku: "$current_data.sku",
-        hsn_code: "$current_data.hsn_code",
-        mrp: "$current_data.mrp",
-        item_weight: "$current_data.item_weight",
-        unit: "$current_data.unit",
+        current_data: 1,
       },
     },
   ]);
-
   if (product) {
     return res.status(200).json({
       statusCode: 200,
@@ -233,8 +320,6 @@ export const updateProduct = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const user = req.user;
   const { product_images, ...data } = req.body;
-  console.log(data?.category, "cattt");
-  console.log(req.body, "body");
   const updatedProduct = await productModel.findByIdAndUpdate(
     id,
     {
@@ -415,4 +500,34 @@ export const getProductById = catchAsync(async (req, res, next) => {
       message: "Product Details",
     });
   }
+});
+
+export const updateProductStatus = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  const user = req.user;
+  const { product_images, ...data } = req.body;
+  const updatedProduct = await productModel.findByIdAndUpdate(
+    id,
+    {
+      "proposed_changes.isActive": data?.isActive,
+      approver: approvalData(user),
+      updated_at: Date.now(),
+    },
+    { new: true }
+  );
+
+  if (!updatedProduct) return new ApiError("Error while updating", 400);
+
+  adminApprovalFunction({
+    module: "products",
+    user: user,
+    documentId: id,
+  });
+
+  return res.status(200).json({
+    statusCode: 200,
+    status: "updated",
+    data: updatedProduct,
+    message: "Product Status Updated",
+  });
 });
