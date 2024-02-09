@@ -106,25 +106,80 @@ export const listMECommissionBasedOnMET = catchAsync(
       searchQuery = searchdata;
     }
 
-    const MarketExectiveCompany = await marketExectiveCommissionModel
-      .find({ "current_data.marketExecutiveId": req.params.id, "current_data.status": true })
-      .limit(limit)
-      .skip((page - 1) * limit)
-      .populate({
-        path: "current_data.companyId",
-        select: {
-          "current_data.company_name": 1
+    const MarketExectiveCompany = await marketExectiveCommissionModel.aggregate([
+      {
+        $match: { "current_data.marketExecutiveId": new mongoose.Types.ObjectId(req.params.id), "current_data.status": true }
+      },
+      {
+        $skip: (page - 1) * limit
+      },
+      {
+        $limit: limit
+      },
+      {
+        $lookup: {
+          from: "retailers",
+          foreignField: "_id",
+          localField: "current_data.companyId",
+          pipeline: [
+            {
+              $project: {
+                current_data: {
+                  company_name: 1,
+                  pan: {
+                    pan_no: 1
+                  }
+                }
+              }
+            }
+          ],
+          as: "retailers"
         }
-      })
-      .where("current_data.companyId.current_data.company_name","aaaa")
-      .sort({ [sortBy]: sortDirection })
+      },
+      {
+        $lookup: {
+          from: "offlinestores",
+          foreignField: "_id",
+          localField: "current_data.companyId",
+          pipeline: [
+            {
+              $project: {
+                current_data: {
+                  company_name: 1,
+                  pan: {
+                    pan_no: 1
+                  }
+                }
+              }
+            }
+          ],
+          as: "offlinestores"
+        }
+      },
+      {
+        $match: { ...searchQuery }
+      },
+      {
+        $sort: { [sortBy]: sortDirection }
+      }
+    ])
+
+    const totalDocuments = await marketExectiveCommissionModel.countDocuments({
+      "current_data.marketExecutiveId": new mongoose.Types.ObjectId(req.params.id),
+      "current_data.status": true,
+      ...searchQuery,
+    })
+    const totalPages = Math.ceil(totalDocuments / limit);
 
     return res.status(200).json({
       statusCode: 200,
       status: "success",
+      length:MarketExectiveCompany.length,
+      totalPage: totalPages,
       data: {
         MarketExectiveCompany: MarketExectiveCompany,
       },
+      message: "Commission Listing based on Market Executive"
     });
   }
 );
