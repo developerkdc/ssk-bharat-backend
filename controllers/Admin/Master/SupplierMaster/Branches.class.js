@@ -8,6 +8,7 @@ import SchemaFunction from "../../../HelperFunction/SchemaFunction";
 import { dynamicSearch } from "../../../../Utils/dynamicSearch";
 import LogSchemaFunction from "../../../../database/utils/Logs.schema";
 import adminApprovalFunction from "../../../HelperFunction/AdminApprovalFunction";
+import addressSchema from "../../../../database/utils/address.schema";
 
 class Branches {
   #branchSchema;
@@ -47,24 +48,25 @@ class Branches {
               type: Boolean,
               default: false
             },
-            pan: {
-              type: {
-                pan_no: {
-                  type: String,
-                  trim: true,
-                  required: [true, "pan no is required"],
-                },
-                pan_image: {
-                  type: String,
-                  default: null,
-                },
-              },
-            },
+            // pan: {
+            //   type: {
+            //     pan_no: {
+            //       type: String,
+            //       trim: true,
+            //       required: [true, "pan no is required"],
+            //     },
+            //     pan_image: {
+            //       type: String,
+            //       default: null,
+            //     },
+            //   },
+            // },
             gst: {
               type: {
                 gst_no: {
                   type: String,
                   trim: true,
+                  unique:true,
                   required: [true, "gst no is required"],
                 },
                 gst_image: {
@@ -78,7 +80,6 @@ class Branches {
                 bank_name: {
                   type: String,
                   trim: true,
-                  lowercase: true,
                   required: [true, "bank name is required"],
                 },
                 account_no: {
@@ -110,62 +111,7 @@ class Branches {
             },
           },
         },
-        branch_address: {
-          address: {
-            type: String,
-            trim: true,
-            lowercase: true,
-            required: [true, "address is required"],
-          },
-          location: {
-            type: String,
-            trim: true,
-            lowercase: true,
-            required: [true, "location is required"],
-          },
-          area: {
-            type: String,
-            trim: true,
-            lowercase: true,
-            required: [true, "area is required"],
-          },
-          district: {
-            type: String,
-            trim: true,
-            lowercase: true,
-            required: [true, "district is required"],
-          },
-          taluka: {
-            type: String,
-            trim: true,
-            lowercase: true,
-            required: [true, "taluka is required"],
-          },
-          state: {
-            type: String,
-            trim: true,
-            lowercase: true,
-            required: [true, "state is required"],
-          },
-          city: {
-            type: String,
-            trim: true,
-            lowercase: true,
-            required: [true, "city is required"],
-          },
-          country: {
-            type: String,
-            trim: true,
-            lowercase: true,
-            required: [true, "country is required"],
-          },
-          pincode: {
-            type: String,
-            trim: true,
-            lowercase: true,
-            required: [true, "pincode is required"],
-          },
-        },
+        branch_address: addressSchema,
         contact_person: [
           {
             first_name: {
@@ -278,9 +224,6 @@ class Branches {
           $match: { ...filters, ...searchQuery, "current_data.status": true },
         },
         {
-          $sort: { [sortBy]: sort === "asc" ? 1 : -1 }
-        },
-        {
           $skip: (page - 1) * limit,
         },
         {
@@ -299,6 +242,9 @@ class Branches {
             path: `$current_data.${this.#modalName}Id`,
             preserveNullAndEmptyArrays: true,
           },
+        },
+        {
+          $sort: { [sortBy]: sort === "asc" ? 1 : -1 }
         },
       ])
     return res.status(200).json({
@@ -354,10 +300,10 @@ class Branches {
       current_data: {
         ...data,
         kyc: {
-          pan: {
-            pan_no: pan?.pan_no,
-            pan_image: images["pan_image"]
-          },
+          // pan: {
+          //   pan_no: pan?.pan_no,
+          //   pan_image: images["pan_image"]
+          // },
           gst: {
             gst_no: gst?.gst_no,
             gst_image: images["gst_image"]
@@ -401,10 +347,10 @@ class Branches {
       },
       {
         $set: {
-          "proposed_changes.supplierId": data?.supplierId,
+          [`proposed_changes.${this.#modalName}Id`]: data?.[`${this.#modalName}Id`],
           "proposed_changes.branch_name": data?.branch_name,
           "proposed_changes.branch_onboarding_date": data?.branch_onboarding_date,
-          "proposed_changes.kyc.pan.pan_no": data?.kyc?.pan?.pan_no,
+          // "proposed_changes.kyc.pan.pan_no": data?.kyc?.pan?.pan_no,
           "proposed_changes.kyc.gst.gst_no": data?.kyc?.gst?.gst_no,
           "proposed_changes.kyc.kyc_status": data?.kyc?.kyc_status,
           "proposed_changes.kyc.bank_details.bank_name":
@@ -474,7 +420,7 @@ class Branches {
         { _id: branchId, [`proposed_changes.${this.#modalName}Id`]: companyId },
         {
           $set: {
-            "proposed_changes.kyc.pan.pan_image": images?.pan_image,
+            // "proposed_changes.kyc.pan.pan_image": images?.pan_image,
             "proposed_changes.kyc.gst.gst_image": images?.gst_image,
             "proposed_changes.kyc.bank_details.passbook_image": images?.passbook_image,
             "proposed_changes.status": false,

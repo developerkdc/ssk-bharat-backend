@@ -9,26 +9,27 @@ const supplier = new CompanyMaster("supplier", "suppliers", "supplierbranches");
 const branch = new Branches("supplier", "supplierbranches", "suppliers");
 
 SupplierRouter.route("/")
-  .post(authMiddleware, supplier.AddCompany);
+  .post(authMiddleware,
+    MulterFunction("./uploads/admin/supplierDocument/company").single("pan_image"), supplier.AddCompany);
 
 SupplierRouter.route("/getAllCompany")
   .post(authMiddleware, supplier.GetCompany)
 
 SupplierRouter.route("/:id")
   .get(authMiddleware, supplier.GetCompanyById)
-  .patch(authMiddleware, supplier.UpdateCompany);
+  .patch(authMiddleware,MulterFunction("./uploads/admin/supplierDocument/company").single("pan_image"), supplier.UpdateCompany);
 
 SupplierRouter.route('/primaryBranch/:companyId/:branchId')
   .patch(authMiddleware, supplier.setPrimaryBranch)
 
 //branch
 
-SupplierRouter.route("/branch").post(authMiddleware, 
+SupplierRouter.route("/branch").post(authMiddleware,
   MulterFunction("./uploads/admin/supplierDocument").fields([
-  { name: "pan_image", maxCount: 1 },
-  { name: "gst_image", maxCount: 1 },
-  { name: "passbook_image", maxCount: 1 },
-]), branch.addBranch);
+    // { name: "pan_image", maxCount: 1 },
+    { name: "gst_image", maxCount: 1 },
+    { name: "passbook_image", maxCount: 1 },
+  ]), branch.addBranch);
 
 SupplierRouter.route("/branch/:companyId")
   .get(authMiddleware, branch.getBranchOfCompany)
@@ -43,7 +44,7 @@ SupplierRouter.post("/BranchSupplier/all", authMiddleware, branch.getAllBranchCo
 SupplierRouter.patch(
   "/branch/upload/:companyId/:branchId", authMiddleware,
   MulterFunction("./uploads/admin/supplierDocument").fields([
-    { name: "pan_image", maxCount: 1 },
+    // { name: "pan_image", maxCount: 1 },
     { name: "gst_image", maxCount: 1 },
     { name: "passbook_image", maxCount: 1 },
   ]),

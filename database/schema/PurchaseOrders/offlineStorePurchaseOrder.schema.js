@@ -313,6 +313,10 @@ const storePurchaseOrderSchema = new mongoose.Schema({
     type: Number,
     required: [true, "Est Payment Days is required"],
   },
+  status: {
+    type: Boolean,
+    required: [true, "Status is required"],
+  },
 });
 
 storePurchaseOrderSchema.index(

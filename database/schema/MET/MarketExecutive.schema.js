@@ -37,6 +37,19 @@ const nomineeSchema = new mongoose.Schema({
           },
         },
       },
+      gst: {
+        type: {
+          gst_no: {
+            type: String,
+            trim: true,
+            required: [true, "gst no is required"],
+          },
+          gst_image: {
+            type: String,
+            default: null,
+          },
+        },
+      },
       aadhar: {
         type: {
           aadhar_no: {
@@ -50,7 +63,6 @@ const nomineeSchema = new mongoose.Schema({
           },
         },
       },
-      bank_details: bankDetailsSchema,
     },
   },
 });

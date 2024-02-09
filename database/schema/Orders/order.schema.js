@@ -259,34 +259,16 @@ const orders = SchemaFunction(
         },
         gst: {
           cgst: {
-            percentage: {
-              type: Number,
-              default: null,
-            },
-            cgst_value: {
-              type: Number,
-              default: null,
-            },
+            type: Number,
+            default: 0,
           },
           sgst: {
-            percentage: {
-              type: Number,
-              default: null,
-            },
-            sgst_value: {
-              type: Number,
-              default: null,
-            },
+            type: Number,
+            default: 0,
           },
           igst: {
-            percentage: {
-              type: Number,
-              default: null,
-            },
-            igst_value: {
-              type: Number,
-              default: null,
-            },
+            type: Number,
+            default: 0,
           },
         },
         total_amount: {
@@ -314,6 +296,18 @@ const orders = SchemaFunction(
     total_gst: {
       type: Number,
       required: [true, "Total Gst is required"],
+    },
+    total_igst: {
+      type: Number,
+      default: 0,
+    },
+    total_cgst: {
+      type: Number,
+      default: 0,
+    },
+    total_sgst: {
+      type: Number,
+      default: 0,
     },
     total_amount: {
       type: Number,

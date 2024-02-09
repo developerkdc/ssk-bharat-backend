@@ -5,6 +5,8 @@ import storePOModel from "../../../database/schema/PurchaseOrders/offlineStorePu
 import OrdersModel from "../../../database/schema/Orders/order.schema";
 import mongoose from "mongoose";
 import { approvalData } from "../../HelperFunction/approvalFunction";
+import { createdByFunction } from "../../HelperFunction/createdByfunction";
+import adminApprovalFunction from "../../HelperFunction/AdminApprovalFunction";
 
 export const createNewOrder = catchAsync(async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -43,6 +45,7 @@ export const createNewOrder = catchAsync(async (req, res, next) => {
             store_id: customer_details.customer_id,
             store_name: customer_details.customer_name,
           },
+          status: false,
         },
       ],
       { session }
@@ -62,6 +65,7 @@ export const createNewOrder = catchAsync(async (req, res, next) => {
               : 1,
             purchase_order_id: storePO[0]?._id,
             purchase_order_no: storePO[0]?.purchase_order_no,
+            created_by: createdByFunction(user),
           },
           approver: approvalData(user),
         },
@@ -74,6 +78,11 @@ export const createNewOrder = catchAsync(async (req, res, next) => {
     session.endSession();
 
     if (newOrder && storePO) {
+      adminApprovalFunction({
+        module: "orders",
+        user: user,
+        documentId: newOrder?.[0]?._id,
+      });
       return res.status(201).json({
         statusCode: 201,
         status: "success",

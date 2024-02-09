@@ -6,13 +6,13 @@ const marketExectiveCommissionSchema = SchemaFunction(new mongoose.Schema({
     companyId:{
         type:mongoose.Schema.Types.ObjectId,
         trim:true,
-        required:[true,"retailer id is required"],
+        required:[true,"company id is required"],
         refPath:"current_data.companyType"
     },
     marketExecutiveId:{
         type:mongoose.Schema.Types.ObjectId,
         trim:true,
-        ref:"marketexecutives",
+        ref:"MarketExecutive",
         required:[true,"market executive id is required"]
     },
     companyType:{
@@ -37,8 +37,11 @@ const marketExectiveCommissionSchema = SchemaFunction(new mongoose.Schema({
     }
 }));
 
+marketExectiveCommissionSchema.index({"current_data.companyId":1})
+marketExectiveCommissionSchema.index({"current_data.marketExecutiveId":1})
+
 const marketExectiveCommissionModel = mongoose.model('marketExectiveCommission',marketExectiveCommissionSchema);
 
-LogSchemaFunction("marketExectiveCommission", marketExectiveCommissionModel)
+// LogSchemaFunction("marketExectiveCommission", marketExectiveCommissionModel)
 
 export default marketExectiveCommissionModel;

@@ -18,14 +18,13 @@ class CompanyMaster {
   #branchCollectionName;
   #modalName;
   #modal;
-  constructor(modalName, collectionName,branchCollectionName) {
+  constructor(modalName, collectionName, branchCollectionName) {
     this.#Schema = SchemaFunction(new mongoose.Schema({
       company_name: {
         type: String,
         minlength: [2, "Length should be greater than two"],
         maxlength: [25, "Length should be less than or equal to 25"],
         trim: true,
-        lowercase:true,
         required: [true, "Company name is required"],
       },
       company_type: {
@@ -36,8 +35,8 @@ class CompanyMaster {
           message: "invalid {VALUE}"
         },
         trim: true,
-        lowercase:true,
-        default:collectionName.toLowerCase()
+        lowercase: true,
+        default: collectionName.toLowerCase()
       },
       isActive: {
         type: Boolean,
@@ -46,6 +45,20 @@ class CompanyMaster {
       onboarding_date: {
         type: Date,
         default: Date.now,
+      },
+      pan: {
+        type: {
+          pan_no: {
+            type: String,
+            trim: true,
+            unique:true,
+            required: [true, "pan no is required"],
+          },
+          pan_image: {
+            type: String,
+            default: null,
+          },
+        },
       },
       // register_mobile_no: {
       //   type: String,
@@ -60,14 +73,14 @@ class CompanyMaster {
         trim: true,
         default: null,
       },
-      primaryBranch:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:branchCollectionName,
-        default:null
+      primaryBranch: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: branchCollectionName,
+        default: null
       },
       inventorySchema: {
         type: String,
-        lowercase:true,
+        lowercase: true,
         default: function () {
           if (this.company_type === "retailers" || this.company_type === "offlinestores") {
             return `${this.company_type}_${this.company_name}_${this.parent()._id.toString().slice(-5)}`
@@ -78,7 +91,7 @@ class CompanyMaster {
       },
       billingSchema: {
         type: String,
-        lowercase:true,
+        lowercase: true,
         default: function () {
           if (this.company_type === "retailers" || this.company_type === "offlinestores") {
             return `${this.company_type}_billing_${this.company_name}_${this.parent()._id.toString().slice(-5)}`
@@ -155,7 +168,7 @@ class CompanyMaster {
       statusCode: 200,
       status: "Success",
       totalPages: totalPages,
-      length:modalName.length,
+      length: modalName.length,
       data: {
         [this.#modalName]: modalName,
       },
@@ -164,10 +177,10 @@ class CompanyMaster {
   });
   GetCompanyById = catchAsync(async (req, res, next) => {
     const modalName = await this.#modal.findOne({ _id: req.params.id }).populate({
-      path:"current_data.primaryBranch",
-      select:"_id current_data"
+      path: "current_data.primaryBranch",
+      select: "_id current_data"
     });
-    return res.status(201).json({
+    return res.status(200).json({
       statusCode: 200,
       status: "Success",
       data: {
@@ -176,7 +189,7 @@ class CompanyMaster {
     });
   });
   GetCompanyList = catchAsync(async (req, res, next) => {
-    const modalName = await this.#modal.find({ "current_data.isActive": true, "current_data.status": true }, { "company_name": "$current_data.company_name" });
+    const modalName = await this.#modal.find({ "current_data.isActive": true, "current_data.status": true }, { "company_name": "$current_data.company_name","pan_no":"$current_data.pan.pan_no" });
     return res.status(201).json({
       statusCode: 200,
       status: "Success",
@@ -186,11 +199,10 @@ class CompanyMaster {
     });
   });
   AddCompany = catchAsync(async (req, res, next) => {
-    const { approver, inventorySchema, billingSchema, ...data } = req.body;
+    const { approver, inventorySchema, billingSchema, company_name, onboarding_date, pan_no } = req.body;
     const user = req.user;
-    console.log(user)
     let protectedPassword;
-
+    let pan_image;
     if (
       !req.baseUrl.endsWith("sskcompany") &&
       !req.baseUrl.endsWith("suppliers")
@@ -199,8 +211,21 @@ class CompanyMaster {
       protectedPassword = bcrypt.hashSync(Password, 12);
     }
 
+    if (req.file) {
+      pan_image = req.file.path
+    }
+
     const addData = await this.#modal.create({
-      current_data: { ...data, password: protectedPassword, created_by: createdByFunction(user) },
+      current_data: {
+        company_name,
+        onboarding_date,
+        pan: {
+          pan_no: pan_no,
+          pan_image: pan_image,
+        },
+        password: protectedPassword,
+        created_by: createdByFunction(user)
+      },
       approver: approvalData(user)
     });
 
@@ -225,10 +250,15 @@ class CompanyMaster {
     const {
       company_name,
       onboarding_date,
-      isActive
+      isActive,
+      pan_no
     } = req.body;
     const { id } = req.params;
     const user = req.user;
+    let pan_image;
+    if (req.file) {
+      pan_image = req.file.path
+    }
     const updateData = await this.#modal.findByIdAndUpdate(
       { _id: id },
       {
@@ -237,6 +267,8 @@ class CompanyMaster {
           "proposed_changes.status": false,
           "proposed_changes.isActive": isActive,
           "proposed_changes.onboarding_date": onboarding_date,
+          "proposed_changes.pan.pan_no": pan_no,
+          "proposed_changes.pan.pan_image": pan_image,
           approver: approvalData(user),
           updated_at: Date.now(),
         },
@@ -247,7 +279,7 @@ class CompanyMaster {
     adminApprovalFunction({
       module: this.#collectionName,
       user: user,
-      documentId:id
+      documentId: id
     })
 
     return res.status(200).json({
@@ -259,46 +291,46 @@ class CompanyMaster {
       message: `${this.#modalName} has Updated`,
     });
   });
-  setPrimaryBranch = catchAsync(async (req,res,next)=>{
-    const {companyId,branchId} = req.params;
-    if(!mongoose.Types.ObjectId.isValid(branchId)) return next(new ApiError(`${branchId} this is not valid Id`,400));
+  setPrimaryBranch = catchAsync(async (req, res, next) => {
+    const { companyId, branchId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(branchId)) return next(new ApiError(`${branchId} this is not valid Id`, 400));
 
     const user = req.user;
-    if(!user) return next(new ApiError("please Login and try again",404))
+    if (!user) return next(new ApiError("please Login and try again", 404))
 
     const branchData = await mongoose.model(this.#branchCollectionName).findOne({
-      _id:branchId,
-      [`current_data.${this.#modalName}Id`]:companyId,
-      "proposed_changes.isActive":true,
-      "proposed_changes.status":true,
+      _id: branchId,
+      [`current_data.${this.#modalName}Id`]: companyId,
+      "proposed_changes.isActive": true,
+      "proposed_changes.status": true,
     });
-    if(!branchData) return next(new ApiError(`Branch is not exits`,404))
-    
-    const setPrimary = await this.#modal.updateOne({_id:companyId},{
-      $set:{
-        "proposed_changes.primaryBranch":branchId,
-        approver:approvalData(user),
+    if (!branchData) return next(new ApiError(`Branch is not exits`, 404))
+
+    const setPrimary = await this.#modal.updateOne({ _id: companyId }, {
+      $set: {
+        "proposed_changes.primaryBranch": branchId,
+        approver: approvalData(user),
         updated_at: Date.now(),
       }
     })
 
-    if(!setPrimary.acknowledged && setPrimary.modifiedCount === 0){
-      return next(new ApiError("Unable to set primary branch",400))
+    if (!setPrimary.acknowledged && setPrimary.modifiedCount === 0) {
+      return next(new ApiError("Unable to set primary branch", 400))
     }
 
     adminApprovalFunction({
-      user:user,
-      documentId:companyId,
-      module:this.#collectionName
+      user: user,
+      documentId: companyId,
+      module: this.#collectionName
     })
 
     return res.status(201).json({
-      statusCode:201,
-      status:"success",
-      data:{
-        [this.#modalName]:setPrimary
+      statusCode: 201,
+      status: "success",
+      data: {
+        [this.#modalName]: setPrimary
       },
-      message:"Branch set as primary"
+      message: "Branch set as primary"
     })
   });
 }
