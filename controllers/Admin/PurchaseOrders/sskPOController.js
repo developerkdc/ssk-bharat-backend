@@ -14,7 +14,6 @@ export const createSSKPO = catchAsync(async (req, res, next) => {
     .findOne()
     .sort({ created_at: -1 })
     .select("current_data.purchase_order_no");
-  console.log(latestPurchaseOrder, "dadad");
   const po = await sskPOModel.create({
     current_data: {
       purchase_order_no: latestPurchaseOrder

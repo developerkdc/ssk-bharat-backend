@@ -35,13 +35,13 @@ const ProductSchema = SchemaFunction(
     short_description: {
       type: String,
       required: [true, "Short Description is required"],
-      minlength: 10,
+
       maxlength: 100,
     },
     long_description: {
       type: String,
       required: [true, "Long Description is required"],
-      minlength: 20,
+
       maxlength: 500,
     },
     hsn_code: {
@@ -87,8 +87,8 @@ const ProductSchema = SchemaFunction(
     },
     created_by: {
       type: createdBy,
-      required: [true, "created by is required"]
-    }
+      required: [true, "created by is required"],
+    },
   })
 );
 

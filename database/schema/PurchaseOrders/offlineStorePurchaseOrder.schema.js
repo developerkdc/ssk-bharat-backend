@@ -311,16 +311,18 @@ const storePurchaseOrderSchema = new mongoose.Schema({
   },
   est_payment_days: {
     type: Number,
-    required: [true, "Est Payment Days is required"],
   },
   status: {
     type: Boolean,
     required: [true, "Status is required"],
   },
+  created_at: { type: Date, default: Date.now },
+  updated_at: { type: Date, default: Date.now },
+  deleted_at: { type: Date, default: null },
 });
 
 storePurchaseOrderSchema.index(
-  { "current_data.purchase_order_no": 1 },
+  { "purchase_order_no": 1 },
   { unique: true }
 );
 
@@ -328,6 +330,8 @@ const storePOModel = mongoose.model(
   "offlinestorepurchaseorder",
   storePurchaseOrderSchema
 );
+
+
 
 LogSchemaFunction("offlinestorepo", storePOModel);
 

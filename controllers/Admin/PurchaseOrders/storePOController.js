@@ -16,7 +16,23 @@ export const createOfflineStorePO = catchAsync(async (req, res, next) => {
     } = req.body;
 
     // Create a new order
-    const storePO = await storePOModel.create([req.body], { session });
+    const latestPurchaseOrder = await storePOModel
+      .findOne()
+      .sort({ created_at: -1 })
+      .select("purchase_order_no");
+      console.log(latestPurchaseOrder,"PO")
+    const storePO = await storePOModel.create(
+      [
+        {
+       
+          purchase_order_no: latestPurchaseOrder
+            ? latestPurchaseOrder?.purchase_order_no + 1
+            : 1,
+            ...req.body,
+        },
+      ],
+      { session }
+    );
     // Create a new store purchase order
     let latestOrderNo = 1;
     const OrderNo = await OrdersModel.findOne()
@@ -34,7 +50,7 @@ export const createOfflineStorePO = catchAsync(async (req, res, next) => {
         {
           current_data: {
             ...req.body,
-            status:true,
+            status: true,
             order_no: latestOrderNo,
             order_type: "offlinestores",
             order_date: purchase_order_date,
@@ -49,7 +65,7 @@ export const createOfflineStorePO = catchAsync(async (req, res, next) => {
               customer_name: store_details.store_name,
             },
             purchase_order_id: storePO[0]?._id,
-            purchase_order_no: storePO[0]?.purchase_order_no  
+            purchase_order_no: storePO[0]?.purchase_order_no,
           },
         },
       ],
