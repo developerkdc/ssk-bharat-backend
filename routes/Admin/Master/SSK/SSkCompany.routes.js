@@ -5,7 +5,7 @@ import Branches from "../../../../controllers/Admin/Master/SupplierMaster/Branch
 import authMiddleware from "../../../../middlewares/adminAuth";
 const sskCompanyRouter = express.Router();
 
-const sskCompany = new CompanyMaster("sskCompany", "sskCompanies", "sskCompanybranches");
+ const sskCompany = new CompanyMaster("sskCompany", "sskCompanies", "sskCompanybranches");
 const branch = new Branches("sskCompany", "sskCompanybranches", "sskcompanies");
 
 sskCompanyRouter

@@ -45,6 +45,7 @@ import retailerSalesRouter from "./routes/Retailer/ConfirmSalesOrder/retailerCon
 import RetailerAuthRouter from "./routes/Retailer/Auth/Auth.route.js";
 import RetailerPRoutes from "./routes/Retailer/Billing/BillingRoutes.js";
 import RetailerInventory from "./routes/Retailer/Inventory/RetailerInventoryRoutes.js";
+import offlineDropdown from "./routes/OfflineStore/Dropdown/DropdownListRoute.js";
 
 const app = express();
 
@@ -113,6 +114,7 @@ app.group("/api/v1/retailer-portal", (router) => {
 app.group("/api/v1/offline-store-portal", (router) => {
   router.use('/purchase-order', offlinePORouter);
   router.use('/confirm-sales', offlineSalesRouter);
+  router.use('/dropdown', offlineDropdown);
 
 
 });

@@ -325,6 +325,13 @@ const retailerPurchaseOrderSchema = new mongoose.Schema({
   deleted_at: { type: Date, default: null },
 });
 
+
+retailerPurchaseOrderSchema.index(
+  { "purchase_order_no": 1 },
+  { unique: true }
+);
+
+
 const retailerPOModel = mongoose.model(
   "retailerpurchaseorder",
   retailerPurchaseOrderSchema
