@@ -94,7 +94,7 @@ export const listMECommissionBasedOnMET = catchAsync(
     const { string, boolean, numbers } = req?.body?.searchFields || {};
     const search = req.query.search || "";
     const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 10;
+    const limit = Number(req.query.limit) || 1;
     const sort = req.query.sort || "desc";
     const sortBy = req.query.sortBy || "current_data.commisionPercentage"
 
@@ -109,12 +109,6 @@ export const listMECommissionBasedOnMET = catchAsync(
     const MarketExectiveCompany = await marketExectiveCommissionModel.aggregate([
       {
         $match: { "current_data.marketExecutiveId": new mongoose.Types.ObjectId(req.params.id), "current_data.status": true }
-      },
-      {
-        $skip: (page - 1) * limit
-      },
-      {
-        $limit: limit
       },
       {
         $lookup: {
@@ -161,7 +155,13 @@ export const listMECommissionBasedOnMET = catchAsync(
       },
       {
         $sort: { [sortBy]: sortDirection }
-      }
+      },
+      {
+        $skip: (page - 1) * limit
+      },
+      {
+        $limit: limit
+      },
     ])
 
     const totalDocuments = await marketExectiveCommissionModel.countDocuments({
