@@ -108,7 +108,7 @@ const payoutAndCommissionTranSchema = new mongoose.Schema({
     marketExecutiveId: {
         type: mongoose.Schema.Types.ObjectId,
         required: [true, "market executive is required"]
-    },
+    },  
     commission: {
         type:{
             companyDetails: {
@@ -177,6 +177,10 @@ const payoutAndCommissionTranSchema = new mongoose.Schema({
     },
     payouts:{
         type:{
+            payoutDate:{
+                type:Date,
+                default:Date.now,
+            },
             payoutType:{
                 type:String,
                 required:[true,"payout type is required"]
