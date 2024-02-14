@@ -20,7 +20,7 @@ export const getRetailerPoByRetailersId = catchAsync(async (req, res, next) => {
         status: "failed",
         data: {
           purchaseOrder: [],
-        },
+        },  
         message: "Results Not Found",
       });
     }
@@ -36,18 +36,18 @@ export const getRetailerPoByRetailersId = catchAsync(async (req, res, next) => {
   const totalUnits = await retailerPOModel.countDocuments({
     ...matchQuery,
     ...searchQuery,
-    "retailer_details.retailer_id": "658a9e0d9b103802240ffd27",
+    "retailer_details.retailer_id": "65b4b72fae664feec7e469c9",
   });
   const totalPages = Math.ceil(totalUnits / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
-  const skip = (validPage - 1) * limit;
+  const skip = Math.max((validPage - 1) * limit, 0);
   const sortField = req.query.sortBy || "created_at";
 
   const purchaseOrder = await retailerPOModel
     .find({
       ...matchQuery,
       ...searchQuery,
-      "retailer_details.retailer_id": "658a9e0d9b103802240ffd27",
+      "retailer_details.retailer_id": "65b4b72fae664feec7e469c9",
     })
     .sort({ [sortField]: sortDirection })
     .skip(skip)

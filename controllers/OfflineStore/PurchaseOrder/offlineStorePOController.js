@@ -4,8 +4,6 @@ import catchAsync from "../../../Utils/catchAsync";
 import storePOModel from "../../../database/schema/PurchaseOrders/offlineStorePurchaseOrder.schema";
 import { dynamicSearch } from "../../../Utils/dynamicSearch";
 
-
-
 export const getStorePoByStoreId = catchAsync(async (req, res, next) => {
   const { string, boolean, numbers } = req?.body?.searchFields || {};
 
@@ -36,12 +34,13 @@ export const getStorePoByStoreId = catchAsync(async (req, res, next) => {
     matchQuery.purchase_order_date = { $gte: new Date(from) };
     matchQuery.estimate_delivery_date = { $lte: new Date(to) };
   }
-
+  console.log(matchQuery,"matchh");
   const totalUnits = await storePOModel.countDocuments({
     ...matchQuery,
     ...searchQuery,
-    "store_details.store_id": "5fbd8c7e74be260022cd6af5",//replace id with login user
+    "store_details.store_id": "65b4b72fae664feec7e469c9", //replace id with login user
   });
+
   if (!totalUnits) throw new Error(new ApiError("No Data", 404));
   const totalPages = Math.ceil(totalUnits / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
@@ -52,7 +51,7 @@ export const getStorePoByStoreId = catchAsync(async (req, res, next) => {
     .find({
       ...matchQuery,
       ...searchQuery,
-      "store_details.store_id": "5fbd8c7e74be260022cd6af5",
+      "store_details.store_id": "65b4b72fae664feec7e469c9",
     })
     .sort({ [sortField]: sortDirection })
     .skip(skip)
@@ -71,5 +70,3 @@ export const getStorePoByStoreId = catchAsync(async (req, res, next) => {
     });
   }
 });
-
-

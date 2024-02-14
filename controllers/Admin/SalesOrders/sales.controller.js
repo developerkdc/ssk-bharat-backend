@@ -41,7 +41,26 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
   try {
     session = await mongoose.startSession();
     session.startTransaction();
-    const sales = await SalesModel.create([{ current_data: { ...req.body }, approver: approvalData(req.user) }], { session });
+
+    const latestSalesOrder = await SalesModel.findOne()
+      .sort({ created_at: -1 })
+      .select("current_data.sales_order_no");
+    console.log(latestSalesOrder, "saless");
+    // return res.json({ data: { ...req.body } });
+    const sales = await SalesModel.create(
+      [
+        {
+          current_data: {
+            sales_order_no: latestSalesOrder
+              ? latestSalesOrder?.current_data?.sales_order_no + 1
+              : 1,
+            ...req.body,
+          },
+          approver: approvalData(req.user),
+        },
+      ],
+      { session }
+    );
     if (!sales) {
       throw new Error(new ApiError("Error during Sales Order", 400));
     }
@@ -59,26 +78,37 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
               salesOrderDate: sales[0].current_data.sales_order_date,
               offlineStoreDetails: {
                 companyId: sales[0].current_data.customer_details.customer_id,
-                companyName: sales[0].current_data.customer_details.customer_name,
+                companyName:
+                  sales[0].current_data.customer_details.customer_name,
                 companyType: sales[0].current_data.order_type,
                 gstNo: sales[0].current_data.customer_details.bill_to.gst_no,
-                firstName: sales[0].current_data.customer_details.bill_to.first_name,
-                lastName: sales[0].current_data.customer_details.bill_to.last_name,
-                email: sales[0].current_data.customer_details.bill_to.primary_email_id,
-                mobileNo: sales[0].current_data.customer_details.bill_to.primary_mobile_no,
+                firstName:
+                  sales[0].current_data.customer_details.bill_to.first_name,
+                lastName:
+                  sales[0].current_data.customer_details.bill_to.last_name,
+                email:
+                  sales[0].current_data.customer_details.bill_to
+                    .primary_email_id,
+                mobileNo:
+                  sales[0].current_data.customer_details.bill_to
+                    .primary_mobile_no,
               },
-              totalSalesAmount: Number(sales[0].current_data.total_amount).toFixed(2),
+              totalSalesAmount: Number(
+                sales[0].current_data.total_amount
+              ).toFixed(2),
               dueDate: dueDate,
-              approver: approvalData(req.user)
+              approver: approvalData(req.user),
             },
-          }
+          },
         ],
         { session }
       );
     }
     if (sales[0].current_data.order_type !== "websites") {
       const marketExecutive = await marketExectiveCommissionModel.find({
-        "current_data.companyId": sales[0].current_data.customer_details.customer_id,
+        "current_data.isActive":true,
+        "current_data.companyId":
+          sales[0].current_data.customer_details.customer_id,
       });
 
       //appproval
@@ -132,7 +162,6 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
       //   })
       // );
 
-
       const commission = await payoutAndCommissionTransModel.insertMany(
         marketExecutive.map((marketExec) => {
           return {
@@ -140,21 +169,32 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
             commission: {
               companyDetails: {
                 companyId: sales[0].current_data.customer_details.customer_id,
-                companyName: sales[0].current_data.customer_details.customer_name,
+                companyName:
+                  sales[0].current_data.customer_details.customer_name,
                 companyType: sales[0].current_data.order_type,
                 gstNo: sales[0].current_data.customer_details.bill_to.gst_no,
-                firstName: sales[0].current_data.customer_details.bill_to.first_name,
-                lastName: sales[0].current_data.customer_details.bill_to.last_name,
-                email: sales[0].current_data.customer_details.bill_to.primary_email_id,
-                mobileNo: sales[0].current_data.customer_details.bill_to.primary_mobile_no,
+                firstName:
+                  sales[0].current_data.customer_details.bill_to.first_name,
+                lastName:
+                  sales[0].current_data.customer_details.bill_to.last_name,
+                email:
+                  sales[0].current_data.customer_details.bill_to
+                    .primary_email_id,
+                mobileNo:
+                  sales[0].current_data.customer_details.bill_to
+                    .primary_mobile_no,
               },
               salesOrderId: sales[0].current_data._id,
               salesOrderNo: sales[0].current_data.sales_order_no,
               salesOrderDate: sales[0].current_data.sales_order_date,
-              salesOrderAmount: Number(sales[0].current_data.total_amount).toFixed(2),
-              commissionPercentage: marketExec.current_data.commissionPercentage,
+              salesOrderAmount: Number(
+                sales[0].current_data.total_amount
+              ).toFixed(2),
+              commissionPercentage:
+                marketExec.current_data.commissionPercentage,
               commissionAmount: Number(
-                (sales[0].current_data.total_amount / 100) * marketExec.current_data.commissionPercentage
+                (sales[0].current_data.total_amount / 100) *
+                  marketExec.current_data.commissionPercentage
               ).toFixed(2),
             },
           };
@@ -168,7 +208,7 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
             { _id: marketExecutive.marketExecutiveId },
             {
               $inc: {
-                "account_balance": Number(
+                account_balance: Number(
                   marketExecutive.commission.commissionAmount
                 ).toFixed(2),
               },
@@ -257,5 +297,22 @@ export const fetchSalesOrders = catchAsync(async (req, res, next) => {
     totalPages: totalPages,
   });
 });
- 
 
+export const getSalesOrderNoList = catchAsync(async (req, res, next) => {
+  const offlineSalesOrderNo = await SalesModel.aggregate([
+    {
+      $match: {
+        "current_data.status": true,
+        "current_data.order_type": "offlinestores",
+      },
+    },
+  ]);
+  if (offlineSalesOrderNo) {
+    return res.status(200).json({
+      statusCode: 200,
+      status: "success",
+      data: offlineSalesOrderNo,
+      message: "All Offline Sales Order List",
+    });
+  }
+});

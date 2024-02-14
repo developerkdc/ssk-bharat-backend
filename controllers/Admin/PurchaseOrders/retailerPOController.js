@@ -16,7 +16,21 @@ export const createRetailerPO = catchAsync(async (req, res, next) => {
     } = req.body;
 
     // Create a new order
-    const retailerPO = await retailerPOModel.create([req.body], { session });
+    const latestPurchaseOrder = await retailerPOModel
+      .findOne()
+      .sort({ created_at: -1 })
+      .select("purchase_order_no");
+    const retailerPO = await retailerPOModel.create(
+      [
+        {
+          purchase_order_no: latestPurchaseOrder
+            ? latestPurchaseOrder?.purchase_order_no + 1
+            : 1,
+          ...req.body,
+        },
+      ],
+      { session }
+    );
 
     // Create a new store purchase order
     let latestOrderNo = 1;
@@ -35,7 +49,7 @@ export const createRetailerPO = catchAsync(async (req, res, next) => {
         {
           current_data: {
             ...req.body,
-            status:true,
+            status: true,
             order_no: latestOrderNo,
             order_type: "retailers",
             order_date: purchase_order_date,
@@ -50,9 +64,9 @@ export const createRetailerPO = catchAsync(async (req, res, next) => {
               customer_name: retailer_details.retailer_name,
             },
             purchase_order_id: retailerPO[0]?._id,
-            purchase_order_no: retailerPO[0]?.purchase_order_no  
+            purchase_order_no: retailerPO[0]?.purchase_order_no,
           },
-        }
+        },
       ],
       { session }
     );
@@ -119,7 +133,7 @@ export const getRetailerPo = catchAsync(async (req, res, next) => {
   const search = req.query.search || "";
 
   let searchQuery = {};
-  if (search != "" && req?.body?.searchFields ) {
+  if (search != "" && req?.body?.searchFields) {
     const searchdata = dynamicSearch(search, boolean, numbers, string);
     if (searchdata?.length == 0) {
       return res.status(404).json({
@@ -140,20 +154,23 @@ export const getRetailerPo = catchAsync(async (req, res, next) => {
     matchQuery.estimate_delivery_date = { $lte: new Date(to) };
   }
 
-  const totalUnits = await retailerPOModel.countDocuments({...matchQuery,...searchQuery});
+  const totalUnits = await retailerPOModel.countDocuments({
+    ...matchQuery,
+    ...searchQuery,
+  });
   const totalPages = Math.ceil(totalUnits / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
   const skip = (validPage - 1) * limit;
   const sortField = req.query.sortBy || "purchase_order_no";
 
   const purchaseOrder = await retailerPOModel
-    .find({...matchQuery,...searchQuery})
+    .find({ ...matchQuery, ...searchQuery })
     .sort({ [sortField]: sortDirection })
     .skip(skip)
     .limit(limit);
 
   if (purchaseOrder) {
-    return res.status(200).json({ 
+    return res.status(200).json({
       statusCode: 200,
       status: "success",
       data: {
