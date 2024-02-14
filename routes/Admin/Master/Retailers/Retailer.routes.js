@@ -4,21 +4,14 @@ import CompanyMaster from "../../../../controllers/Admin/Master/SupplierMaster/C
 import Branches from "../../../../controllers/Admin/Master/SupplierMaster/Branches.class";
 import authMiddleware from "../../../../middlewares/adminAuth";
 import rolesPermissions from "../../../../middlewares/rolesPermissionAuth";
-import {
-  createRetailerPO,
-  getRetailerPo,
-  latestRetailerPONo,
-} from "../../../../controllers/Admin/PurchaseOrders/retailerPOController";
+
 
 const retailerRouter = express.Router();
 
 const retailer = new CompanyMaster("retailer", "retailers", "retailerbranches");
 const branch = new Branches("retailer", "retailerbranches", "retailers");
 
-retailerRouter.post("/create/PO", authMiddleware, createRetailerPO);
 
-retailerRouter.get("/latestRetailerPoNo", authMiddleware, latestRetailerPONo);
-retailerRouter.get("/fetch", authMiddleware, getRetailerPo);
 
 retailerRouter.route("/")
   .post(authMiddleware,MulterFunction("./uploads/admin/retailerDocument/company").single("pan_image") ,retailer.AddCompany);

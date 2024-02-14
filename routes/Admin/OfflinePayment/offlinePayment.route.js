@@ -5,7 +5,7 @@ const offlinePaymentRouter = express.Router();
 
 
 offlinePaymentRouter.route("/")
-    .get(authMiddleware,getOfflinePaymentDetails)
+    .post(authMiddleware,getOfflinePaymentDetails)
 
 offlinePaymentRouter.route("/payment/:id")
     .post(authMiddleware,addOfflinePayment)

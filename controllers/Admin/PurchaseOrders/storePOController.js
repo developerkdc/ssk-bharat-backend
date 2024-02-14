@@ -20,7 +20,7 @@ export const createOfflineStorePO = catchAsync(async (req, res, next) => {
       .findOne()
       .sort({ created_at: -1 })
       .select("purchase_order_no");
-      console.log(latestPurchaseOrder,"PO")
+   
     const storePO = await storePOModel.create(
       [
         {

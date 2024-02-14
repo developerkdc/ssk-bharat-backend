@@ -4,7 +4,7 @@ import { createOfflineStorePO, getStorePo, latestStorePONo } from "../../../cont
 
 const router = express.Router();
 
-router.get("/list", getStorePoByStoreId);
+router.post("/list", getStorePoByStoreId);
 router.post("/create/PO", createOfflineStorePO);
 router.get("/latestStorePoNo", latestStorePONo);
 router.get("/fetch", getStorePo);

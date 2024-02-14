@@ -213,7 +213,7 @@ const salesOrder = SchemaFunction(
     },
     Items: [
       {
-        product_Id: {
+        product_id: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "products",
           required: [true, "product Id is required"],
@@ -261,34 +261,16 @@ const salesOrder = SchemaFunction(
         },
         gst: {
           cgst: {
-            percentage: {
-              type: Number,
-              default: null,
-            },
-            cgst_value: {
-              type: Number,
-              default: null,
-            },
+            type: Number,
+            default: 0,
           },
           sgst: {
-            percentage: {
-              type: Number,
-              default: null,
-            },
-            sgst_value: {
-              type: Number,
-              default: null,
-            },
+            type: Number,
+            default: 0,
           },
           igst: {
-            percentage: {
-              type: Number,
-              default: null,
-            },
-            igst_value: {
-              type: Number,
-              default: null,
-            },
+            type: Number,
+            default: 0,
           },
         },
         total_amount: {
@@ -321,11 +303,24 @@ const salesOrder = SchemaFunction(
       type: Number,
       required: [true, "Total Amount is required"],
     },
-    est_payment_days: {
+    total_igst: {
       type: Number,
-      default: null,
+      default: 0,
+    },
+    total_cgst: {
+      type: Number,
+      default: 0,
+    },
+    total_sgst: {
+      type: Number,
+      default: 0,
     },
   })
+);
+
+salesOrder.index(
+  { "current_data.sales_order_no": 1 },
+  { unique: true }
 );
 
 const SalesModel = mongoose.model("salesorders", salesOrder);
