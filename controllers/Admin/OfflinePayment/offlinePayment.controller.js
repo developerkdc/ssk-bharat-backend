@@ -1,3 +1,4 @@
+import ApiError from "../../../Utils/ApiError";
 import catchAsync from "../../../Utils/catchAsync";
 import { dynamicSearch } from "../../../Utils/dynamicSearch";
 import offlinePaymentModel from "../../../database/schema/OfflinePayment/offlinePayment.schema";
@@ -57,7 +58,7 @@ export const getOfflinePaymentDetails = catchAsync(async (req, res, next) => {
     statusCode: 200,
     status: "success",
     data: {
-      offlinePaymentList:allOfflinePayment
+      offlinePaymentList: allOfflinePayment
     },
     totalPages: totalPages,
     message: "All Offline Payment Data",
@@ -92,7 +93,7 @@ export const addOfflinePayment = catchAsync(async (req, res, next) => {
       },
       $set: {
         "proposed_changes.paymentStatus": "partailly paid",
-        "proposed.changes.status":false,
+        "proposed.changes.status": false,
         approver: approvalData(req.user)
       },
     },
@@ -125,7 +126,7 @@ export const addFollowupAndRemark = catchAsync(async (req, res, next) => {
         },
       },
       $set: {
-        "proposed.changes.status":false,
+        "proposed_changes.status": false,
         approver: approvalData(req.user)
       }
     },
@@ -143,5 +144,43 @@ export const addFollowupAndRemark = catchAsync(async (req, res, next) => {
     status: true,
     data: addFollowupAndRemark,
     message: "Followup And Remark was added",
+  });
+});
+
+export const updatePaymentStatus = catchAsync(async (req, res, next) => {
+  const { paymentStatus } = req.body;
+  const offlinePayment = await offlinePaymentModel.findOne({ _id: req.params.id })
+  
+  if(paymentStatus === "fully paid" && (offlinePayment?.proposed_changes?.totalSalesAmount !== offlinePayment?.proposed_changes?.recievedAmount)){
+    return next(new ApiError("Payment not recieved fully",400))
+  }
+
+  if(paymentStatus === "partailly paid" && offlinePayment?.proposed_changes?.recievedAmount <= 0){
+    return next(new ApiError("Payment not recieved yet",400))
+  }
+
+  const updatePaymentStatus = await offlinePaymentModel.findByIdAndUpdate(
+    { _id: req.params.id },
+    {
+      $set: {
+        "proposed_changes.paymentStatus":paymentStatus,
+        "proposed_changes.status": false,
+        approver: approvalData(req.user)
+      }
+    },
+    { new: true }
+  );
+
+  adminApprovalFunction({
+    module: "offlinepayments",
+    user: req.user,
+    documentId: req.params.id
+  })
+
+  return res.status(201).json({
+    statusCode: 201,
+    status: true,
+    data: updatePaymentStatus,
+    message: "Payment Status has Updated",
   });
 });
