@@ -254,6 +254,16 @@ const salesOrder = SchemaFunction(
           required: [true, "Quantity is required"],
           trim: true,
         },
+        dispatch_quantity: {
+          type: Number,
+          required: [true, "Dispatch Quantity is required"],
+          trim: true,
+        },
+        balance_quantity: {
+          type: Number,
+          required: [true, "Balance Quantity is required"],
+          trim: true,
+        },
         item_amount: {
           type: Number,
           required: [true, "Item Amount is required"],
@@ -315,13 +325,14 @@ const salesOrder = SchemaFunction(
       type: Number,
       default: 0,
     },
+    est_payment_days: {
+      type: Number,
+      default: null,
+    },
   })
 );
 
-salesOrder.index(
-  { "current_data.sales_order_no": 1 },
-  { unique: true }
-);
+salesOrder.index({ "current_data.sales_order_no": 1 }, { unique: true });
 
 const SalesModel = mongoose.model("salesorders", salesOrder);
 

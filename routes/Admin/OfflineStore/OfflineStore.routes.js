@@ -9,8 +9,8 @@ const offlineStoreRouter = express.Router();
 
 
 
-const offlineStore = new CompanyMaster("offlinestore", "offlinestores", "offlinestorebranches");
-const branch = new Branches("offlinestore", "offlinestorebranches", "offlinestores");
+export const offlineStore = new CompanyMaster("offlinestore", "offlinestores", "offlinestorebranches");
+export const branch = new Branches("offlinestore", "offlinestorebranches", "offlinestores");
 
 offlineStoreRouter
   .route("/")
