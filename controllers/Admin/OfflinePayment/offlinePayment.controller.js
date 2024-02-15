@@ -73,6 +73,7 @@ export const addOfflinePayment = catchAsync(async (req, res, next) => {
     followUpDate,
     remark,
     paymentAmount,
+    paymentDate
   } = req.body;
   const addPayment = await offlinePaymentModel.findOneAndUpdate(
     { _id: req.params.id },
@@ -85,6 +86,7 @@ export const addOfflinePayment = catchAsync(async (req, res, next) => {
           followUpDate,
           paymentAmount: paymentAmount,
           remark,
+          paymentDate
         },
       },
       $inc: {

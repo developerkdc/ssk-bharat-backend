@@ -85,6 +85,10 @@ const offlinePaymentSchema = SchemaFunction(
     payments: {
       type: [
         {
+          paymentDate: {
+            type: Date,
+            default:Date.now
+          },
           paymentType: {
             type: String,
             required: [true, "payment Type is required"],
