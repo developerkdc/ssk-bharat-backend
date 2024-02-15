@@ -110,7 +110,7 @@ const salesOrder = SchemaFunction(
           type: mongoose.Schema.Types.ObjectId,
           required: true,
         },
-        name: {
+        branch_name: {
           type: String,
           // required: [true, "Name is required"],
           trim: true,
@@ -162,7 +162,7 @@ const salesOrder = SchemaFunction(
           type: mongoose.Schema.Types.ObjectId,
           required: true,
         },
-        name: {
+        branch_name: {
           type: String,
           // required: [true, "Name is required"],
           trim: true,
