@@ -100,7 +100,7 @@ const retailerPurchaseOrderSchema = new mongoose.Schema({
         ref: "offlinestorebranches",
         required: true,
       },
-      company_name: {
+      branch_name: {
         type: String,
         // required: [true, "Company Name is required"],
         trim: true,
@@ -154,7 +154,7 @@ const retailerPurchaseOrderSchema = new mongoose.Schema({
         ref: "offlinestorebranches",
         required: true,
       },
-      company_name: {
+      branch_name: {
         type: String,
         // required: [true, "Company Name is required"],
         trim: true,

@@ -8,8 +8,8 @@ import rolesPermissions from "../../../../middlewares/rolesPermissionAuth";
 
 const retailerRouter = express.Router();
 
-const retailer = new CompanyMaster("retailer", "retailers", "retailerbranches");
-const branch = new Branches("retailer", "retailerbranches", "retailers");
+export const retailer = new CompanyMaster("retailer", "retailers", "retailerbranches");
+export const branch = new Branches("retailer", "retailerbranches", "retailers");
 
 
 
