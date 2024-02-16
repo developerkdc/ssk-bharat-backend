@@ -302,17 +302,20 @@ export const getSalesOrderNoList = catchAsync(async (req, res, next) => {
   const offlineSalesOrderNo = await SalesModel.aggregate([
     {
       $match: {
-        "current_data.status": true,
         "current_data.order_type": "offlinestores",
       },
     },
+    {
+      $project:{
+        sales_order_no:"$current_data.sales_order_no",
+        order_no:"$current_data.order_no"
+      }
+    }
   ]);
-  if (offlineSalesOrderNo) {
-    return res.status(200).json({
-      statusCode: 200,
-      status: "success",
-      data: offlineSalesOrderNo,
-      message: "All Offline Sales Order List",
-    });
-  }
+  return res.status(200).json({
+    statusCode: 200,
+    status: "success",
+    data: offlineSalesOrderNo,
+    message: "All Offline Sales Order List",
+  });
 });
