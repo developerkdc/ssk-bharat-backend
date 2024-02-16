@@ -13,19 +13,19 @@ router.get("/latestOrderNo", authMiddleware, latestSalesOrderNo);
 router.post(
   "/create",
   authMiddleware,
-  // rolesPermissions("sales", "add"),
+  rolesPermissions("salesOrder", "add"),
   createSalesOrder
 );
-router.get(
+router.post(
   "/fetch",
   authMiddleware,
-  rolesPermissions("sales", "view"),
+  rolesPermissions("salesOrder", "view"),
   fetchSalesOrders
 );
 router.get(
   "/offlineSalesOrder/dropdown",
   authMiddleware,
-  // rolesPermissions("sales", "view"),
+  rolesPermissions("salesOrder", "view"),
   getSalesOrderNoList
 );
 

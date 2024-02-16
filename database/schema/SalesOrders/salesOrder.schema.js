@@ -17,6 +17,11 @@ const salesOrder = SchemaFunction(
       trim: true,
       unique: true,
     },
+    estimate_delivery_date: {
+      type: Date,
+      required: [true, "Order Estimate Date is required"],
+      trim: true,
+    },
     sales_order_date: {
       type: Date,
       required: [true, "Sales Order Date is required"],
@@ -110,7 +115,7 @@ const salesOrder = SchemaFunction(
           type: mongoose.Schema.Types.ObjectId,
           required: true,
         },
-        name: {
+        branch_name: {
           type: String,
           // required: [true, "Name is required"],
           trim: true,
@@ -162,7 +167,7 @@ const salesOrder = SchemaFunction(
           type: mongoose.Schema.Types.ObjectId,
           required: true,
         },
-        name: {
+        branch_name: {
           type: String,
           // required: [true, "Name is required"],
           trim: true,
