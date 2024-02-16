@@ -34,7 +34,7 @@ export const getStorePoByStoreId = catchAsync(async (req, res, next) => {
     matchQuery.purchase_order_date = { $gte: new Date(from) };
     matchQuery.estimate_delivery_date = { $lte: new Date(to) };
   }
-  console.log(matchQuery,"matchh");
+  console.log(matchQuery,"offline")
   const totalUnits = await storePOModel.countDocuments({
     ...matchQuery,
     ...searchQuery,

@@ -245,6 +245,7 @@ export const fetchSalesOrders = catchAsync(async (req, res, next) => {
     limit = 10,
     sortBy = "sales_order_no",
     sort = "desc",
+    search=""
   } = req.query;
   const skip = (page - 1) * limit;
 
@@ -255,7 +256,7 @@ export const fetchSalesOrders = catchAsync(async (req, res, next) => {
   }
 
   if (to && from) {
-    matchQuery.sales_order_date = {
+    matchQuery["current_data.sales_order_date"] = {
       $gte: new Date(from),
       $lte: new Date(to),
     };

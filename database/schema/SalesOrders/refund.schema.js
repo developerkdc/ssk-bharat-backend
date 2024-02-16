@@ -10,6 +10,28 @@ const refundSchema = SchemaFunction(
       ref: "salesorders",
       unique: true,
     },
+    sales_order_no: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: [true, "Sales Order No is required"],
+      ref: "salesorders",
+      unique: true,
+    },
+    order_no: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: [true, "Order No is required"],
+      ref: "salesorders",
+      unique: true,
+    },
+    customer_name: {
+      type: Number,
+      required: [true, "Customer Name is required"],
+      trim: true,
+    },
+    refund_date: {
+      type: Date,
+      required: [true, "Refund Amount is required"],
+      trim: true,
+    },
     total_amount: {
       type: Number,
       required: [true, "Refund Amount is required"],
@@ -25,9 +47,9 @@ const refundSchema = SchemaFunction(
       required: [true, "Transaction ID is required"],
       trim: true,
     },
-    refund_type: {
+    transaction_type: {
       type: String,
-      required: [true, "Refund Type is required"],
+      required: [true, "Transaction Type is required"],
       enum: ["neft", "rtgs", "cheque"],
     },
   })

@@ -32,6 +32,7 @@ export const getRetailerPoByRetailersId = catchAsync(async (req, res, next) => {
     matchQuery.purchase_order_date = { $gte: new Date(from) };
     matchQuery.estimate_delivery_date = { $lte: new Date(to) };
   }
+  console.log(matchQuery,"reatiler")
 
   const totalUnits = await retailerPOModel.countDocuments({
     ...matchQuery,

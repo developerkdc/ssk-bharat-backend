@@ -16,7 +16,7 @@ router.post(
   rolesPermissions("salesOrder", "add"),
   createSalesOrder
 );
-router.get(
+router.post(
   "/fetch",
   authMiddleware,
   rolesPermissions("salesOrder", "view"),

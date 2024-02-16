@@ -17,6 +17,11 @@ const salesOrder = SchemaFunction(
       trim: true,
       unique: true,
     },
+    estimate_delivery_date: {
+      type: Date,
+      required: [true, "Order Estimate Date is required"],
+      trim: true,
+    },
     sales_order_date: {
       type: Date,
       required: [true, "Sales Order Date is required"],
