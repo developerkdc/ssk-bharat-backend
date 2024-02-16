@@ -137,6 +137,8 @@ const offlinePaymentSchema = SchemaFunction(
   })
 );
 
+offlinePaymentSchema.index({"current_data.payments.transactionId":1})
+
 offlinePaymentSchema.pre("findOneAndUpdate", async function (next) {
   try {
     const updatingData = this.getUpdate();
