@@ -37,6 +37,11 @@ const salesOrder = SchemaFunction(
       enum: ["retailers", "offlinestores", "websites"],
       trim: true,
     },
+    refund_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref:"refunds",
+      default:null,
+    },
     ssk_details: {
       ssk_id: {
         type: mongoose.Schema.Types.ObjectId,

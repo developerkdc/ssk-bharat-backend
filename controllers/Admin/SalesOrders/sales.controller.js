@@ -281,6 +281,7 @@ export const fetchSalesOrders = catchAsync(async (req, res, next) => {
   const salesOrders = await SalesModel.find({ ...matchQuery, ...searchQuery })
     .skip(skip)
     .limit(limit)
+    .populate("current_data.refund_id")
     .sort({ [sortBy]: sort })
     .exec();
 
@@ -304,7 +305,7 @@ export const getSalesOrderNoList = catchAsync(async (req, res, next) => {
     {
       $match: {
         "current_data.status": true,
-        "current_data.order_type": "offlinestores",
+        "current_data.order_type": [req.params.type],
       },
     },
   ]);
