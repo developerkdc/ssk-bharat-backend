@@ -18,8 +18,19 @@ export const getOfflinePaymentDetails = catchAsync(async (req, res, next) => {
   const skip = (page - 1) * limit;
 
   //filters
-  const { to, from, ...data } = req?.body?.filters || {};
+  const { dates = null, ...data } = req?.body?.filters || {};
   const matchQuery = data || {};
+
+  if (dates) {
+    // let str = JSON.stringify(dates)
+    // str = str?;
+    // // Replace "to" with "$lte"
+    // str = str?;
+    const datesData = JSON.parse(JSON.stringify(dates)?.replace(/from/g, "$gte")?.replace(/to/g, "$lte"));
+    for(let i in datesData){
+      matchQuery[i] = datesData[i];
+    }
+  }
 
   //search
   let searchQuery = {};
@@ -152,20 +163,20 @@ export const addFollowupAndRemark = catchAsync(async (req, res, next) => {
 export const updatePaymentStatus = catchAsync(async (req, res, next) => {
   const { paymentStatus } = req.body;
   const offlinePayment = await offlinePaymentModel.findOne({ _id: req.params.id })
-  
-  if(paymentStatus === "fully paid" && (offlinePayment?.proposed_changes?.totalSalesAmount !== offlinePayment?.proposed_changes?.recievedAmount)){
-    return next(new ApiError("Payment not recieved fully",400))
+
+  if (paymentStatus === "fully paid" && (offlinePayment?.proposed_changes?.totalSalesAmount !== offlinePayment?.proposed_changes?.recievedAmount)) {
+    return next(new ApiError("Payment not recieved fully", 400))
   }
 
-  if(paymentStatus === "partailly paid" && offlinePayment?.proposed_changes?.recievedAmount <= 0){
-    return next(new ApiError("Payment not recieved yet",400))
+  if (paymentStatus === "partailly paid" && offlinePayment?.proposed_changes?.recievedAmount <= 0) {
+    return next(new ApiError("Payment not recieved yet", 400))
   }
 
   const updatePaymentStatus = await offlinePaymentModel.findByIdAndUpdate(
     { _id: req.params.id },
     {
       $set: {
-        "proposed_changes.paymentStatus":paymentStatus,
+        "proposed_changes.paymentStatus": paymentStatus,
         "proposed_changes.status": false,
         approver: approvalData(req.user)
       }
