@@ -55,7 +55,7 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
               ? latestSalesOrder?.current_data?.sales_order_no + 1
               : 1,
             ...req.body,
-          created_by: createdByFunction(req.user)
+            created_by: createdByFunction(req.user)
 
           },
           approver: approvalData(req.user),
@@ -196,7 +196,7 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
                 marketExec.current_data.commissionPercentage,
               commissionAmount: Number(
                 (sales[0].current_data.total_amount / 100) *
-                  marketExec.current_data.commissionPercentage
+                marketExec.current_data.commissionPercentage
               ).toFixed(2),
             },
           };
@@ -311,9 +311,9 @@ export const getSalesOrderNoList = catchAsync(async (req, res, next) => {
       },
     },
     {
-      $project:{
-        sales_order_no:"$current_data.sales_order_no",
-        order_no:"$current_data.order_no"
+      $project: {
+        sales_order_no: "$current_data.sales_order_no",
+        order_no: "$current_data.order_no"
       }
     }
   ]);
@@ -335,8 +335,8 @@ export const getOrderNoFromSalesList = catchAsync(async (req, res, next) => {
       },
     },
     {
-      $group:{
-        _id:"$current_data.order_no"
+      $group: {
+        _id: "$current_data.order_no"
       }
     }
   ]);
