@@ -45,7 +45,6 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
     const latestSalesOrder = await SalesModel.findOne()
       .sort({ created_at: -1 })
       .select("current_data.sales_order_no");
-    console.log(latestSalesOrder, "saless");
     // return res.json({ data: { ...req.body } });
     const sales = await SalesModel.create(
       [
@@ -106,7 +105,7 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
     }
     if (sales[0].current_data.order_type !== "websites") {
       const marketExecutive = await marketExectiveCommissionModel.find({
-        "current_data.isActive":true,
+        "current_data.isActive": true,
         "current_data.companyId":
           sales[0].current_data.customer_details.customer_id,
       });
@@ -245,7 +244,7 @@ export const fetchSalesOrders = catchAsync(async (req, res, next) => {
     limit = 10,
     sortBy = "sales_order_no",
     sort = "desc",
-    search=""
+    search = "",
   } = req.query;
   const skip = (page - 1) * limit;
 
@@ -281,6 +280,8 @@ export const fetchSalesOrders = catchAsync(async (req, res, next) => {
   const salesOrders = await SalesModel.find({ ...matchQuery, ...searchQuery })
     .skip(skip)
     .limit(limit)
+    .populate("current_data.refund_id")
+    .populate("current_data.dispatch_id")
     .sort({ [sortBy]: sort })
     .exec();
 
@@ -319,4 +320,29 @@ export const getSalesOrderNoList = catchAsync(async (req, res, next) => {
     data: offlineSalesOrderNo,
     message: "All Offline Sales Order List",
   });
+});
+
+export const getOrderNoFromSalesList = catchAsync(async (req, res, next) => {
+  const type = req.params.type;
+  const orderNoFromSales = await SalesModel.aggregate([
+    {
+      $match: {
+        "current_data.status": true,
+        "current_data.order_type": type,
+      },
+    },
+    {
+      $group:{
+        _id:"$current_data.order_no"
+      }
+    }
+  ]);
+  if (orderNoFromSales) {
+    return res.status(200).json({
+      statusCode: 200,
+      status: "success",
+      data: orderNoFromSales,
+      message: `All ${type} Order No From Sales Order List`,
+    });
+  }
 });
