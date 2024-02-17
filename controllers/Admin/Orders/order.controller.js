@@ -160,10 +160,11 @@ export const fetchOrders = catchAsync(async (req, res, next) => {
     matchQuery["current_data.order_type"] = type;
   }
   if (to && from) {
+    console.log( new Date(from))
     matchQuery["current_data.order_date"] = { $gte: new Date(from) };
     matchQuery["current_data.estimate_delivery_date"] = { $lte: new Date(to) };
   }
-console.log(matchQuery)
+
   const totalDocuments = await OrdersModel.countDocuments({
     ...matchQuery,
     ...searchQuery,

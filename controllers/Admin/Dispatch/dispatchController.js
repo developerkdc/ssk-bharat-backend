@@ -9,6 +9,7 @@ import InventorySchema from "../../../database/schema/Inventory/RetailerInventor
 import { approvalData } from "../../HelperFunction/approvalFunction.js";
 import DynamicModel from "../../../Utils/DynamicModel.js";
 import { createdByFunction } from "../../HelperFunction/createdByfunction.js";
+import adminApprovalFunction from "../../HelperFunction/AdminApprovalFunction.js";
 
 export const latestDispatchNo = catchAsync(async (req, res, next) => {
   try {
@@ -38,57 +39,193 @@ export const latestDispatchNo = catchAsync(async (req, res, next) => {
   }
 });
 
+// export const createDispatch = catchAsync(async (req, res, next) => {
+//   const salesOrderData = await SalesModel.findById(req.body.sales_order_id);
+//   const user = req.user;
+//   const latestDispatch = await DispatchModel.findOne()
+//     .sort({ created_at: -1 })
+//     .select("current_data.dispatch_no");
+//   const {
+//     sales_order_no,
+//     total_amount,
+//     total_gst,
+//     total_item_amount,
+//     total_quantity,
+//     total_weight,
+//     sales_order_date,
+//     order_type,
+//     ssk_details,
+//     customer_details,
+//     Items,
+//   } = salesOrderData.current_data;
+//   const body = {
+//     current_data: {
+//       ...req.body,
+//       dispatch_no: latestDispatch
+//         ? latestDispatch?.current_data?.dispatch_no + 1
+//         : 1,
+//       sales_order_no: sales_order_no,
+//       order_type: order_type,
+//       delivery_status: "dispatched",
+//       tracking_date: {
+//         sales_order_date: sales_order_date,
+//       },
+//       ssk_details: ssk_details,
+//       customer_details: customer_details,
+//       Items: Items,
+//       total_weight: total_weight,
+//       total_quantity: total_quantity,
+//       total_item_amount: total_item_amount,
+//       total_gst: total_gst,
+//       total_amount: total_amount,
+//       created_by: createdByFunction(user),
+//     },
+//     approver: approvalData(user),
+//   };
+//   const dispatch = new DispatchModel(body);
+
+//   const salesOrder = await SalesModel.findByIdAndUpdate(
+//     req.body.sales_order_id,
+//     {
+//       $set: {
+//         "proposed_changes.dispatch_id": dispatch[0]._id,
+//         "proposed_changes.status": true,
+//         approver: approvalData(user),
+//         updated_at: Date.now(),
+//       },
+//     },
+//     { session, new: true } // { new: true } to return the updated document
+//   );
+
+//   if (!dispatch) {
+//     throw new Error(new ApiError("Error during dispatch", 400));
+//   }
+//   await dispatch.save();
+
+//   if (dispatch && salesOrder) {
+//     return res.status(201).json({
+//       statusCode: 201,
+//       status: "success",
+//       data: dispatch,
+//       message: "Dispatch Created",
+//     });
+//   }
+// });
 export const createDispatch = catchAsync(async (req, res, next) => {
-  const salesOrderData = await SalesModel.findById(req.body.sales_order_id);
-  const user = req.user;
+  let session;
+  try {
+    // Start a MongoDB session
+    session = await mongoose.startSession();
+    session.startTransaction();
 
-  const {
-    sales_order_no,
-    total_amount,
-    total_gst,
-    total_item_amount,
-    total_quantity,
-    total_weight,
-    sales_order_date,
-    order_type,
-    ssk_details,
-    customer_details,
-    Items,
-  } = salesOrderData.current_data;
-  const body = {
-    current_data: {
-      ...req.body,
-      sales_order_no: sales_order_no,
-      order_type: order_type,
-      delivery_status: "dispatched",
-      tracking_date: {
+    const salesOrderData = await SalesModel.findById(
+      req.body.sales_order_id
+    ).session(session);
+    const user = req.user;
+    const latestDispatch = await DispatchModel.findOne()
+      .sort({ created_at: -1 })
+      .select("current_data.dispatch_no")
+      .session(session);
+
+    // Extracting data from sales order
+    const {
+      sales_order_no,
+      order_no,
+      total_amount,
+      total_gst,
+      total_item_amount,
+      total_quantity,
+      total_weight,
+      sales_order_date,
+      estimate_delivery_date,
+      order_date,
+      order_type,
+      ssk_details,
+      customer_details,
+      Items,
+    } = salesOrderData.current_data;
+
+    const body = {
+      current_data: {
+        ...req.body,
+        dispatch_no: latestDispatch
+          ? latestDispatch.current_data.dispatch_no + 1
+          : 1,
+        sales_order_no: sales_order_no,
         sales_order_date: sales_order_date,
+        order_no: order_no,
+        order_date: order_date,
+        order_type: order_type,
+        estimate_delivery_date: estimate_delivery_date,
+        delivery_status: "dispatched",
+        tracking_date: {
+          sales_order_date: sales_order_date,
+        },
+        ssk_details: ssk_details,
+        customer_details: customer_details,
+        Items: Items,
+        total_weight: total_weight,
+        total_quantity: total_quantity,
+        total_item_amount: total_item_amount,
+        total_gst: total_gst,
+        total_amount: total_amount,
+        created_by: createdByFunction(user),
       },
-      ssk_details: ssk_details,
-      customer_details: customer_details,
-      Items: Items,
-      total_weight: total_weight,
-      total_quantity: total_quantity,
-      total_item_amount: total_item_amount,
-      total_gst: total_gst,
-      total_amount: total_amount,
-      created_by: createdByFunction(user)
-    },
-    approver: approvalData(user),
-  };
-  const dispatch = new DispatchModel(body);
-  if (!dispatch) {
-    throw new Error(new ApiError("Error during dispatch", 400));
-  }
-  await dispatch.save();
+      approver: approvalData(user),
+    };
+    const dispatch = new DispatchModel(body);
 
-  if (dispatch) {
+    // Save dispatch
+    await dispatch.save({ session });
+
+    // Update sales order
+    const updatedSalesOrder = await SalesModel.findByIdAndUpdate(
+      req.body.sales_order_id,
+      {
+        $set: {
+          "proposed_changes.dispatch_id": dispatch._id,
+          "proposed_changes.status": false,
+          approver: approvalData(user),
+          updated_at: Date.now(),
+        },
+      },
+      { session, new: true } // { new: true } to return the updated document
+    );
+
+    // Commit the transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    adminApprovalFunction({
+      module: "dispatchorders",
+      user: user,
+      documentId: dispatch._id,
+    });
+    adminApprovalFunction({
+      module: "salesorders",
+      user: user,
+      documentId: req.body.sales_order_id,
+    });
+
     return res.status(201).json({
       statusCode: 201,
       status: "success",
       data: dispatch,
       message: "Dispatch Created",
     });
+  } catch (error) {
+    // If session exists, abort the transaction
+    if (session) {
+      try {
+        await session.abortTransaction();
+        session.endSession();
+      } catch (abortError) {
+        console.error("Error aborting transaction:", abortError);
+      }
+    }
+
+    // Handle the error
+    return next(new ApiError(error.message, 400));
   }
 });
 
@@ -247,72 +384,74 @@ export const delivered = catchAsync(async (req, res, next) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new Error(new ApiError("Invalid Order ID", 400));
     }
-  const user = req.user;
+    const user = req.user;
 
     const updateData = await DispatchModel.findByIdAndUpdate(
-     { _id: id },
-    {
-      "proposed_changes.delivery_status": "delivered",
-      "proposed_changes.tracking_date.delivered":
-      req.body?.tracking_date?.delivered,
-      // approver: approvalData(user),
-      updated_at: Date.now(),
-    },
-    { new: true }
-  );
-     
+      { _id: id },
+      {
+        "proposed_changes.delivery_status": "delivered",
+        "proposed_changes.tracking_date.delivered":
+          req.body?.tracking_date?.delivered,
+        // approver: approvalData(user),
+        updated_at: Date.now(),
+      },
+      { new: true }
+    );
+
     if (!updateData) {
       throw new Error(new ApiError("Order Not Found", 400));
     }
-  
-     const retailerdetails = await DispatchModel.findById(id).populate({
-       path: "current_data.customer_details.customer_id",
-       select: "current_data.inventorySchema",
-     });
-       
-     const inventoryName = retailerdetails.current_data.customer_details.customer_id.current_data.inventorySchema;
 
-     const inventoryModel = DynamicModel(inventoryName, InventorySchema);
-     const items = retailerdetails.current_data.Items;
-      const inventoryArray = [];
-      for (const item of items) {
-        console.log(item);
-        const inventory = new inventoryModel({
-          sales_order_no: retailerdetails.current_data.sales_order_no,
-          supplierCompanyName:
-            retailerdetails.current_data.ssk_details.company_name,
-          CustomerDetails: retailerdetails.current_data.customer_details,
-          receivedDate: retailerdetails.current_data.tracking_date.delivered,
-          transportDetails: retailerdetails.current_data.transport_details,
-          invoiceDetails: {
-            invoiceNo: retailerdetails.current_data.dispatch_no,
-            invoiceDate: retailerdetails.current_data.tracking_date.delivered,
-            itemsAmount: retailerdetails.current_data.total_item_amount,
-            gstAmount: retailerdetails.current_data.total_gst,
-            totalAmount: retailerdetails.current_data.total_amount,
-          },
-          tracking_date: retailerdetails.current_data.tracking_date,
-          itemsDetails: {
-            product_Id: item.product_Id,
-            item_name: item.item_name,
-            category: item.category,
-            sku: item.sku,
-            hsn_code: item.hsn_code,
-            weight: item.weight,
-            unit: item.unit,
-            rate_per_unit: item.rate_per_unit,
-            quantity: item.quantity,
-            receivedQuantity: item.quantity,
-            item_amount: item.item_amount,
-            gst: item.gst,
-            total_amount: item.total_amount,
-            availableQuantity: item.quantity,
-          },
-        });
+    const retailerdetails = await DispatchModel.findById(id).populate({
+      path: "current_data.customer_details.customer_id",
+      select: "current_data.inventorySchema",
+    });
 
-        inventoryArray.push(inventory);
-        await inventory.save();
-      }
+    const inventoryName =
+      retailerdetails.current_data.customer_details.customer_id.current_data
+        .inventorySchema;
+
+    const inventoryModel = DynamicModel(inventoryName, InventorySchema);
+    const items = retailerdetails.current_data.Items;
+    const inventoryArray = [];
+    for (const item of items) {
+      console.log(item);
+      const inventory = new inventoryModel({
+        sales_order_no: retailerdetails.current_data.sales_order_no,
+        supplierCompanyName:
+          retailerdetails.current_data.ssk_details.company_name,
+        CustomerDetails: retailerdetails.current_data.customer_details,
+        receivedDate: retailerdetails.current_data.tracking_date.delivered,
+        transportDetails: retailerdetails.current_data.transport_details,
+        invoiceDetails: {
+          invoiceNo: retailerdetails.current_data.dispatch_no,
+          invoiceDate: retailerdetails.current_data.tracking_date.delivered,
+          itemsAmount: retailerdetails.current_data.total_item_amount,
+          gstAmount: retailerdetails.current_data.total_gst,
+          totalAmount: retailerdetails.current_data.total_amount,
+        },
+        tracking_date: retailerdetails.current_data.tracking_date,
+        itemsDetails: {
+          product_Id: item.product_Id,
+          item_name: item.item_name,
+          category: item.category,
+          sku: item.sku,
+          hsn_code: item.hsn_code,
+          weight: item.weight,
+          unit: item.unit,
+          rate_per_unit: item.rate_per_unit,
+          quantity: item.quantity,
+          receivedQuantity: item.quantity,
+          item_amount: item.item_amount,
+          gst: item.gst,
+          total_amount: item.total_amount,
+          availableQuantity: item.quantity,
+        },
+      });
+
+      inventoryArray.push(inventory);
+      await inventory.save();
+    }
     await session.commitTransaction();
     await session.endSession();
     return res.status(200).json({

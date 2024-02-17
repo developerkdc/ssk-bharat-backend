@@ -8,7 +8,7 @@ const dispatchOrder = SchemaFunction(
   new mongoose.Schema({
     dispatch_no: {
       type: Number,
-      required: [true, "Order No is required"],
+      required: [true, "Dispatch No is required"],
       trim: true,
       unique: true,
     },
@@ -17,6 +17,33 @@ const dispatchOrder = SchemaFunction(
       required: [true, "Sales Order No is required"],
       trim: true,
       unique: true,
+    },
+    order_no: {
+      type: Number,
+      required: [true, "Order No is required"],
+      trim: true,
+      unique: true,
+    },
+    order_date: {
+      type: Date,
+      required: [true, "Order Date is required"],
+      trim: true,
+    },
+    dispatch_date: {
+      type: Date,
+      default:Date.now,
+      required: [true, "Dispatch Date is required"],
+      trim: true,
+    },
+    sales_order_date: {
+      type: Date,
+      required: [true, "Sales Order Date is required"],
+      trim: true,
+    },
+    estimate_delivery_date: {
+      type: Date,
+      required: [true, "Estimate Order Date is required"],
+      trim: true,
     },
     sales_order_id: {
       type: mongoose.Schema.Types.ObjectId,
@@ -135,7 +162,7 @@ const dispatchOrder = SchemaFunction(
           type: mongoose.Schema.Types.ObjectId,
           required: true,
         },
-        name: {
+        branch_name: {
           type: String,
           // required: [true, "Name is required"],
           trim: true,
@@ -188,7 +215,7 @@ const dispatchOrder = SchemaFunction(
           type: mongoose.Schema.Types.ObjectId,
           required: true,
         },
-        name: {
+        branch_name: {
           type: String,
           // required: [true, "Name is required"],
           trim: true,
@@ -241,7 +268,7 @@ const dispatchOrder = SchemaFunction(
 
     Items: [
       {
-        product_Id: {
+        product_id: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "products",
           required: [true, "product Id is required"],
@@ -289,34 +316,16 @@ const dispatchOrder = SchemaFunction(
         },
         gst: {
           cgst: {
-            percentage: {
-              type: Number,
-              default: null,
-            },
-            cgst_value: {
-              type: Number,
-              default: null,
-            },
+            type: Number,
+            default: 0,
           },
           sgst: {
-            percentage: {
-              type: Number,
-              default: null,
-            },
-            sgst_value: {
-              type: Number,
-              default: null,
-            },
+            type: Number,
+            default: 0,
           },
           igst: {
-            percentage: {
-              type: Number,
-              default: null,
-            },
-            igst_value: {
-              type: Number,
-              default: null,
-            },
+            type: Number,
+            default: 0,
           },
         },
         total_amount: {
@@ -431,10 +440,22 @@ const dispatchOrder = SchemaFunction(
         },
       },
     },
-    created_by:{
-      type:createdBy,
-      required:[true,"created by is required"]
-    }
+    total_igst: {
+      type: Number,
+      default: 0,
+    },
+    total_cgst: {
+      type: Number,
+      default: 0,
+    },
+    total_sgst: {
+      type: Number,
+      default: 0,
+    },
+    created_by: {
+      type: createdBy,
+      required: [true, "created by is required"],
+    },
   })
 );
 

@@ -3,6 +3,7 @@ import addressSchema from "../../utils/address.schema";
 import userAndApprovals from "../../utils/approval.schema";
 import SchemaFunction from "../../../controllers/HelperFunction/SchemaFunction";
 import LogSchemaFunction from "../../utils/Logs.schema";
+import createdBy from "../../utils/createdBy.schema";
 
 const salesOrder = SchemaFunction(
   new mongoose.Schema({
@@ -39,8 +40,13 @@ const salesOrder = SchemaFunction(
     },
     refund_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref:"refunds",
-      default:null,
+      ref: "refunds",
+      default: null,
+    },
+    dispatch_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "dispatchorders",
+      default: null,
     },
     ssk_details: {
       ssk_id: {
@@ -338,6 +344,10 @@ const salesOrder = SchemaFunction(
     est_payment_days: {
       type: Number,
       default: null,
+    },
+    created_by: {
+      type: createdBy,
+      required: [true, "created by is required"],
     },
   })
 );

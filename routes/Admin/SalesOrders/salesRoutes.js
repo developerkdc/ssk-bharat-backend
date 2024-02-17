@@ -6,6 +6,7 @@ import {
   latestSalesOrderNo,
   fetchSalesOrders,
   getSalesOrderNoList,
+  getOrderNoFromSalesList,
 } from "../../../controllers/Admin/SalesOrders/sales.controller";
 const router = express.Router();
 
@@ -27,6 +28,12 @@ router.get(
   authMiddleware,
   rolesPermissions("salesOrder", "view"),
   getSalesOrderNoList
+);
+router.get(
+  "/orderNoFromSales/dropdown/:type",
+  authMiddleware,
+  rolesPermissions("salesOrder", "view"),
+  getOrderNoFromSalesList
 );
 
 
