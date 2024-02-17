@@ -9,6 +9,7 @@ import MarketExecutiveModel from "../../../database/schema/MET/MarketExecutive.s
 import offlinePaymentModel from "../../../database/schema/OfflinePayment/offlinePayment.schema";
 import { dynamicSearch } from "../../../Utils/dynamicSearch";
 import { approvalData } from "../../HelperFunction/approvalFunction";
+import { createdByFunction } from "../../HelperFunction/createdByfunction";
 
 export const latestSalesOrderNo = catchAsync(async (req, res, next) => {
   try {
@@ -54,6 +55,8 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
               ? latestSalesOrder?.current_data?.sales_order_no + 1
               : 1,
             ...req.body,
+          created_by: createdByFunction(req.user)
+
           },
           approver: approvalData(req.user),
         },
