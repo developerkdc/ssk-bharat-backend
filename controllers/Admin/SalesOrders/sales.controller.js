@@ -55,7 +55,7 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
               ? latestSalesOrder?.current_data?.sales_order_no + 1
               : 1,
             ...req.body,
-          created_by: createdByFunction(req.user)
+            created_by: createdByFunction(req.user)
 
           },
           approver: approvalData(req.user),
@@ -196,7 +196,7 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
                 marketExec.current_data.commissionPercentage,
               commissionAmount: Number(
                 (sales[0].current_data.total_amount / 100) *
-                  marketExec.current_data.commissionPercentage
+                marketExec.current_data.commissionPercentage
               ).toFixed(2),
             },
           };
@@ -307,19 +307,22 @@ export const getSalesOrderNoList = catchAsync(async (req, res, next) => {
   const offlineSalesOrderNo = await SalesModel.aggregate([
     {
       $match: {
-        "current_data.status": true,
         "current_data.order_type": "offlinestores",
       },
     },
+    {
+      $project: {
+        sales_order_no: "$current_data.sales_order_no",
+        order_no: "$current_data.order_no"
+      }
+    }
   ]);
-  if (offlineSalesOrderNo) {
-    return res.status(200).json({
-      statusCode: 200,
-      status: "success",
-      data: offlineSalesOrderNo,
-      message: "All Offline Sales Order List",
-    });
-  }
+  return res.status(200).json({
+    statusCode: 200,
+    status: "success",
+    data: offlineSalesOrderNo,
+    message: "All Offline Sales Order List",
+  });
 });
 
 export const getOrderNoFromSalesList = catchAsync(async (req, res, next) => {
@@ -332,8 +335,8 @@ export const getOrderNoFromSalesList = catchAsync(async (req, res, next) => {
       },
     },
     {
-      $group:{
-        _id:"$current_data.order_no"
+      $group: {
+        _id: "$current_data.order_no"
       }
     }
   ]);

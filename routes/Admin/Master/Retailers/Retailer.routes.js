@@ -58,7 +58,7 @@ retailerRouter.patch(
 );
 
 retailerRouter.get("/dropdown/list", authMiddleware, retailer.GetCompanyList)
-retailerRouter.get("/branch/dropdown/list/:companyId", branch.GetBranchList)
+retailerRouter.get("/branch/dropdown/list/:companyId", authMiddleware, branch.GetBranchList)
 
 retailerRouter.patch('/contact/setprimary/:companyId/:branchId', authMiddleware, branch.setPrimaryContact)
 

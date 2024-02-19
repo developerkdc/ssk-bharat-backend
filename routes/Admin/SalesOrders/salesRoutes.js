@@ -24,7 +24,7 @@ router.post(
   fetchSalesOrders
 );
 router.get(
-  "/offlineSalesOrder/dropdown/:type",
+  "/offlineSalesOrder/dropdown",
   authMiddleware,
   rolesPermissions("salesOrder", "view"),
   getSalesOrderNoList
