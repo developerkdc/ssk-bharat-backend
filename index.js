@@ -36,15 +36,22 @@ import FaqRouter from "./routes/Admin/FAQs/faqRoutes.js";
 import TicketRouter from "./routes/Admin/Tickets/ticketRoutes.js";
 import addressDropdownRouter from "./routes/Admin/AddressDropdown/addressDropdownRoutes.js";
 import metAuthRouter from "./routes/METAuthRoutes/metAuthRoutes.js";
-import approvalRouter from "./routes/Approval/getPendingApprovalList.route.js"
+import approvalRouter from "./routes/Approval/getPendingApprovalList.route.js";
 import offlinePORouter from "./routes/OfflineStore/PurchaseOrder/offlinePORoute.js";
 import offlineSalesRouter from "./routes/OfflineStore/ConfirmSalesOrder/offlineConfirmSalesRoute.js";
 import retailerPORouter from "./routes/Retailer/PurchaseOrder/retailerPortalPORoute.js";
 import retailerSalesRouter from "./routes/Retailer/ConfirmSalesOrder/retailerConfirmSalesRoutes.js";
-
 import RetailerAuthRouter from "./routes/Retailer/Auth/Auth.route.js";
 import RetailerPRoutes from "./routes/Retailer/Billing/BillingRoutes.js";
 import RetailerInventory from "./routes/Retailer/Inventory/RetailerInventoryRoutes.js";
+import offlineProductRouter from "./routes/OfflineStore/Products/productRoutes.js";
+import retailerProductRouter from "./routes/Retailer/Products/productRoutes.js";
+import retailerPortalRouter from "./routes/Retailer/Retailers/Retailer.routes.js";
+import offlinePortalRouter from "./routes/OfflineStore/OfflineStore/OfflineStore.routes.js";
+import offlineSSKRouter from "./routes/OfflineStore/SSK/SSkCompany.routes.js";
+import retailerSSKRouter from "./routes/Retailer/SSK/SSkCompany.routes.js";
+import offlineAddressRouter from "./routes/OfflineStore/AddressDropdown/addressDropdownRoutes.js";
+import retailerAddressRouter from "./routes/Retailer/AddressDropdown/addressDropdownRoutes.js";
 
 const app = express();
 
@@ -53,15 +60,18 @@ const port = process.env.PORT || 4001;
 //Middlewares
 app.use(express.static(__dirname));
 app.use(express.json());
-app.use(cors({
-  origin: [
-    "https://sskbharat.kdcstaging.in/",
-    "https://sskbharat.kdcstaging.in",
-    "http://localhost:3000"
-  ],
-  optionsSuccessStatus: 200
-}))
-
+app.use(
+  cors({
+    origin: [
+      "https://sskbharat.kdcstaging.in/",
+      "https://sskbharat.kdcstaging.in",
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "http://localhost:3002",
+    ],
+    optionsSuccessStatus: 200,
+  })
+);
 
 //database
 connect();
@@ -91,30 +101,35 @@ app.group("/api/v1/admin", (router) => {
   router.use("/tds", tdsRouter);
   router.use("/termDays", paymentTermDays);
   router.use("/offlinePayment", offlinePaymentRouter);
-  router.use('/ssk/inventory', InventoryRouter);
-  router.use('/sample', SampleRouter);
-  router.use('/approval', approvalRouter);
-  router.use('/faq', FaqRouter);
-  router.use('/met', metAuthRouter);
-  router.use('/ticket', TicketRouter);
-  router.use('/address/dropdown', addressDropdownRouter);
-
+  router.use("/ssk/inventory", InventoryRouter);
+  router.use("/sample", SampleRouter);
+  router.use("/approval", approvalRouter);
+  router.use("/faq", FaqRouter);
+  router.use("/met", metAuthRouter);
+  router.use("/ticket", TicketRouter);
+  router.use("/address/dropdown", addressDropdownRouter);
 });
 //retailers
 app.group("/api/v1/retailer-portal", (router) => {
-  router.use("/auth", RetailerAuthRouter)
+  router.use("/auth", RetailerAuthRouter);
   router.use("/retailerp", RetailerPRoutes);
   router.use("/purchase-order", retailerPORouter);
   router.use("/confirm-sales", retailerSalesRouter);
   router.use("/inventory", RetailerInventory);
+  router.use("/product", retailerProductRouter);
+  router.use("/retailer", retailerPortalRouter);
+  router.use("/sskcompany", retailerSSKRouter);
+  router.use("/address/dropdown", retailerAddressRouter);
 });
 
 //offline store
 app.group("/api/v1/offline-store-portal", (router) => {
-  router.use('/purchase-order', offlinePORouter);
-  router.use('/confirm-sales', offlineSalesRouter);
-
-
+  router.use("/purchase-order", offlinePORouter);
+  router.use("/confirm-sales", offlineSalesRouter);
+  router.use("/product", offlineProductRouter);
+  router.use("/offlineStore", offlinePortalRouter);
+  router.use("/sskcompany", offlineSSKRouter);
+  router.use("/address/dropdown", offlineAddressRouter);
 });
 
 app.all("*", (req, res, next) => {

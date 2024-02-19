@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import SchemaFunction from "../../../controllers/HelperFunction/SchemaFunction";
 import LogSchemaFunction from "../../utils/Logs.schema";
+import createdBy from "../../utils/createdBy.schema";
 
 const refundSchema = SchemaFunction(
   new mongoose.Schema({
@@ -9,6 +10,28 @@ const refundSchema = SchemaFunction(
       required: [true, "Sales ID is required"],
       ref: "salesorders",
       unique: true,
+    },
+    sales_order_no: {
+      type: Number,
+      required: [true, "Sales Order No is required"],
+      ref: "salesorders",
+      unique: true,
+    },
+    order_no: {
+      type: Number,
+      required: [true, "Order No is required"],
+      ref: "salesorders",
+      unique: true,
+    },
+    customer_name: {
+      type: String,
+      required: [true, "Customer Name is required"],
+      trim: true,
+    },
+    refund_date: {
+      type: Date,
+      required: [true, "Refund Amount is required"],
+      trim: true,
     },
     total_amount: {
       type: Number,
@@ -25,11 +48,15 @@ const refundSchema = SchemaFunction(
       required: [true, "Transaction ID is required"],
       trim: true,
     },
-    refund_type: {
+    transaction_type: {
       type: String,
-      required: [true, "Refund Type is required"],
+      required: [true, "Transaction Type is required"],
       enum: ["neft", "rtgs", "cheque"],
     },
+    created_by:{
+      type:createdBy,
+      required:[true,"created by is required"]
+    }
   })
 );
 

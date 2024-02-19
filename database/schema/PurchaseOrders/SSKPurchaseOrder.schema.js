@@ -281,6 +281,18 @@ const purchaseOrderSchema = SchemaFunction(
       type: Number,
       required: [true, "Total Gst is required"],
     },
+    total_igst: {
+      type: Number,
+      default: 0,
+    },
+    total_cgst: {
+      type: Number,
+      default: 0,
+    },
+    total_sgst: {
+      type: Number,
+      default: 0,
+    },
     total_amount: {
       type: Number,
       required: [true, "Total Amount is required"],

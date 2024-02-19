@@ -100,7 +100,7 @@ const retailerPurchaseOrderSchema = new mongoose.Schema({
         ref: "offlinestorebranches",
         required: true,
       },
-      company_name: {
+      branch_name: {
         type: String,
         // required: [true, "Company Name is required"],
         trim: true,
@@ -154,7 +154,7 @@ const retailerPurchaseOrderSchema = new mongoose.Schema({
         ref: "offlinestorebranches",
         required: true,
       },
-      company_name: {
+      branch_name: {
         type: String,
         // required: [true, "Company Name is required"],
         trim: true,
@@ -250,34 +250,16 @@ const retailerPurchaseOrderSchema = new mongoose.Schema({
       },
       gst: {
         cgst: {
-          percentage: {
-            type: Number,
-            default: null,
-          },
-          cgst_value: {
-            type: Number,
-            default: null,
-          },
+          type: Number,
+          default: 0,
         },
         sgst: {
-          percentage: {
-            type: Number,
-            default: null,
-          },
-          sgst_value: {
-            type: Number,
-            default: null,
-          },
+          type: Number,
+          default: 0,
         },
         igst: {
-          percentage: {
-            type: Number,
-            default: null,
-          },
-          igst_value: {
-            type: Number,
-            default: null,
-          },
+          type: Number,
+          default: 0,
         },
       },
       total_amount: {
@@ -306,11 +288,22 @@ const retailerPurchaseOrderSchema = new mongoose.Schema({
     type: Number,
     required: [true, "Total Gst is required"],
   },
+  total_igst: {
+    type: Number,
+    default: 0,
+  },
+  total_cgst: {
+    type: Number,
+    default: 0,
+  },
+  total_sgst: {
+    type: Number,
+    default: 0,
+  },
   total_amount: {
     type: Number,
     required: [true, "Total Amount is required"],
   },
-  approver: userAndApprovals,
   order_status: {
     type: String,
     enum: ["active", "cancelled", "closed"],
@@ -318,18 +311,20 @@ const retailerPurchaseOrderSchema = new mongoose.Schema({
   },
   status: {
     type: Boolean,
-    default:false
+    default: false,
   },
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: Date.now },
   deleted_at: { type: Date, default: null },
 });
 
+retailerPurchaseOrderSchema.index({ purchase_order_no: 1 }, { unique: true });
+
 const retailerPOModel = mongoose.model(
   "retailerpurchaseorder",
   retailerPurchaseOrderSchema
 );
 
-LogSchemaFunction("retailerpo", retailerPOModel)
+LogSchemaFunction("retailerpo", retailerPOModel);
 
 export default retailerPOModel;

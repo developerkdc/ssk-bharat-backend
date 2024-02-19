@@ -5,6 +5,7 @@ import sskPOModel from "../../../database/schema/PurchaseOrders/SSKPurchaseOrder
 import { dynamicSearch } from "../../../Utils/dynamicSearch";
 import { approvalData } from "../../HelperFunction/approvalFunction";
 import adminApprovalFunction from "../../HelperFunction/AdminApprovalFunction";
+import { createdByFunction } from "../../HelperFunction/createdByfunction";
 
 export const createSSKPO = catchAsync(async (req, res, next) => {
   const user = req.user;
@@ -13,13 +14,13 @@ export const createSSKPO = catchAsync(async (req, res, next) => {
     .findOne()
     .sort({ created_at: -1 })
     .select("current_data.purchase_order_no");
-  console.log(latestPurchaseOrder, "dadad");
   const po = await sskPOModel.create({
     current_data: {
       purchase_order_no: latestPurchaseOrder
         ? latestPurchaseOrder?.current_data?.purchase_order_no + 1
         : 1,
       ...req.body,
+      created_by: createdByFunction(user),
     },
     approver: approvalData(user),
   });

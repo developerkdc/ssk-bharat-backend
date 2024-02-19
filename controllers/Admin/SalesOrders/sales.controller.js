@@ -9,6 +9,7 @@ import MarketExecutiveModel from "../../../database/schema/MET/MarketExecutive.s
 import offlinePaymentModel from "../../../database/schema/OfflinePayment/offlinePayment.schema";
 import { dynamicSearch } from "../../../Utils/dynamicSearch";
 import { approvalData } from "../../HelperFunction/approvalFunction";
+import { createdByFunction } from "../../HelperFunction/createdByfunction";
 
 export const latestSalesOrderNo = catchAsync(async (req, res, next) => {
   try {
@@ -41,7 +42,27 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
   try {
     session = await mongoose.startSession();
     session.startTransaction();
-    const sales = await SalesModel.create([{ current_data: { ...req.body }, approver: approvalData(req.user) }], { session });
+
+    const latestSalesOrder = await SalesModel.findOne()
+      .sort({ created_at: -1 })
+      .select("current_data.sales_order_no");
+    // return res.json({ data: { ...req.body } });
+    const sales = await SalesModel.create(
+      [
+        {
+          current_data: {
+            sales_order_no: latestSalesOrder
+              ? latestSalesOrder?.current_data?.sales_order_no + 1
+              : 1,
+            ...req.body,
+          created_by: createdByFunction(req.user)
+
+          },
+          approver: approvalData(req.user),
+        },
+      ],
+      { session }
+    );
     if (!sales) {
       throw new Error(new ApiError("Error during Sales Order", 400));
     }
@@ -59,26 +80,37 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
               salesOrderDate: sales[0].current_data.sales_order_date,
               offlineStoreDetails: {
                 companyId: sales[0].current_data.customer_details.customer_id,
-                companyName: sales[0].current_data.customer_details.customer_name,
+                companyName:
+                  sales[0].current_data.customer_details.customer_name,
                 companyType: sales[0].current_data.order_type,
                 gstNo: sales[0].current_data.customer_details.bill_to.gst_no,
-                firstName: sales[0].current_data.customer_details.bill_to.first_name,
-                lastName: sales[0].current_data.customer_details.bill_to.last_name,
-                email: sales[0].current_data.customer_details.bill_to.primary_email_id,
-                mobileNo: sales[0].current_data.customer_details.bill_to.primary_mobile_no,
+                firstName:
+                  sales[0].current_data.customer_details.bill_to.first_name,
+                lastName:
+                  sales[0].current_data.customer_details.bill_to.last_name,
+                email:
+                  sales[0].current_data.customer_details.bill_to
+                    .primary_email_id,
+                mobileNo:
+                  sales[0].current_data.customer_details.bill_to
+                    .primary_mobile_no,
               },
-              totalSalesAmount: Number(sales[0].current_data.total_amount).toFixed(2),
+              totalSalesAmount: Number(
+                sales[0].current_data.total_amount
+              ).toFixed(2),
               dueDate: dueDate,
-              approver: approvalData(req.user)
+              approver: approvalData(req.user),
             },
-          }
+          },
         ],
         { session }
       );
     }
     if (sales[0].current_data.order_type !== "websites") {
       const marketExecutive = await marketExectiveCommissionModel.find({
-        "current_data.companyId": sales[0].current_data.customer_details.customer_id,
+        "current_data.isActive": true,
+        "current_data.companyId":
+          sales[0].current_data.customer_details.customer_id,
       });
 
       //appproval
@@ -132,7 +164,6 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
       //   })
       // );
 
-
       const commission = await payoutAndCommissionTransModel.insertMany(
         marketExecutive.map((marketExec) => {
           return {
@@ -140,21 +171,32 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
             commission: {
               companyDetails: {
                 companyId: sales[0].current_data.customer_details.customer_id,
-                companyName: sales[0].current_data.customer_details.customer_name,
+                companyName:
+                  sales[0].current_data.customer_details.customer_name,
                 companyType: sales[0].current_data.order_type,
                 gstNo: sales[0].current_data.customer_details.bill_to.gst_no,
-                firstName: sales[0].current_data.customer_details.bill_to.first_name,
-                lastName: sales[0].current_data.customer_details.bill_to.last_name,
-                email: sales[0].current_data.customer_details.bill_to.primary_email_id,
-                mobileNo: sales[0].current_data.customer_details.bill_to.primary_mobile_no,
+                firstName:
+                  sales[0].current_data.customer_details.bill_to.first_name,
+                lastName:
+                  sales[0].current_data.customer_details.bill_to.last_name,
+                email:
+                  sales[0].current_data.customer_details.bill_to
+                    .primary_email_id,
+                mobileNo:
+                  sales[0].current_data.customer_details.bill_to
+                    .primary_mobile_no,
               },
               salesOrderId: sales[0].current_data._id,
               salesOrderNo: sales[0].current_data.sales_order_no,
               salesOrderDate: sales[0].current_data.sales_order_date,
-              salesOrderAmount: Number(sales[0].current_data.total_amount).toFixed(2),
-              commissionPercentage: marketExec.current_data.commissionPercentage,
+              salesOrderAmount: Number(
+                sales[0].current_data.total_amount
+              ).toFixed(2),
+              commissionPercentage:
+                marketExec.current_data.commissionPercentage,
               commissionAmount: Number(
-                (sales[0].current_data.total_amount / 100) * marketExec.current_data.commissionPercentage
+                (sales[0].current_data.total_amount / 100) *
+                  marketExec.current_data.commissionPercentage
               ).toFixed(2),
             },
           };
@@ -168,7 +210,7 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
             { _id: marketExecutive.marketExecutiveId },
             {
               $inc: {
-                "account_balance": Number(
+                account_balance: Number(
                   marketExecutive.commission.commissionAmount
                 ).toFixed(2),
               },
@@ -205,6 +247,7 @@ export const fetchSalesOrders = catchAsync(async (req, res, next) => {
     limit = 10,
     sortBy = "sales_order_no",
     sort = "desc",
+    search = "",
   } = req.query;
   const skip = (page - 1) * limit;
 
@@ -215,7 +258,7 @@ export const fetchSalesOrders = catchAsync(async (req, res, next) => {
   }
 
   if (to && from) {
-    matchQuery.sales_order_date = {
+    matchQuery["current_data.sales_order_date"] = {
       $gte: new Date(from),
       $lte: new Date(to),
     };
@@ -240,6 +283,8 @@ export const fetchSalesOrders = catchAsync(async (req, res, next) => {
   const salesOrders = await SalesModel.find({ ...matchQuery, ...searchQuery })
     .skip(skip)
     .limit(limit)
+    .populate("current_data.refund_id")
+    .populate("current_data.dispatch_id")
     .sort({ [sortBy]: sort })
     .exec();
 
@@ -257,5 +302,47 @@ export const fetchSalesOrders = catchAsync(async (req, res, next) => {
     totalPages: totalPages,
   });
 });
- 
 
+export const getSalesOrderNoList = catchAsync(async (req, res, next) => {
+  const offlineSalesOrderNo = await SalesModel.aggregate([
+    {
+      $match: {
+        "current_data.status": true,
+        "current_data.order_type": "offlinestores",
+      },
+    },
+  ]);
+  if (offlineSalesOrderNo) {
+    return res.status(200).json({
+      statusCode: 200,
+      status: "success",
+      data: offlineSalesOrderNo,
+      message: "All Offline Sales Order List",
+    });
+  }
+});
+
+export const getOrderNoFromSalesList = catchAsync(async (req, res, next) => {
+  const type = req.params.type;
+  const orderNoFromSales = await SalesModel.aggregate([
+    {
+      $match: {
+        "current_data.status": true,
+        "current_data.order_type": type,
+      },
+    },
+    {
+      $group:{
+        _id:"$current_data.order_no"
+      }
+    }
+  ]);
+  if (orderNoFromSales) {
+    return res.status(200).json({
+      statusCode: 200,
+      status: "success",
+      data: orderNoFromSales,
+      message: `All ${type} Order No From Sales Order List`,
+    });
+  }
+});

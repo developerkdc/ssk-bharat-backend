@@ -80,7 +80,6 @@ class Branches {
                 bank_name: {
                   type: String,
                   trim: true,
-                  lowercase: true,
                   required: [true, "bank name is required"],
                 },
                 account_no: {

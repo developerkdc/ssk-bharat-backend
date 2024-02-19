@@ -1,21 +1,63 @@
 import ApiError from "../../../Utils/ApiError";
 import catchAsync from "../../../Utils/catchAsync";
 import refundModel from "../../../database/schema/SalesOrders/refund.schema";
+import SalesModel from "../../../database/schema/SalesOrders/salesOrder.schema";
+import adminApprovalFunction from "../../HelperFunction/AdminApprovalFunction";
 import { approvalData } from "../../HelperFunction/approvalFunction";
+import { createdByFunction } from "../../HelperFunction/createdByfunction";
 
 export const createRefund = catchAsync(async (req, res, next) => {
-  const user = req.user;
-  const refund = await refundModel.create({
-    current_data: { ...req.body },
-    approver: approvalData(user),
-  });
-  if (refund) {
-    return res.status(201).json({
-      statusCode: 201,
-      status: true,
-      data: refund,
-      message: "Refund Data Updated",
+  const session = await refundModel.startSession();
+  session.startTransaction();
+
+  try {
+    const user = req.user;
+
+    const refund = await refundModel.create(
+      [{ current_data: { ...req.body, created_by: createdByFunction(user) } }],
+      { session }
+    );
+
+    const salesOrder = await SalesModel.findByIdAndUpdate(
+      req.body.sales_order_id,
+      {
+        $set: {
+          "proposed_changes.refund_id": refund[0]._id,
+          "proposed_changes.status": false,
+          approver: approvalData(user),
+          updated_at: Date.now(),
+        },
+      },
+      { session, new: true } // { new: true } to return the updated document
+    );
+    
+    await session.commitTransaction();
+    await session.endSession();
+
+    adminApprovalFunction({
+      module: "refunds",
+      user: user,
+      documentId: refund[0]._id,
     });
+
+    adminApprovalFunction({
+      module: "salesorders",
+      user: user,
+      documentId: req.body.sales_order_id,
+    });
+
+    if (refund && salesOrder) {
+      return res.status(201).json({
+        statusCode: 201,
+        status: true,
+        data: refund,
+        message: "Refund Data Created",
+      });
+    }
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    next(error);
   }
 });
 
@@ -39,7 +81,7 @@ export const getRefundHist = catchAsync(async (req, res, next) => {
 
   // Fetch roles based on search and pagination
   const refund = await refundModel
-    .find({...filters,"current_data.status": true})
+    .find({ ...filters, "current_data.status": true })
     .sort({ [sortBy]: sortDirection })
     .skip(skip)
     .limit(limit);
@@ -61,7 +103,7 @@ export const getRefundBySalesId = catchAsync(async (req, res, next) => {
 
   const refund = await refundModel.find({
     "current_data.sales_order_id": salesid,
-    "current_data.status": true
+    "current_data.status": true,
   });
   // if (refund.length == 0) {
   //   throw new Error(new ApiError("Refund Data Not Found", 404));

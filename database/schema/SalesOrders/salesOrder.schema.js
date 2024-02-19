@@ -3,6 +3,7 @@ import addressSchema from "../../utils/address.schema";
 import userAndApprovals from "../../utils/approval.schema";
 import SchemaFunction from "../../../controllers/HelperFunction/SchemaFunction";
 import LogSchemaFunction from "../../utils/Logs.schema";
+import createdBy from "../../utils/createdBy.schema";
 
 const salesOrder = SchemaFunction(
   new mongoose.Schema({
@@ -16,6 +17,11 @@ const salesOrder = SchemaFunction(
       required: [true, "Sales Order No is required"],
       trim: true,
       unique: true,
+    },
+    estimate_delivery_date: {
+      type: Date,
+      required: [true, "Order Estimate Date is required"],
+      trim: true,
     },
     sales_order_date: {
       type: Date,
@@ -31,6 +37,16 @@ const salesOrder = SchemaFunction(
       required: [true, "Sales Order Type is required"],
       enum: ["retailers", "offlinestores", "websites"],
       trim: true,
+    },
+    refund_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "refunds",
+      default: null,
+    },
+    dispatch_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "dispatchorders",
+      default: null,
     },
     ssk_details: {
       ssk_id: {
@@ -110,7 +126,7 @@ const salesOrder = SchemaFunction(
           type: mongoose.Schema.Types.ObjectId,
           required: true,
         },
-        name: {
+        branch_name: {
           type: String,
           // required: [true, "Name is required"],
           trim: true,
@@ -162,7 +178,7 @@ const salesOrder = SchemaFunction(
           type: mongoose.Schema.Types.ObjectId,
           required: true,
         },
-        name: {
+        branch_name: {
           type: String,
           // required: [true, "Name is required"],
           trim: true,
@@ -213,7 +229,7 @@ const salesOrder = SchemaFunction(
     },
     Items: [
       {
-        product_Id: {
+        product_id: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "products",
           required: [true, "product Id is required"],
@@ -254,6 +270,16 @@ const salesOrder = SchemaFunction(
           required: [true, "Quantity is required"],
           trim: true,
         },
+        dispatch_quantity: {
+          type: Number,
+          required: [true, "Dispatch Quantity is required"],
+          trim: true,
+        },
+        balance_quantity: {
+          type: Number,
+          required: [true, "Balance Quantity is required"],
+          trim: true,
+        },
         item_amount: {
           type: Number,
           required: [true, "Item Amount is required"],
@@ -261,34 +287,16 @@ const salesOrder = SchemaFunction(
         },
         gst: {
           cgst: {
-            percentage: {
-              type: Number,
-              default: null,
-            },
-            cgst_value: {
-              type: Number,
-              default: null,
-            },
+            type: Number,
+            default: 0,
           },
           sgst: {
-            percentage: {
-              type: Number,
-              default: null,
-            },
-            sgst_value: {
-              type: Number,
-              default: null,
-            },
+            type: Number,
+            default: 0,
           },
           igst: {
-            percentage: {
-              type: Number,
-              default: null,
-            },
-            igst_value: {
-              type: Number,
-              default: null,
-            },
+            type: Number,
+            default: 0,
           },
         },
         total_amount: {
@@ -321,12 +329,30 @@ const salesOrder = SchemaFunction(
       type: Number,
       required: [true, "Total Amount is required"],
     },
+    total_igst: {
+      type: Number,
+      default: 0,
+    },
+    total_cgst: {
+      type: Number,
+      default: 0,
+    },
+    total_sgst: {
+      type: Number,
+      default: 0,
+    },
     est_payment_days: {
       type: Number,
       default: null,
     },
+    created_by: {
+      type: createdBy,
+      required: [true, "created by is required"],
+    },
   })
 );
+
+salesOrder.index({ "current_data.sales_order_no": 1 }, { unique: true });
 
 const SalesModel = mongoose.model("salesorders", salesOrder);
 

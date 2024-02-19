@@ -1,10 +1,5 @@
 import rolesPermissions from "../../../middlewares/rolesPermissionAuth";
 import authMiddleware from "../../../middlewares/adminAuth";
-import {
-  createOfflineStorePO,
-  getStorePo,
-  latestStorePONo,
-} from "../../../controllers/Admin/PurchaseOrders/storePOController";
 import express from "express";
 import { MulterFunction } from "../../../Utils/MulterFunction";
 import CompanyMaster from "../../../controllers/Admin/Master/SupplierMaster/Company.class"
@@ -12,12 +7,10 @@ import Branches from "../../../controllers/Admin/Master/SupplierMaster/Branches.
 
 const offlineStoreRouter = express.Router();
 
-offlineStoreRouter.post("/create/PO", authMiddleware, createOfflineStorePO);
-offlineStoreRouter.get("/latestStorePoNo", authMiddleware, latestStorePONo);
-offlineStoreRouter.get("/fetch", authMiddleware, getStorePo);
 
-const offlineStore = new CompanyMaster("offlinestore", "offlinestores", "offlinestorebranches");
-const branch = new Branches("offlinestore", "offlinestorebranches", "offlinestores");
+
+export const offlineStore = new CompanyMaster("offlinestore", "offlinestores", "offlinestorebranches");
+export const branch = new Branches("offlinestore", "offlinestorebranches", "offlinestores");
 
 offlineStoreRouter
   .route("/")
@@ -66,7 +59,7 @@ offlineStoreRouter.patch(
 );
 
 offlineStoreRouter.get("/dropdown/list", authMiddleware, offlineStore.GetCompanyList)
-offlineStoreRouter.get("/branch/dropdown/list", authMiddleware, branch.GetBranchList)
+offlineStoreRouter.get("/branch/dropdown/list/:companyId", branch.GetBranchList)
 
 offlineStoreRouter.patch('/contact/setprimary/:companyId/:branchId', authMiddleware, branch.setPrimaryContact)
 

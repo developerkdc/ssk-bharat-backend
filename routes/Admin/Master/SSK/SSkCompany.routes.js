@@ -5,30 +5,55 @@ import Branches from "../../../../controllers/Admin/Master/SupplierMaster/Branch
 import authMiddleware from "../../../../middlewares/adminAuth";
 const sskCompanyRouter = express.Router();
 
-const sskCompany = new CompanyMaster("sskCompany", "sskCompanies", "sskCompanybranches");
-const branch = new Branches("sskCompany", "sskCompanybranches", "sskcompanies");
+export const sskCompany = new CompanyMaster(
+  "sskCompany",
+  "sskCompanies",
+  "sskCompanybranches"
+);
+ const branch = new Branches(
+  "sskCompany",
+  "sskCompanybranches",
+  "sskcompanies"
+);
 
 sskCompanyRouter
   .route("/")
-  .post(authMiddleware,MulterFunction("./uploads/admin/sskCompanyDocument/company").single("pan_image") ,sskCompany.AddCompany);
+  .post(
+    authMiddleware,
+    MulterFunction("./uploads/admin/sskCompanyDocument/company").single(
+      "pan_image"
+    ),
+    sskCompany.AddCompany
+  );
 
-sskCompanyRouter.route("/getAllCompany")
-  .post(authMiddleware, sskCompany.GetCompany)
+sskCompanyRouter
+  .route("/getAllCompany")
+  .post(authMiddleware, sskCompany.GetCompany);
 
 sskCompanyRouter
   .route("/:id")
   .get(authMiddleware, sskCompany.GetCompanyById)
-  .patch(authMiddleware,MulterFunction("./uploads/admin/sskCompanyDocument/company").single("pan_image") ,sskCompany.UpdateCompany);
+  .patch(
+    authMiddleware,
+    MulterFunction("./uploads/admin/sskCompanyDocument/company").single(
+      "pan_image"
+    ),
+    sskCompany.UpdateCompany
+  );
 
-sskCompanyRouter.route('/primaryBranch/:companyId/:branchId')
-  .patch(authMiddleware, sskCompany.setPrimaryBranch)
+sskCompanyRouter
+  .route("/primaryBranch/:companyId/:branchId")
+  .patch(authMiddleware, sskCompany.setPrimaryBranch);
 //branch
-sskCompanyRouter.route("/branch").post(authMiddleware,
+sskCompanyRouter.route("/branch").post(
+  authMiddleware,
   MulterFunction("./uploads/admin/sskCompanyDocument").fields([
     // { name: "pan_image", maxCount: 1 },
     { name: "gst_image", maxCount: 1 },
     { name: "passbook_image", maxCount: 1 },
-  ]), branch.addBranch);
+  ]),
+  branch.addBranch
+);
 
 sskCompanyRouter
   .route("/branch/:companyId")
@@ -40,10 +65,15 @@ sskCompanyRouter
   .post(authMiddleware, branch.AddContact)
   .patch(authMiddleware, branch.UpdateContact);
 
-sskCompanyRouter.post("/BranchSskcompany/all", authMiddleware, branch.getAllBranchCompany);
+sskCompanyRouter.post(
+  "/BranchSskcompany/all",
+  authMiddleware,
+  branch.getAllBranchCompany
+);
 
 sskCompanyRouter.patch(
-  "/branch/upload/:companyId/:branchId", authMiddleware,
+  "/branch/upload/:companyId/:branchId",
+  authMiddleware,
   MulterFunction("./uploads/admin/sskCompanyDocument").fields([
     // { name: "pan_image", maxCount: 1 },
     { name: "gst_image", maxCount: 1 },
@@ -52,9 +82,21 @@ sskCompanyRouter.patch(
   branch.uploadDocument("./uploads/admin/sskCompanyDocument")
 );
 
-sskCompanyRouter.get("/dropdown/list", authMiddleware, sskCompany.GetCompanyList)
-sskCompanyRouter.get("/branch/dropdown/list/:companyId", authMiddleware, branch.GetBranchList)
+sskCompanyRouter.get(
+  "/dropdown/list",
+  authMiddleware,
+  sskCompany.GetCompanyList
+);
+sskCompanyRouter.get(
+  "/branch/dropdown/list/:companyId",
+  authMiddleware,
+  branch.GetBranchList
+);
 
-sskCompanyRouter.patch('/contact/setprimary/:companyId/:branchId', authMiddleware, branch.setPrimaryContact);
+sskCompanyRouter.patch(
+  "/contact/setprimary/:companyId/:branchId",
+  authMiddleware,
+  branch.setPrimaryContact
+);
 
 export default sskCompanyRouter;

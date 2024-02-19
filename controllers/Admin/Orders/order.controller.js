@@ -5,6 +5,8 @@ import storePOModel from "../../../database/schema/PurchaseOrders/offlineStorePu
 import OrdersModel from "../../../database/schema/Orders/order.schema";
 import mongoose from "mongoose";
 import { approvalData } from "../../HelperFunction/approvalFunction";
+import { createdByFunction } from "../../HelperFunction/createdByfunction";
+import adminApprovalFunction from "../../HelperFunction/AdminApprovalFunction";
 
 export const createNewOrder = catchAsync(async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -43,17 +45,27 @@ export const createNewOrder = catchAsync(async (req, res, next) => {
             store_id: customer_details.customer_id,
             store_name: customer_details.customer_name,
           },
+          status: false,
         },
       ],
       { session }
     );
+
+    //latest order no
+    const latestPurchaseOrder = await OrdersModel.findOne()
+      .sort({ created_at: -1 })
+      .select("current_data.order_no");
     const newOrder = await OrdersModel.create(
       [
         {
           current_data: {
             ...req.body,
+            order_no: latestPurchaseOrder
+              ? latestPurchaseOrder?.current_data?.order_no + 1
+              : 1,
             purchase_order_id: storePO[0]?._id,
             purchase_order_no: storePO[0]?.purchase_order_no,
+            created_by: createdByFunction(user),
           },
           approver: approvalData(user),
         },
@@ -66,6 +78,11 @@ export const createNewOrder = catchAsync(async (req, res, next) => {
     session.endSession();
 
     if (newOrder && storePO) {
+      adminApprovalFunction({
+        module: "orders",
+        user: user,
+        documentId: newOrder?.[0]?._id,
+      });
       return res.status(201).json({
         statusCode: 201,
         status: "success",
@@ -143,8 +160,9 @@ export const fetchOrders = catchAsync(async (req, res, next) => {
     matchQuery["current_data.order_type"] = type;
   }
   if (to && from) {
-    matchQuery.order_date = { $gte: new Date(from) };
-    matchQuery.estimate_delivery_date = { $lte: new Date(to) };
+    console.log( new Date(from))
+    matchQuery["current_data.order_date"] = { $gte: new Date(from) };
+    matchQuery["current_data.estimate_delivery_date"] = { $lte: new Date(to) };
   }
 
   const totalDocuments = await OrdersModel.countDocuments({

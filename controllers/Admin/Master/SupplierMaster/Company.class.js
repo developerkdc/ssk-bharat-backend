@@ -25,7 +25,6 @@ class CompanyMaster {
         minlength: [2, "Length should be greater than two"],
         maxlength: [25, "Length should be less than or equal to 25"],
         trim: true,
-        lowercase: true,
         required: [true, "Company name is required"],
       },
       company_type: {
