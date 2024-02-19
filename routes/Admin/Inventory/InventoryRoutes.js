@@ -9,10 +9,19 @@ import {
   reseverdQuantity,
 } from "../../../controllers/Admin/Inventory/inventoryController";
 import authMiddleware from "../../../middlewares/adminAuth";
+import { MulterFunction } from "../../../Utils/MulterFunction";
 
 const router = express.Router();
 
-router.post("/addstock",authMiddleware, AddStock);
+router.post(
+  "/addstock",
+  authMiddleware,
+  MulterFunction("./uploads/admin/Inventory").fields([
+    { name: "deliveryChallanNo_image", maxCount: 1 },
+    { name: "uploadInviocePDF", maxCount: 1 },
+  ]),
+  AddStock
+);
 router.post("/sampleInward", AddSampleInward);
 router.get("/list", InventoryList);
 router.patch("/:productId", reseverdQuantity);

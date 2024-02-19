@@ -4,53 +4,35 @@ import userAndApprovals from "../../utils/approval.schema";
 import SchemaFunction from "../../../controllers/HelperFunction/SchemaFunction"
 
 const ItemsSchema = new mongoose.Schema({
-  product_Id: {
+  product_id: {
     type: mongoose.Schema.Types.ObjectId,
     trim: true,
     ref: "products",
   },
-  itemName: { type: String, required: true, trim: true },
+  item_name: { type: String, required: true, trim: true },
   category: { type: String, required: true, trim: true },
   sku: { type: String, required: true, trim: true },
   hsn_code: { type: String, required: true, trim: true },
-  itemsWeight: { type: Number, required: true, trim: true },
+  weight: { type: Number, required: true, trim: true },
   unit: { type: String, required: true, trim: true },
-  ratePerUnit: { type: Number, required: true, trim: true },
+  rate_per_unit: { type: Number, required: true, trim: true },
   quantity: { type: Number, required: true, trim: true },
-  itemAmount: { type: Number, required: true, trim: true },
+  item_amount: { type: Number, required: true, trim: true },
   gst: {
     cgst: {
-      percentage: {
-        type: Number,
-        default: null,
-      },
-      cgst_value: {
-        type: Number,
-        default: null,
-      },
+      type: Number,
+      default: 0,
     },
     sgst: {
-      percentage: {
-        type: Number,
-        default: null,
-      },
-      sgst_value: {
-        type: Number,
-        default: null,
-      },
+      type: Number,
+      default: 0,
     },
     igst: {
-      percentage: {
-        type: Number,
-        default: null,
-      },
-      igst_value: {
-        type: Number,
-        default: null,
-      },
+      type: Number,
+      default: 0,
     },
   },
-  totalAmount: { type: Number, required: true, trim: true },
+  total_amount: { type: Number, required: true, trim: true },
   receivedQuantity: { type: Number, required: true, trim: true },
   availableQuantity: { type: Number, trim: true },
   balanceQuantity: { type: Number, trim: true },
@@ -118,19 +100,20 @@ const InvoiceDetailsSchema = new mongoose.Schema({
   uploadInviocePDF: { type: String, default: null },
 });
 
-const InventorySchema = SchemaFunction(new mongoose.Schema({
-  purchaseOrderNo: { type: String, trim: true },
-
-  receivedDate: Date,
-  supplierDetails: SupplierDetailsSchema,
-  itemsDetails: ItemsSchema,
-  transportDetails: TransportDetailsSchema,
-  invoiceDetails: InvoiceDetailsSchema,
-  // approvals: userAndApprovals,
-  // created_at: { type: Date, default: Date.now },
-  // updated_at: { type: Date, default: Date.now },
-  // deleted_at: { type: Date, default: null },
-}));
+const InventorySchema = SchemaFunction(
+  new mongoose.Schema({
+    purchaseOrderNo: { type: String, trim: true },
+    receivedDate: { type:Date, required: true, trim: true },
+    supplierDetails: SupplierDetailsSchema,
+    itemsDetails: ItemsSchema,
+    transportDetails: TransportDetailsSchema,
+    invoiceDetails: InvoiceDetailsSchema,
+    // approvals: userAndApprovals,
+    created_at: { type: Date, default: Date.now },
+    // updated_at: { type: Date, default: Date.now },
+    // deleted_at: { type: Date, default: null },
+  })
+);
 
 const inventoryModel = mongoose.model("Inventory", InventorySchema);
 
