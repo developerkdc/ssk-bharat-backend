@@ -234,7 +234,8 @@ export const fetchDispatchBasedonDeliveryStatus = catchAsync(
     const { string, boolean, numbers } = req?.body?.searchFields || {};
 
     const {
-      type,
+      order_type,
+      delivery_status,
       page,
       limit = 10,
       sortBy = "created_at",
@@ -262,23 +263,24 @@ export const fetchDispatchBasedonDeliveryStatus = catchAsync(
 
     const { to, from, ...data } = req?.body?.filters || {};
     const matchQuery = data || {};
-    if (type) {
-      matchQuery["current_data.delivery_status"] = type;
+    if (delivery_status) {
+      matchQuery["current_data.delivery_status"] = delivery_status;
+      matchQuery["current_data.order_type"] = order_type;
     }
     if (to && from) {
-      if (type == "dispatched") {
+      if (delivery_status == "dispatched") {
         matchQuery["current_data.tracking_date.dispatch_generated_date"] = {
           $gte: new Date(from),
           $lte: new Date(to),
         };
-      } else if (type == "outForDelivery") {
+      } else if (delivery_status == "outForDelivery") {
         matchQuery[
           "current_data.tracking_date.out_for_delivery.dispatch_date"
         ] = {
           $gte: new Date(from),
           $lte: new Date(to),
         };
-      } else if (type == "delivered") {
+      } else if (delivery_status == "delivered") {
         matchQuery["current_data.tracking_date.delivered"] = {
           $gte: new Date(from),
           $lte: new Date(to),
@@ -306,7 +308,7 @@ export const fetchDispatchBasedonDeliveryStatus = catchAsync(
       data: dispatchOrders,
       statusCode: 200,
       status: "success",
-      message: `All ${type} Orders`,
+      message: `All ${order_type} Dispatch Orders`,
       totalPages: totalPages,
       currentPage: page,
     });
@@ -364,6 +366,13 @@ export const outForDelivery = catchAsync(async (req, res, next) => {
   if (!updateData) {
     throw new Error(new ApiError("Order Not Found", 400));
   }
+
+  adminApprovalFunction({
+    module: "dispatchorders",
+    user: user,
+    documentId: id,
+  });
+
   if (updateData) {
     return res.status(200).json({
       statusCode: 200,

@@ -74,8 +74,7 @@ const dispatchOrder = SchemaFunction(
       out_for_delivery: {
         dispatch_date: {
           type: Date,
-
-          default: null,
+         default: null,
         },
         estimate_delivery_date: {
           type: Date,
@@ -365,7 +364,7 @@ const dispatchOrder = SchemaFunction(
       },
       transport_type: {
         type: String,
-        enum: ["hand", "courier", "road", "rail", "air"],
+        enum: ["hand_delivery", "courier", "road", "rail", "air"],
         trim: true,
         default: null,
       },
@@ -381,7 +380,7 @@ const dispatchOrder = SchemaFunction(
           default: null,
         },
       },
-      courier: {
+      courier: {  
         company_name: {
           type: String,
           trim: true,
