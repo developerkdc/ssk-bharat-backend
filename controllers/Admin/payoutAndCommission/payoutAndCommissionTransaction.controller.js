@@ -68,10 +68,10 @@ import adminApprovalFunction from "../../HelperFunction/AdminApprovalFunction";
 //       { session }
 //     );
 
-    
+
 //     await session.commitTransaction();
 //     await session.endSession();
-    
+
 //     adminApprovalFunction({
 //       module: "MarketExecutive",
 //       user: req.user,
@@ -184,7 +184,7 @@ import adminApprovalFunction from "../../HelperFunction/AdminApprovalFunction";
 
 export const addPayout = catchAsync(async (req, res, next) => {
   const {
-    payouts: { payoutType, transactionId, payoutAmount, tdsPercentage },
+    payouts: { payoutType, transactionId, payoutAmount, tdsPercentage = 10 },
   } = req.body;
   const { marketExecutiveId } = req.params;
   let session;
@@ -192,6 +192,14 @@ export const addPayout = catchAsync(async (req, res, next) => {
   try {
     session = await mongoose.startSession();
     session.startTransaction();
+
+    const marketExecutiveBalance = await MarketExecutiveModel.findById(
+      marketExecutiveId
+    );
+
+    if (!marketExecutiveBalance) {
+      throw new ApiError("Market executive not found", 404);
+    }
 
     const addPayout = await payoutAndCommissionTransModel.create(
       [
@@ -202,8 +210,8 @@ export const addPayout = catchAsync(async (req, res, next) => {
             transactionId,
             payoutAmount,
             tdsPercentage,
-            tdsAmount:(payoutAmount/100)*tdsPercentage,
-            amountPaid:payoutAmount - ((payoutAmount/100)*tdsPercentage)
+            tdsAmount: ((payoutAmount / 100) * tdsPercentage).toFixed(2),
+            amountPaid: (payoutAmount - ((payoutAmount / 100) * tdsPercentage)).toFixed(2)
           },
         },
       ],
@@ -211,14 +219,6 @@ export const addPayout = catchAsync(async (req, res, next) => {
     );
 
     const amountPaid = addPayout[0].payouts.amountPaid;
-
-    const marketExecutiveBalance = await MarketExecutiveModel.findById(
-      marketExecutiveId
-    );
-
-    if (!marketExecutiveBalance) {
-      throw new ApiError("Market executive not found", 404);
-    }
 
     const newBalance =
       marketExecutiveBalance.account_balance - Number(amountPaid);
@@ -230,13 +230,13 @@ export const addPayout = catchAsync(async (req, res, next) => {
       { _id: marketExecutiveId },
       {
         $inc: {
-          "account_balance": -Number(amountPaid).toFixed(2),
+          "account_balance": (-Number(amountPaid)).toFixed(2),
         },
       },
       { session }
     );
 
-    
+
     await session.commitTransaction();
     await session.endSession();
 
