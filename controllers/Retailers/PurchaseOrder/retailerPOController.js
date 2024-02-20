@@ -37,7 +37,7 @@ export const getRetailerPoByRetailersId = catchAsync(async (req, res, next) => {
   const totalUnits = await retailerPOModel.countDocuments({
     ...matchQuery,
     ...searchQuery,
-    "retailer_details.retailer_id": "65b4b72fae664feec7e469c9",
+    "retailer_details.retailer_id": "65d11012cbc6fb8d5c726d98",
   });
   const totalPages = Math.ceil(totalUnits / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
@@ -48,7 +48,7 @@ export const getRetailerPoByRetailersId = catchAsync(async (req, res, next) => {
     .find({
       ...matchQuery,
       ...searchQuery,
-      "retailer_details.retailer_id": "65b4b72fae664feec7e469c9",
+      "retailer_details.retailer_id": "65d11012cbc6fb8d5c726d98",
     })
     .sort({ [sortField]: sortDirection })
     .skip(skip)

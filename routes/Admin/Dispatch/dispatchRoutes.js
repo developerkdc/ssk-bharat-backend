@@ -18,7 +18,7 @@ router.post(
   rolesPermissions("dispatch", "add"),
   createDispatch
 );
-router.get(
+router.post(
   "/fetch",
   authMiddleware,
   rolesPermissions("dispatch", "view"),
