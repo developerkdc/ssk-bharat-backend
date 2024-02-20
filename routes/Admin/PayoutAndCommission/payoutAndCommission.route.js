@@ -6,9 +6,10 @@ import {
 import authMiddleware from "../../../middlewares/adminAuth";
 const payoutAndCommissionRouter = express.Router();
 
-payoutAndCommissionRouter
-  .route("/:marketExecutiveId")
-  .get(authMiddleware,getPayoutAndCommissionTrans)
-  .post(authMiddleware,addPayout);
+payoutAndCommissionRouter.route("/:marketExecutiveId")
+  .post(authMiddleware, addPayout);
+
+payoutAndCommissionRouter.route("/transactionHistory/:marketExecutiveId")
+  .post(authMiddleware,getPayoutAndCommissionTrans);
 
 export default payoutAndCommissionRouter;

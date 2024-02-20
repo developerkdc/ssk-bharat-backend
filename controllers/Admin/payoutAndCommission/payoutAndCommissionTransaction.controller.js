@@ -308,16 +308,37 @@ export const getPayoutAndCommissionTrans = catchAsync(
       },
       {
         $sort: {
-          [sortBy]: sort == "desc" ? -1 : 1,
+          [sortBy]: sort === "desc" ? -1 : 1,
         },
+      },
+      {
+        $skip: (Number(page) - 1) * Number(limit),
       },
       {
         $limit: Number(limit),
       },
-      {
-        $skip: Number(page) * limit - Number(limit),
-      },
     ]);
+
+    const getTotals = await payoutAndCommissionTransModel.aggregate([
+      {
+        $match: {
+          marketExecutiveId: new mongoose.Types.ObjectId(marketExecutiveId),
+          ...matchQuery,
+          ...searchQuery,
+        },
+      },
+      {
+        $group: {
+          _id: "$marketExecutiveId",
+          commission: {
+            $sum: "$commission.commissionAmount"
+          },
+          payouts: {
+            $sum: "$payouts.amountPaid"
+          }
+        }
+      }
+    ])
 
     const totalDocuments = await payoutAndCommissionTransModel.countDocuments({
       marketExecutiveId: new mongoose.Types.ObjectId(marketExecutiveId),
@@ -330,10 +351,12 @@ export const getPayoutAndCommissionTrans = catchAsync(
     return res.status(200).json({
       statusCode: 200,
       status: "success",
+      length: getTransaction.length,
       totalPages: totalPages,
       data: {
         Transaction: getTransaction,
       },
+      totals:getTotals
     });
   }
 );

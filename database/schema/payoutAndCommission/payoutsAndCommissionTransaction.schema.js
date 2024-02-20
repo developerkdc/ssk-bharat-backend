@@ -171,7 +171,11 @@ const payoutAndCommissionTranSchema = new mongoose.Schema({
             commissionAmount: {
                 type: Number,
                 required: [true, "commission amount is required"]
-            }
+            },
+            commissionDate: {
+                type: Date,
+                default: Date.now,
+            },
         },
         default: null
     },
