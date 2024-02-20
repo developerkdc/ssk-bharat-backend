@@ -4,6 +4,7 @@ import productModel from "../../../database/schema/Master/Products/product.schem
 import sampleOut from "../../../database/schema/Samples/sampleOut.schema";
 
 export const outwardSample = catchAsync(async (req, res, next) => {
+  console.log(req.body)
   const sample = await sampleOut.create(req.body);
 
   return res.status(201).json({
