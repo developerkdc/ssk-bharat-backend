@@ -142,6 +142,9 @@ export const createDispatch = catchAsync(async (req, res, next) => {
       order_type,
       ssk_details,
       customer_details,
+      total_igst,
+      total_cgst,
+      total_sgst,
       Items,
     } = salesOrderData.current_data;
 
@@ -152,11 +155,9 @@ export const createDispatch = catchAsync(async (req, res, next) => {
           ? latestDispatch.current_data.dispatch_no + 1
           : 1,
         sales_order_no: sales_order_no,
-        sales_order_date: sales_order_date,
         order_no: order_no,
         order_date: order_date,
         order_type: order_type,
-        estimate_delivery_date: estimate_delivery_date,
         delivery_status: "dispatched",
         tracking_date: {
           sales_order_date: sales_order_date,
@@ -169,6 +170,9 @@ export const createDispatch = catchAsync(async (req, res, next) => {
         total_item_amount: total_item_amount,
         total_gst: total_gst,
         total_amount: total_amount,
+        total_igst: total_igst,
+        total_cgst: total_cgst,
+        total_sgst: total_sgst,
         created_by: createdByFunction(user),
       },
       approver: approvalData(user),
@@ -318,7 +322,6 @@ export const fetchDispatchBasedonDeliveryStatus = catchAsync(
 export const outForDelivery = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const user = req.user;
-
   const updateData = await DispatchModel.findByIdAndUpdate(
     { _id: id },
     {
@@ -416,53 +419,60 @@ export const delivered = catchAsync(async (req, res, next) => {
       select: "current_data.inventorySchema",
     });
 
-    const inventoryName =
-      retailerdetails.current_data.customer_details.customer_id.current_data
-        .inventorySchema;
+    // const inventoryName =
+    //   retailerdetails.current_data.customer_details.customer_id.current_data
+    //     .inventorySchema;
 
-    const inventoryModel = DynamicModel(inventoryName, InventorySchema);
-    const items = retailerdetails.current_data.Items;
-    const inventoryArray = [];
-    for (const item of items) {
-      console.log(item);
-      const inventory = new inventoryModel({
-        sales_order_no: retailerdetails.current_data.sales_order_no,
-        supplierCompanyName:
-          retailerdetails.current_data.ssk_details.company_name,
-        CustomerDetails: retailerdetails.current_data.customer_details,
-        receivedDate: retailerdetails.current_data.tracking_date.delivered,
-        transportDetails: retailerdetails.current_data.transport_details,
-        invoiceDetails: {
-          invoiceNo: retailerdetails.current_data.dispatch_no,
-          invoiceDate: retailerdetails.current_data.tracking_date.delivered,
-          itemsAmount: retailerdetails.current_data.total_item_amount,
-          gstAmount: retailerdetails.current_data.total_gst,
-          totalAmount: retailerdetails.current_data.total_amount,
-        },
-        tracking_date: retailerdetails.current_data.tracking_date,
-        itemsDetails: {
-          product_Id: item.product_Id,
-          item_name: item.item_name,
-          category: item.category,
-          sku: item.sku,
-          hsn_code: item.hsn_code,
-          weight: item.weight,
-          unit: item.unit,
-          rate_per_unit: item.rate_per_unit,
-          quantity: item.quantity,
-          receivedQuantity: item.quantity,
-          item_amount: item.item_amount,
-          gst: item.gst,
-          total_amount: item.total_amount,
-          availableQuantity: item.quantity,
-        },
-      });
+    // const inventoryModel = DynamicModel(inventoryName, InventorySchema);
+    // const items = retailerdetails.current_data.Items;
+    // const inventoryArray = [];
+    // for (const item of items) {
+    //   console.log(item);
+    //   const inventory = new inventoryModel({
+    //     sales_order_no: retailerdetails.current_data.sales_order_no,
+    //     supplierCompanyName:
+    //       retailerdetails.current_data.ssk_details.company_name,
+    //     CustomerDetails: retailerdetails.current_data.customer_details,
+    //     receivedDate: retailerdetails.current_data.tracking_date.delivered,
+    //     transportDetails: retailerdetails.current_data.transport_details,
+    //     invoiceDetails: {
+    //       invoiceNo: retailerdetails.current_data.dispatch_no,
+    //       invoiceDate: retailerdetails.current_data.tracking_date.delivered,
+    //       itemsAmount: retailerdetails.current_data.total_item_amount,
+    //       gstAmount: retailerdetails.current_data.total_gst,
+    //       totalAmount: retailerdetails.current_data.total_amount,
+    //     },
+    //     tracking_date: retailerdetails.current_data.tracking_date,
+    //     itemsDetails: {
+    //       product_id: item.product_id,
+    //       item_name: item.item_name,
+    //       category: item.category,
+    //       sku: item.sku,
+    //       hsn_code: item.hsn_code,
+    //       weight: item.weight,
+    //       unit: item.unit,
+    //       rate_per_unit: item.rate_per_unit,
+    //       quantity: item.quantity,
+    //       receivedQuantity: item.quantity,
+    //       item_amount: item.item_amount,
+    //       gst: item.gst,
+    //       total_amount: item.total_amount,
+    //       availableQuantity: item.quantity,
+    //     },
+    //   });
 
-      inventoryArray.push(inventory);
-      await inventory.save();
-    }
+    //   inventoryArray.push(inventory);
+    //   await inventory.save();
+    // }
     await session.commitTransaction();
     await session.endSession();
+
+    adminApprovalFunction({
+      module: "dispatchorders",
+      user: user,
+      documentId: id,
+    });
+
     return res.status(200).json({
       statusCode: 200,
       status: "success",

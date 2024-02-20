@@ -16,33 +16,15 @@ const dispatchOrder = SchemaFunction(
       type: Number,
       required: [true, "Sales Order No is required"],
       trim: true,
-      unique: true,
     },
     order_no: {
       type: Number,
       required: [true, "Order No is required"],
       trim: true,
-      unique: true,
     },
     order_date: {
       type: Date,
       required: [true, "Order Date is required"],
-      trim: true,
-    },
-    dispatch_date: {
-      type: Date,
-      default:Date.now,
-      required: [true, "Dispatch Date is required"],
-      trim: true,
-    },
-    sales_order_date: {
-      type: Date,
-      required: [true, "Sales Order Date is required"],
-      trim: true,
-    },
-    estimate_delivery_date: {
-      type: Date,
-      required: [true, "Estimate Order Date is required"],
       trim: true,
     },
     sales_order_id: {
@@ -74,11 +56,10 @@ const dispatchOrder = SchemaFunction(
       out_for_delivery: {
         dispatch_date: {
           type: Date,
-         default: null,
+          default: null,
         },
         estimate_delivery_date: {
           type: Date,
-
           default: null,
         },
       },
@@ -380,7 +361,7 @@ const dispatchOrder = SchemaFunction(
           default: null,
         },
       },
-      courier: {  
+      courier: {
         company_name: {
           type: String,
           trim: true,
