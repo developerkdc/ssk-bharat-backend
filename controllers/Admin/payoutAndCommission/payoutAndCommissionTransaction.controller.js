@@ -3,6 +3,7 @@ import catchAsync from "../../../Utils/catchAsync";
 import payoutAndCommissionTransModel from "../../../database/schema/payoutAndCommission/payoutsAndCommissionTransaction.schema";
 import MarketExecutiveModel from "../../../database/schema/MET/MarketExecutive.schema";
 import ApiError from "../../../Utils/ApiError";
+import { dynamicSearch } from "../../../Utils/dynamicSearch";
 import { approvalData } from "../../HelperFunction/approvalFunction";
 import adminApprovalFunction from "../../HelperFunction/AdminApprovalFunction";
 
