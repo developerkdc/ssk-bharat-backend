@@ -4,7 +4,7 @@ import productModel from "../../../database/schema/Master/Products/product.schem
 import sampleOut from "../../../database/schema/Samples/sampleOut.schema";
 
 export const outwardSample = catchAsync(async (req, res, next) => {
-  console.log(req.body)
+  console.log(req.body);
   const sample = await sampleOut.create(req.body);
 
   return res.status(201).json({
@@ -27,6 +27,54 @@ export const getItemdetails = catchAsync(async (req, res, next) => {
   });
 });
 
+// export const sampleList = catchAsync(async (req, res) => {
+//   const { string, boolean, numbers } = req?.body?.searchFields || {};
+//   const search = req.query.search || "";
+//   const page = parseInt(req.query.page) || 1;
+//   const limit = 10;
+//   const skip = (page - 1) * limit;
+
+//   const sortDirection = req.query.sort === "desc" ? -1 : 1;
+//   const sortField = req?.query?.sortBy || "_id";
+
+//   const { to, from, ...data } = req?.body?.filters || {};
+//   const matchQuery = data || {};
+
+//   let searchQuery = {};
+//   if (search != "" && req?.body?.searchFields) {
+//     const searchdata = dynamicSearch(search, boolean, numbers, string);
+//     if (searchdata?.length == 0) {
+//       return res.status(404).json({
+//         statusCode: 404,
+//         status: false,
+//         data: {
+//           purchaseOrder: [],
+//         },
+//         message: "Results Not Found",
+//       });
+//     }
+//     searchQuery = searchdata;
+//   }
+
+//   const samplesList = await sampleOut
+//     .find({...matchQuery,...searchQuery})
+//     .sort({ [sortField]: sortDirection })
+//     .skip(skip)
+//     .limit(limit)
+
+//   const totalDocuments = await sampleOut.countDocuments({...matchQuery,...searchQuery});
+//   const totalPages = Math.ceil(totalDocuments / limit);
+
+//   return res.status(200).json({
+//     statusCode: 200,
+//     data: samplesList,
+//     totalPages:totalPages,
+//     status:"success",
+//     message: "Fetch Sample Data",
+
+//   });
+// });
+
 export const sampleList = catchAsync(async (req, res) => {
   const { string, boolean, numbers } = req?.body?.searchFields || {};
   const search = req.query.search || "";
@@ -39,7 +87,6 @@ export const sampleList = catchAsync(async (req, res) => {
 
   const { to, from, ...data } = req?.body?.filters || {};
   const matchQuery = data || {};
- 
 
   let searchQuery = {};
   if (search != "" && req?.body?.searchFields) {
@@ -56,23 +103,30 @@ export const sampleList = catchAsync(async (req, res) => {
     }
     searchQuery = searchdata;
   }
-  
+
   const samplesList = await sampleOut
-    .find({...matchQuery,...searchQuery})
+    .find({ ...matchQuery, ...searchQuery })
     .sort({ [sortField]: sortDirection })
     .skip(skip)
-    .limit(limit)
+    .limit(limit);
 
-  const totalDocuments = await sampleOut.countDocuments({...matchQuery,...searchQuery});
+  const totalDocuments = await sampleOut.countDocuments({
+    ...matchQuery,
+    ...searchQuery,
+  });
   const totalPages = Math.ceil(totalDocuments / limit);
+
+  // Transforming response to send individual items
+  const responseData = samplesList.flatMap((sample) =>
+    sample.items.map((item) => ({ ...sample._doc, items: [item] }))
+  );
 
   return res.status(200).json({
     statusCode: 200,
-    data: samplesList,
-    totalPages:totalPages,
-    status:"success",
+    data: responseData,
+    totalPages: totalPages,
+    status: "success",
     message: "Fetch Sample Data",
-   
   });
 });
 

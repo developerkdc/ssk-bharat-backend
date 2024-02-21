@@ -4,6 +4,7 @@ import LogSchemaFunction from "../../utils/Logs.schema";
 
 const sampleOutward = new mongoose.Schema({
   deliveryChallanNo: { type: String, trim: true, required: true },
+  dateofsample:{type:String, trim: true},
   items: [
     {
       product_Id: {

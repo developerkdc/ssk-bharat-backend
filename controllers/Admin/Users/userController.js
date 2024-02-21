@@ -219,7 +219,7 @@ export const FetchUsers = catchAsync(async (req, res) => {
   // Fetching users
   const users = await userModel
     .find({ ...filter, ...searchQuery, "current_data.status": true })
-    .sort(sort)
+    .sort({ [sortField]: sortOrder })
     .skip(skip)
     .limit(limit)
     .populate("current_data.role_id");
