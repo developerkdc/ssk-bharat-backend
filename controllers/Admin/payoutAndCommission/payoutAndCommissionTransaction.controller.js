@@ -185,7 +185,7 @@ import adminApprovalFunction from "../../HelperFunction/AdminApprovalFunction";
 
 export const addPayout = catchAsync(async (req, res, next) => {
   const {
-    payouts: { payoutType, transactionId, payoutAmount, tdsPercentage = 10 },
+    payouts: { payoutType, transactionId, payoutAmount, tdsPercentage = 10, payoutDate },
   } = req.body;
   const { marketExecutiveId } = req.params;
   let session;
@@ -210,6 +210,7 @@ export const addPayout = catchAsync(async (req, res, next) => {
             payoutType,
             transactionId,
             payoutAmount,
+            payoutDate: new Date(payoutDate).setUTCHours(0, 0, 0, 0),
             tdsPercentage,
             tdsAmount: ((payoutAmount / 100) * tdsPercentage).toFixed(2),
             amountPaid: (payoutAmount - ((payoutAmount / 100) * tdsPercentage)).toFixed(2)
@@ -263,7 +264,7 @@ export const getPayoutAndCommissionTrans = catchAsync(
       type,
       page = 1,
       limit = 10,
-      sortBy = "createdAt",
+      sortBy = "created_at",
       sort = "desc",
     } = req.query;
 
@@ -289,36 +290,67 @@ export const getPayoutAndCommissionTrans = catchAsync(
       searchQuery = searchdata;
     }
 
-    const { to, from, ...data } = req?.body?.filters || {};
+    const { range = null, ...data } = req?.body?.filters || {};
     const matchQuery = data || {};
 
-    if (to && from) {
-      matchQuery["salesOrderDate"] = {
-        $gte: new Date(from),
-        $lte: new Date(to),
-      };
-    }
+    if (range) {
+      const rangeData = JSON.parse(JSON.stringify(range)?.replace(/from/g, "$gte")?.replace(/to/g, "$lte"));
+      matchQuery.$or = [];
+      const commission = [];
+      const payouts = [];
 
-    const getTransaction = await payoutAndCommissionTransModel.aggregate([
-      {
-        $match: {
-          marketExecutiveId: new mongoose.Types.ObjectId(marketExecutiveId),
-          ...matchQuery,
-          ...searchQuery,
-        },
-      },
-      {
-        $sort: {
-          [sortBy]: sort === "desc" ? -1 : 1,
-        },
-      },
-      {
-        $skip: (Number(page) - 1) * Number(limit),
-      },
-      {
-        $limit: Number(limit),
-      },
-    ]);
+      for (let i in rangeData) {
+        if (i.startsWith("commission")) {
+          commission.push({
+            [i]: rangeData[i]
+          })
+        }
+        if (i.startsWith("payouts")) {
+          payouts.push({
+            [i]: rangeData[i]
+          })
+        }
+      }
+      if (commission.length > 0) matchQuery.$or.push({
+        $and: commission
+      });
+      if (payouts.length > 0) matchQuery.$or.push({
+        $and: payouts
+      });
+    }
+    // res.send(matchQuery)
+
+    // const getTransaction = await payoutAndCommissionTransModel.aggregate([
+    //   {
+    //     $match: {
+    //       marketExecutiveId: new mongoose.Types.ObjectId(marketExecutiveId),
+    //       ...matchQuery,
+    //       ...searchQuery,
+    //     },
+    //   },
+    //   {
+    //     $sort: {
+    //       [sortBy]: sort === "desc" ? -1 : 1,
+    //     },
+    //   },
+    //   {
+    //     $skip: (Number(page) - 1) * Number(limit),
+    //   },
+    //   {
+    //     $limit: Number(limit),
+    //   },
+    // ]);
+
+
+    const getTransaction = await payoutAndCommissionTransModel.find({
+      marketExecutiveId: new mongoose.Types.ObjectId(marketExecutiveId),
+      ...matchQuery,
+      ...searchQuery,
+    })
+      .skip((Number(page) - 1) * Number(limit))
+      .limit(limit)
+      .sort({ [sortBy]: sort })
+      .exec();
 
     const getTotals = await payoutAndCommissionTransModel.aggregate([
       {
@@ -357,7 +389,7 @@ export const getPayoutAndCommissionTrans = catchAsync(
       data: {
         Transaction: getTransaction,
       },
-      totals:getTotals
+      totals: getTotals
     });
   }
 );

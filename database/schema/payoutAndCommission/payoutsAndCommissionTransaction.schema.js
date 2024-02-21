@@ -174,7 +174,9 @@ const payoutAndCommissionTranSchema = new mongoose.Schema({
             },
             commissionDate: {
                 type: Date,
-                default: Date.now,
+                default: function () {
+                    return  new Date(this.salesOrderDate).setUTCHours(0, 0, 0, 0);
+                },
             },
         },
         default: null
@@ -183,7 +185,9 @@ const payoutAndCommissionTranSchema = new mongoose.Schema({
         type: {
             payoutDate: {
                 type: Date,
-                default: Date.now,
+                default: function(){
+                    return new Date().setUTCHours(0, 0, 0, 0);
+                },
             },
             payoutType: {
                 type: String,
@@ -215,7 +219,10 @@ const payoutAndCommissionTranSchema = new mongoose.Schema({
             }
         },
         default: null
-    }
+    },
+    created_at: { type: Date, default: Date.now },
+    updated_at: { type: Date, default: Date.now },
+    deleted_at: { type: Date, default: null },
 })
 
 const payoutAndCommissionTransModel = mongoose.model("payoutAndCommissionTransaction", payoutAndCommissionTranSchema)
