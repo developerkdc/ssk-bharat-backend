@@ -85,6 +85,10 @@ const offlinePaymentSchema = SchemaFunction(
     payments: {
       type: [
         {
+          paymentDate: {
+            type: Date,
+            default:Date.now
+          },
           paymentType: {
             type: String,
             required: [true, "payment Type is required"],
@@ -132,6 +136,8 @@ const offlinePaymentSchema = SchemaFunction(
     },
   })
 );
+
+offlinePaymentSchema.index({"current_data.payments.transactionId":1})
 
 offlinePaymentSchema.pre("findOneAndUpdate", async function (next) {
   try {

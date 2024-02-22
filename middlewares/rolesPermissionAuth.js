@@ -5,7 +5,6 @@ const rolesPermissions = (name, key) => {
   return async (req, res, next) => {
     try {
       let user = req.user;
-      console.log(user)
       const permissions = await rolesModel.findById(user.current_data.role_id._id);
 
       if (!permissions) return new ApiError("Invalid Id", 400);

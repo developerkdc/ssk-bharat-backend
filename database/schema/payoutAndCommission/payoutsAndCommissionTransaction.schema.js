@@ -110,7 +110,7 @@ const payoutAndCommissionTranSchema = new mongoose.Schema({
         required: [true, "market executive is required"]
     },
     commission: {
-        type:{
+        type: {
             companyDetails: {
                 companyId: {
                     type: String,
@@ -160,54 +160,73 @@ const payoutAndCommissionTranSchema = new mongoose.Schema({
                 type: Date,
                 required: [true, "sales order Date is required"]
             },
-            salesOrderAmount:{
-                type:Number,
-                required:[true,"Amount is required"]
+            salesOrderAmount: {
+                type: Number,
+                required: [true, "Amount is required"]
             },
-            commissionPercentage:{
-                type:Number,
-                required:[true,"commission persentage is required"]
+            commissionPercentage: {
+                type: Number,
+                required: [true, "commission persentage is required"]
             },
-            commissionAmount:{
-                type:Number,
-                required:[true,"commission amount is required"]
-            }
+            commissionAmount: {
+                type: Number,
+                required: [true, "commission amount is required"]
+            },
+            commissionDate: {
+                type: Date,
+                default: function () {
+                    return  new Date(this.salesOrderDate).setUTCHours(0, 0, 0, 0);
+                },
+            },
         },
-        default:null
+        default: null
     },
-    payouts:{
-        type:{
-            payoutType:{
-                type:String,
-                required:[true,"payout type is required"]
+    payouts: {
+        type: {
+            payoutDate: {
+                type: Date,
+                default: function(){
+                    return new Date().setUTCHours(0, 0, 0, 0);
+                },
             },
-            transactionId:{
-                type:String,
-                default:null
+            payoutType: {
+                type: String,
+                required: [true, "payout type is required"]
             },
-            payoutAmount:{
-                type:Number,
-                required:[true,"payout amount is required"]
+            transactionId: {
+                type: String,
+                default: null
             },
-            tdsPercentage:{
-                type:Number,
-                required:[true,"TDS Percentage is required"]
+            payoutAmount: {
+                type: Number,
+                required: [true, "payout amount is required"]
             },
-            tdsAmount:{
-                type:Number,
-                required:[true,"TDS Amount is required"]
+            tdsPercentage: {
+                type: Number,
+                default: 10
             },
-            amountPaid:{
-                type:Number,
-                required:[true,"total amount paid is required"]
+            tdsAmount: {
+                type: Number,
+                get: (value) => parseFloat(value).toFixed(2),
+                set: (value) => parseFloat(value).toFixed(2),
+                required: [true, "TDS Amount is required"]
+            },
+            amountPaid: {
+                type: Number,
+                get: (value) => parseFloat(value).toFixed(2),
+                set: (value) => parseFloat(value).toFixed(2),
+                required: [true, "total amount paid is required"]
             }
         },
-        default:null
-    }
+        default: null
+    },
+    created_at: { type: Date, default: Date.now },
+    updated_at: { type: Date, default: Date.now },
+    deleted_at: { type: Date, default: null },
 })
 
-const payoutAndCommissionTransModel = mongoose.model("payoutAndCommissionTransaction",payoutAndCommissionTranSchema)
+const payoutAndCommissionTransModel = mongoose.model("payoutAndCommissionTransaction", payoutAndCommissionTranSchema)
 
-LogSchemaFunction("payoutAndCommissionTransaction",payoutAndCommissionTransModel)
+LogSchemaFunction("payoutAndCommissionTransaction", payoutAndCommissionTransModel)
 
 export default payoutAndCommissionTransModel; 
