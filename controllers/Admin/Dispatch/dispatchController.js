@@ -245,7 +245,8 @@ export const fetchDispatchBasedonDeliveryStatus = catchAsync(
       sortBy = "created_at",
       sort = "desc",
     } = req.query;
-    const skip = (page - 1) * limit;
+    const skip =  Math.max((page - 1) * limit, 0);;
+
 
     const search = req.query.search || "";
 
@@ -273,6 +274,10 @@ export const fetchDispatchBasedonDeliveryStatus = catchAsync(
     }
     if (to && from) {
       if (delivery_status == "dispatched") {
+        console.log(
+          new Date(from).toDateString(),
+          ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+        );
         matchQuery["current_data.tracking_date.dispatch_generated_date"] = {
           $gte: new Date(from),
           $lte: new Date(to),
@@ -483,5 +488,37 @@ export const delivered = catchAsync(async (req, res, next) => {
     await session.abortTransaction();
     await session.endSession();
     next(error);
+  }
+});
+
+export const getSalesNoFromDispatchList = catchAsync(async (req, res, next) => {
+  const order_type = req.params.orderType;
+  const delivery_status = req.params.deliveryStatus;
+  const salesNoFromDispatch = await DispatchModel.aggregate([
+    {
+      $match: {
+        "current_data.status": true,
+        "current_data.order_type": order_type,
+        "current_data.delivery_status": delivery_status,
+      },
+    },
+    {
+      $group: {
+        _id: "$current_data.sales_order_no",
+      },
+    },
+    {
+      $sort: {
+        _id: 1,
+      },
+    },
+  ]);
+  if (salesNoFromDispatch) {
+    return res.status(200).json({
+      statusCode: 200,
+      status: "success",
+      data: salesNoFromDispatch,
+      message: `All Sales No From Dispatch List`,
+    });
   }
 });

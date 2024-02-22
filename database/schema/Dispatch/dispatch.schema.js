@@ -51,7 +51,9 @@ const dispatchOrder = SchemaFunction(
       },
       dispatch_generated_date: {
         type: Date,
-        default: Date.now,
+        default: function () {
+          return new Date().setUTCHours(0, 0, 0, 0);
+        },
       },
       out_for_delivery: {
         dispatch_date: {

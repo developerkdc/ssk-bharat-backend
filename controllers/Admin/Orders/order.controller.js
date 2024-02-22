@@ -134,7 +134,7 @@ export const fetchOrders = catchAsync(async (req, res, next) => {
     sortBy = "order_no",
     sort = "desc",
   } = req.query;
-  const skip = (page - 1) * limit;
+  const skip =  Math.max((page - 1) * limit, 0);;
 
   const search = req.query.search || "";
 

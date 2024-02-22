@@ -55,8 +55,7 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
               ? latestSalesOrder?.current_data?.sales_order_no + 1
               : 1,
             ...req.body,
-          created_by: createdByFunction(req.user)
-
+            created_by: createdByFunction(req.user),
           },
           approver: approvalData(req.user),
         },
@@ -249,7 +248,8 @@ export const fetchSalesOrders = catchAsync(async (req, res, next) => {
     sort = "desc",
     search = "",
   } = req.query;
-  const skip = (page - 1) * limit;
+  const skip =  Math.max((page - 1) * limit, 0);;
+
 
   const { to, from, ...data } = req?.body?.filters || {};
   const matchQuery = data || {};
@@ -332,10 +332,15 @@ export const getOrderNoFromSalesList = catchAsync(async (req, res, next) => {
       },
     },
     {
-      $group:{
-        _id:"$current_data.order_no"
-      }
-    }
+      $group: {
+        _id: "$current_data.order_no",
+      },
+    },
+    {
+      $sort: {
+        _id: 1,
+      },
+    },
   ]);
   if (orderNoFromSales) {
     return res.status(200).json({
