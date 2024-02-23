@@ -297,7 +297,7 @@ export const InventoryList = catchAsync(async (req, res) => {
         itemName: "$_id.itemName",
         category: "$_id.category",
         sku: "$_id.sku",
-        hsn_code: "$_id.hsn_code",
+        hsn_code: "$_id.hsnCode",
         product_id: "$_id.product_id",
         totalAvailableQuantity: 1,
         totalReservedQuantity: 1,
@@ -317,7 +317,6 @@ export const InventoryList = catchAsync(async (req, res) => {
       $limit: 10,
     },
   ]);
-
   return res.status(200).json({
     statusCode: 200,
     message: "Details Fetched successfully",
