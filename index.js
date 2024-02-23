@@ -35,7 +35,7 @@ import SampleRouter from "./routes/Admin/Samples/sampleRoutes.js";
 import FaqRouter from "./routes/Admin/FAQs/faqRoutes.js";
 import TicketRouter from "./routes/Admin/Tickets/ticketRoutes.js";
 import addressDropdownRouter from "./routes/Admin/AddressDropdown/addressDropdownRoutes.js";
-import metAuthRouter from "./routes/METAuthRoutes/metAuthRoutes.js";
+import METAuthRouter from "./routes/METAuthRoutes/metAuthRoutes.js";
 import approvalRouter from "./routes/Approval/getPendingApprovalList.route.js";
 import offlinePORouter from "./routes/OfflineStore/PurchaseOrder/offlinePORoute.js";
 import offlineSalesRouter from "./routes/OfflineStore/ConfirmSalesOrder/offlineConfirmSalesRoute.js";
@@ -105,10 +105,15 @@ app.group("/api/v1/admin", (router) => {
   router.use("/sample", SampleRouter);
   router.use("/approval", approvalRouter);
   router.use("/faq", FaqRouter);
-  router.use("/met", metAuthRouter);
   router.use("/ticket", TicketRouter);
   router.use("/address/dropdown", addressDropdownRouter);
 });
+
+//MET
+app.group("/api/v1/met-portal", (router) => {
+  router.use("/auth", METAuthRouter);
+});
+
 //retailers
 app.group("/api/v1/retailer-portal", (router) => {
   router.use("/auth", RetailerAuthRouter);

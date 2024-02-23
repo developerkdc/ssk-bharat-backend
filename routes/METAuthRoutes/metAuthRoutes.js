@@ -1,12 +1,13 @@
 import express from "express";
 import {
-  METLoginUser, METSendOTP, METVerifyOTPAndUpdatePassword,
-} from "../../controllers/METAuth/metAuthController";
+  METLoginUser, METSendOTP, METUpdatePassword, METVerifyOtp,
+} from "../../controllers/MET/METAuth/metAuthController";
 
-const router = express.Router();
+const METAuthRouter = express.Router();
 
-router.post("/login", METLoginUser);
-router.get("/forgotpassword", METSendOTP);
-router.get("/verifyotp", METVerifyOTPAndUpdatePassword);
+METAuthRouter.post("/login", METLoginUser);
+METAuthRouter.get("/forgotpassword", METSendOTP);
+METAuthRouter.get("/verifyotp", METVerifyOtp);
+METAuthRouter.post("/updatePassword", METUpdatePassword);
 
-export default router;
+export default METAuthRouter;

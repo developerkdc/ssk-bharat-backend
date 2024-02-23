@@ -94,7 +94,7 @@ export const addMarketExec = catchAsync(async (req, res, next) => {
   const METdata = JSON.parse(req.body?.METdata);
   
   let Password = crypto.randomBytes(8).toString("hex");
-  let protectedPassword = bcrypt.hashSync(Password, 12);
+  let protectedPassword = bcrypt.hashSync("Password", 12);
   
   const images = {};
   if (req.files) {
@@ -126,7 +126,9 @@ export const addMarketExec = catchAsync(async (req, res, next) => {
     module: "MarketExecutive",
     user: req.user,
     documentId: addME._id
-  })
+  });
+
+  
 
   return res.status(201).json({
     statusCode: 201,
