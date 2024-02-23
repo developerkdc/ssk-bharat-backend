@@ -1,10 +1,12 @@
 import express from "express";
-import { fetchOfflineConfirmSalesOrders } from "../../../controllers/OfflineStore/ConfirmSalesOrder/confirmSalesOrderController";
+import {
+  fetchOfflineConfirmSalesOrders,
+  getOrderNoFromSalesList,
+} from "../../../controllers/OfflineStore/ConfirmSalesOrder/confirmSalesOrderController";
 
 const router = express.Router();
 
-router.get("/list", fetchOfflineConfirmSalesOrders);
-
-
+router.post("/list", fetchOfflineConfirmSalesOrders);
+router.get("/orderNoFromSales/dropdown/:type", getOrderNoFromSalesList);
 
 export default router;

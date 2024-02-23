@@ -2,17 +2,20 @@ import mongoose from "mongoose";
 import ApiError from "../../../Utils/ApiError";
 import catchAsync from "../../../Utils/catchAsync";
 import SalesModel from "../../../database/schema/SalesOrders/salesOrder.schema";
+import { dynamicSearch } from "../../../Utils/dynamicSearch";
 
 export const fetchOfflineConfirmSalesOrders = catchAsync(
   async (req, res, next) => {
-    const id = "65955886032241700db0c01f";
+    const { string, boolean, numbers } = req?.body?.searchFields || {};
+    const id = "65b4b72fae664feec7e469c9";
     const {
       page,
-      limit = 10,
+      limit = 2,
       sortBy = "created_at",
       sort = "desc",
+      search,
     } = req.query;
-    const skip = (page - 1) * limit;
+    const skip = Math.max((page - 1) * limit, 0);
 
     const { to, from, ...data } = req?.body?.filters || {};
     const matchQuery = data || {};
@@ -23,8 +26,26 @@ export const fetchOfflineConfirmSalesOrders = catchAsync(
         $lte: new Date(to),
       };
     }
+
+    let searchQuery = {};
+    if (search != "" && req?.body?.searchFields) {
+      const searchdata = dynamicSearch(search, boolean, numbers, string);
+      if (searchdata?.length == 0) {
+        return res.status(404).json({
+          statusCode: 404,
+          status: "failed",
+          data: {
+            data: [],
+          },
+          message: "Results Not Found",
+        });
+      }
+      searchQuery = searchdata;
+    }
+
     const salesOrders = await SalesModel.find({
       ...matchQuery,
+      ...searchQuery,
       "current_data.order_type": "offlinestores",
       "current_data.customer_details.customer_id": id,
       "current_data.status": true,
@@ -36,6 +57,7 @@ export const fetchOfflineConfirmSalesOrders = catchAsync(
 
     const totalDocuments = await SalesModel.countDocuments({
       ...matchQuery,
+      ...searchQuery,
       "current_data.order_type": "offlinestores",
       "current_data.customer_details.customer_id": id,
       "current_data.status": true,
@@ -51,3 +73,36 @@ export const fetchOfflineConfirmSalesOrders = catchAsync(
     });
   }
 );
+
+export const getOrderNoFromSalesList = catchAsync(async (req, res, next) => {
+  const type = req.params.type;
+  const id = "65b4b72fae664feec7e469c9";
+  const orderNoFromSales = await SalesModel.aggregate([
+    {
+      $match: {
+        "current_data.status": true,
+        "current_data.order_type": type,
+        "current_data.customer_details.customer_id":
+          new mongoose.Types.ObjectId(id),
+      },
+    },
+    {
+      $group: {
+        _id: "$current_data.order_no",
+      },
+    },
+    {
+      $sort: {
+        _id: 1,
+      },
+    },
+  ]);
+  if (orderNoFromSales) {
+    return res.status(200).json({
+      statusCode: 200,
+      status: "success",
+      data: orderNoFromSales,
+      message: `All Offline Order No From Sales Order List`,
+    });
+  }
+});
