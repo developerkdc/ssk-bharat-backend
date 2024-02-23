@@ -248,7 +248,7 @@ export const EditMECommission = catchAsync(async (req, res, next) => {
     }
   );
 
-  if (!EditCommission.acknowledged) return next(new ApiError("updating the data hass been failed", 500));
+  if (!EditCommission.acknowledged) return next(new ApiError("updating the data has been failed", 500));
 
   adminApprovalFunction({
     module: "marketExectiveCommission",

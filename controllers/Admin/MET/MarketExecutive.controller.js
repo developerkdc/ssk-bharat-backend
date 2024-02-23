@@ -325,7 +325,7 @@ export const addNominee = catchAsync(async (req, res, next) => {
     data: {
       MarketExecutive: addNominee,
     },
-    message: "nominee hass been added",
+    message: "nominee has been added",
   });
 });
 
@@ -389,6 +389,6 @@ export const editNominee = catchAsync(async (req, res, next) => {
     data: {
       MarketExecutive: editNominee,
     },
-    message: "nominee hass been updated",
+    message: "nominee has been updated",
   });
 });

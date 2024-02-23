@@ -271,7 +271,6 @@ const MarketExecutiveSchema = SchemaFunction(new mongoose.Schema({
     },
     password: {
       type: String,
-      trim: true,
       default: null,
     },
     onboarding_date: {

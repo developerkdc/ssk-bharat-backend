@@ -168,6 +168,7 @@ class Branches {
         ],
       })
     );
+    this.#branchSchema.index({"current_data.kyc.gst.gst_no":1},{unique:true})
     this.#branchSchema.pre("save", function (next) {
       if (this.current_data.contact_person.length <= 0) {
         return next(
@@ -221,7 +222,7 @@ class Branches {
     const data = await this.#modal
       .aggregate([
         {
-          $match: { ...filters, ...searchQuery, "current_data.status": true },
+          $match: { ...filters, "current_data.status": true },
         },
         {
           $skip: (page - 1) * limit,
@@ -242,6 +243,9 @@ class Branches {
             path: `$current_data.${this.#modalName}Id`,
             preserveNullAndEmptyArrays: true,
           },
+        },
+        {
+          $match:{...searchQuery}
         },
         {
           $sort: { [sortBy]: sort === "asc" ? 1 : -1 }
@@ -461,7 +465,7 @@ class Branches {
       return next(new ApiError("you cannot add contact person more than 5", 400));
     }
 
-    const addConatct = await this.#modal.findByIdAndUpdate(
+    const addConatct = await this.#modal.findOneAndUpdate(
       { _id: branchId, [`proposed_changes.${this.#modalName}Id`]: companyId },
       {
         $push: {
