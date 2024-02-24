@@ -12,6 +12,7 @@ export const METLoginUser = catchAsync(async (req, res, next) => {
 
   const met = await MarketExecutiveModel.findOne({
     "current_data.contact_person_details.primary_email_id": email,
+    "current_data.status":true
   });
   if (!met) return next(new ApiError("Invalid Email or Password", 400))
 
@@ -65,7 +66,7 @@ export const METSendOTP = catchAsync(async (req, res, next) => {
     }
   });
 
-  if (!metUser) return next(new ApiError("user not found", 400));
+  if (!metUser) return next(new ApiError("user not found with this email", 400));
 
   const message = `
    <!DOCTYPE html>
@@ -162,7 +163,8 @@ export const METSendOTP = catchAsync(async (req, res, next) => {
   });
 
   return res.status(200).json({
-    success: true,
+    statusCode:200,
+    success: "success",
     message: `OTP sent successfully`,
   });
 });
