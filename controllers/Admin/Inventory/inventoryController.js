@@ -333,36 +333,47 @@ export const ViewProductHistory = catchAsync(async (req, res) => {
   // const {invoiceDate,receiveDate,...data } = req?.body?.filters || {};
   const limit = 10;
   const matchQuery = {
-    "itemsDetails.product_Id": new mongoose.Types.ObjectId(id),
+    "current_data.itemsDetails.product_id": new mongoose.Types.ObjectId(id),
+    "proposed_changes.status":true,
   };
   const filter = {};
 
   if (searchParam) {
     matchQuery["$or"] = [
       { purchaseOrderNo: { $regex: searchParam, $options: "i" } },
-      { "supplierDetails.firstName": { $regex: searchParam, $options: "i" } },
-      { "supplierDetails.lastName": { $regex: searchParam, $options: "i" } },
       {
-        "supplierDetails.primaryEmailID": {
+        "current_data.supplierDetails.firstName": {
           $regex: searchParam,
           $options: "i",
         },
       },
       {
-        "supplierDetails.primaryMobileNo": {
+        "current_data.supplierDetails.lastName": {
           $regex: searchParam,
           $options: "i",
         },
       },
       {
-        "supplierDetails.address.address": {
+        "current_data.supplierDetails.primaryEmailID": {
           $regex: searchParam,
           $options: "i",
         },
       },
-      { "itemsDetails.itemName": { $regex: searchParam, $options: "i" } },
-      { "itemsDetails.category": { $regex: searchParam, $options: "i" } },
-      { "itemsDetails.sku": { $regex: searchParam, $options: "i" } },
+      {
+        "current_data.supplierDetails.primaryMobileNo": {
+          $regex: searchParam,
+          $options: "i",
+        },
+      },
+      {
+        "current_data.supplierDetails.address.address": {
+          $regex: searchParam,
+          $options: "i",
+        },
+      },
+      { "current_data.itemsDetails.itemName": { $regex: searchParam, $options: "i" } },
+      { "current_data.itemsDetails.category": { $regex: searchParam, $options: "i" } },
+      { "current_data.itemsDetails.sku": { $regex: searchParam, $options: "i" } },
     ];
   }
   if (
@@ -371,7 +382,7 @@ export const ViewProductHistory = catchAsync(async (req, res) => {
     req?.body?.filters.invoiceDate.to &&
     req?.body?.filters.invoiceDate.from
   ) {
-    filter["invoiceDetails.invoiceDate"] = {
+    filter["current_data.invoiceDetails.invoiceDate"] = {
       $gte: new Date(req.body.filters.invoiceDate.from),
       $lte: new Date(req.body.filters.invoiceDate.to),
     };
@@ -407,7 +418,7 @@ export const ViewProductHistory = catchAsync(async (req, res) => {
       $limit: limit,
     },
   ]);
-
+  console.log(result);
   return res.status(200).json({
     data: result,
     statusCode: 200,
