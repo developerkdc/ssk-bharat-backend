@@ -291,11 +291,12 @@ export const getPayoutAndCommissionTrans = catchAsync(
     }
 
     const { range = null, ...data } = req?.body?.filters || {};
+    
     const matchQuery = data || {};
 
     if (range) {
       const rangeData = JSON.parse(JSON.stringify(range)?.replace(/from/g, "$gte")?.replace(/to/g, "$lte"));
-      matchQuery.$or = [];
+      matchQuery.$or = [{}];
       const commission = [];
       const payouts = [];
 

@@ -41,7 +41,7 @@ export const metGetPayoutAndCommissionTrans = catchAsync(
   
       if (range) {
         const rangeData = JSON.parse(JSON.stringify(range)?.replace(/from/g, "$gte")?.replace(/to/g, "$lte"));
-        matchQuery.$or = [];
+        matchQuery.$or = [{}];
         const commission = [];
         const payouts = [];
   
