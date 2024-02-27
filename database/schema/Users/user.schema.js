@@ -6,7 +6,7 @@ import createdBy from "../../utils/createdBy.schema";
 
 const UserSchema = SchemaFunction(
   new mongoose.Schema({
-    employee_id: { type: String, min: 1,indexedDB: true, trim: true },
+    employee_id: { type: String, min: 1, indexedDB: true, trim: true },
     first_name: { type: String, min: 2, max: 25, required: true, trim: true },
     last_name: { type: String, min: 2, max: 25, required: true, trim: true },
     primary_email_id: {
@@ -86,68 +86,19 @@ const UserSchema = SchemaFunction(
         },
       },
     },
-    
+
     isActive: {
       type: Boolean,
       default: true,
     },
-    approver_one: {
-      type: {
-        user_id: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "Users",
-          required: [true, "user_id for approvar one is required"],
-        },
-        name: {
-          type: String,
-          trim: true,
-          required: [true, "name for approvar one is required"],
-        },
-        email_id: {
-          type: String,
-          validate: {
-            validator: function (value) {
-              return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-            },
-            message: "approver one invalid email Id",
-          },
-          required: [true, "email id for approvar one is required"],
-        },
-        employee_id: String,
-      },
-      default: null,
+    created_by: {
+      type: createdBy,
+      required: [true, "created by is required"],
     },
-    approver_two: {
-      type: {
-        user_id: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "Users",
-          // required: [true, "user_id for approvar two is required"],
-        },
-        name: {
-          type: String,
-          trim: true,
-          // required: [true, "name for approvar two is required"],
-        },
-        email_id: {
-          type: String,
-          validate: {
-            validator: function (value) {
-              return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-            },
-            message: "approver two invalid email Id",
-          },
-          // required: [true, "email id for approvar two is required"],
-        },
-        employee_id: String,
-      },
-      default: null,
+    otp: {
+      otp_digits: { type: Number, trim: true },
+      otp_expireIn: { type: Number, trim: true },
     },
-   created_by:{
-        type:createdBy,
-        required:[true,"created by is required"]
-      },
-      otp: { type: String, trim: true },
   })
 );
 UserSchema.methods.jwtToken = function (next) {

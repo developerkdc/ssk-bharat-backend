@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import userModel from "../../../database/schema/Users/user.schema.js";
 import sendEmail from "../../../Utils/SendEmail.js";
 import mongoose from "mongoose";
+import ApiError from "../../../Utils/ApiError.js";
 
 const saltRounds = 10;
 
@@ -35,15 +36,31 @@ export const LoginUser = catchAsync(async (req, res, next) => {
   });
 });
 
-export const SendOTP = catchAsync(async (req, res) => {
+export const SendOTP = catchAsync(async (req, res, next) => {
   const { email } = req.body;
-  let otp = Math.floor(Math.random() * 100000);
-  const user = await userModel.findOne({
-    "current_data.primary_email_id": email,
-  });
-  console.log(user, "------------------->");
-  const updatedUser = await userModel.findByIdAndUpdate(user._id,{$set:{"otp":otp}});
-  // console.log(updatedUser);
+  let otp = Math.floor(10000 + Math.random() * 90000);
+  let expiresIn = Date.now() + 5 * 60 * 1000;
+
+  const user = await userModel.findOneAndUpdate(
+    {
+      "current_data.primary_email_id": email,
+    },
+    {
+      $set: {
+        "current_data.otp": {
+          otp_digits: otp,
+          otp_expireIn: expiresIn,
+        },
+        "proposed_changes.otp": {
+          otp_digits: otp,
+          otp_expireIn: expiresIn,
+        },
+      },
+    }
+  );
+
+  if (!user) return next(new ApiError("user not found with this email", 400));
+
   const message = `
    <!DOCTYPE html>
 <html>
@@ -139,31 +156,80 @@ export const SendOTP = catchAsync(async (req, res) => {
   });
 
   return res.status(200).json({
-    success: true,
+    statusCode: 200,
+    success: "success",
     message: `OTP sent successfully`,
   });
 });
 
-export const VerifyOTPAndUpdatePassword = catchAsync(async (req, res) => {
-  const { email, otp, newPassword } = req.body;
+export const VerifyOtp = catchAsync(async (req, res, next) => {
+  const { email, otp } = req.body;
+  if ((!email, !otp)) return next(new ApiError("Enter Email or OTP", 400));
 
-  const user = await userModel.findOne({ "current_data.primary_email_id": email });
-  console.log(user,"<-------------------------------")
-  if (!otp || otp !== user.otp) {
-    return res.status(400).json({
-      success: false,
-      message: "Invalid OTP",
-    });
+  const user = await userModel.findOne(
+    {
+      "current_data.primary_email_id": email,
+      "current_data.otp.otp_digits": otp.otp,
+    },
+    { "current_data.current_data": 1 }
+  );
+
+  if (!user) return next(new ApiError("Invalid User or Otp", 400));
+
+  if (user.current_data.otp.otp_expireIn <= Date.now()) {
+    await userModel.updateOne(
+      {
+        "current_data.primary_email_id": email,
+      },
+      {
+        $set: {
+          "current_data.otp": null,
+          "proposed_changes.otp": null,
+        },
+      }
+    );
+    return next(new ApiError("your otp has been expried", 400));
   }
-  const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
-  user.current_data.password = hashedPassword;
-  user.otp = null;
-  const updatedUser = await user.save();
+
+  res.status(200).json({
+    statusCode: 200,
+    status: "verified",
+    // user:user,
+    message: "otp verified successfully",
+  });
+});
+
+export const UpdatePassword = catchAsync(async (req, res, next) => {
+  const { email, newPassword } = req.body;
+
+  if ((!email, !newPassword))
+    return next(new ApiError("Enter Email or Password", 400));
+
+  const existUser = await userModel.findOne({
+    "current_data.primary_email_id": email,
+  });
+
+  const hashedPassword = await bcrypt.hash(newPassword, 12);
+
+  const user = await userModel.updateOne(
+    {
+      "current_data.primary_email_id": email,
+    },
+    {
+      $set: {
+        "current_data.password": hashedPassword,
+        "current_data.otp": null,
+        "proposed_changes.password": hashedPassword,
+        "proposed_changes.otp": null,
+      },
+    }
+  );
+
   return res.status(200).json({
     statusCode: 200,
     status: "Success",
     data: {
-      user: updatedUser,
+      user: user,
     },
     message: "Password updated successfully",
   });
