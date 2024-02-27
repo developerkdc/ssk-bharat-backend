@@ -35,7 +35,7 @@ import SampleRouter from "./routes/Admin/Samples/sampleRoutes.js";
 import FaqRouter from "./routes/Admin/FAQs/faqRoutes.js";
 import TicketRouter from "./routes/Admin/Tickets/ticketRoutes.js";
 import addressDropdownRouter from "./routes/Admin/AddressDropdown/addressDropdownRoutes.js";
-import metAuthRouter from "./routes/METAuthRoutes/metAuthRoutes.js";
+import METAuthRouter from "./routes/METAuthRoutes/Auth/metAuthRoutes";
 import approvalRouter from "./routes/Approval/getPendingApprovalList.route.js";
 import offlinePORouter from "./routes/OfflineStore/PurchaseOrder/offlinePORoute.js";
 import offlineSalesRouter from "./routes/OfflineStore/ConfirmSalesOrder/offlineConfirmSalesRoute.js";
@@ -52,6 +52,8 @@ import offlineSSKRouter from "./routes/OfflineStore/SSK/SSkCompany.routes.js";
 import retailerSSKRouter from "./routes/Retailer/SSK/SSkCompany.routes.js";
 import offlineAddressRouter from "./routes/OfflineStore/AddressDropdown/addressDropdownRoutes.js";
 import retailerAddressRouter from "./routes/Retailer/AddressDropdown/addressDropdownRoutes.js";
+import metStoreRouter from "./routes/METAuthRoutes/Store/index.js";
+import metTransactionHistoryRouter from "./routes/METAuthRoutes/Transaction/transaction.route.js";
 
 const app = express();
 
@@ -105,10 +107,17 @@ app.group("/api/v1/admin", (router) => {
   router.use("/sample", SampleRouter);
   router.use("/approval", approvalRouter);
   router.use("/faq", FaqRouter);
-  router.use("/met", metAuthRouter);
   router.use("/ticket", TicketRouter);
   router.use("/address/dropdown", addressDropdownRouter);
 });
+
+//MET
+app.group("/api/v1/met-portal", (router) => {
+  router.use("/auth", METAuthRouter);
+  router.use("/metStore", metStoreRouter);
+  router.use("/transactionHistory", metTransactionHistoryRouter);
+});
+
 //retailers
 app.group("/api/v1/retailer-portal", (router) => {
   router.use("/auth", RetailerAuthRouter);
@@ -130,6 +139,7 @@ app.group("/api/v1/offline-store-portal", (router) => {
   router.use("/offlineStore", offlinePortalRouter);
   router.use("/sskcompany", offlineSSKRouter);
   router.use("/address/dropdown", offlineAddressRouter);
+
 });
 
 app.all("*", (req, res, next) => {

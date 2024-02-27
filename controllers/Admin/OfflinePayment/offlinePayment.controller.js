@@ -18,20 +18,15 @@ export const getOfflinePaymentDetails = catchAsync(async (req, res, next) => {
   const skip = (page - 1) * limit;
 
   //filters
-  const { dates = null, ...data } = req?.body?.filters || {};
+  const { range = null, ...data } = req?.body?.filters || {};
   const matchQuery = data || {};
 
-  if (dates) {
-    // let str = JSON.stringify(dates)
-    // str = str?;
-    // // Replace "to" with "$lte"
-    // str = str?;
-    const datesData = JSON.parse(JSON.stringify(dates)?.replace(/from/g, "$gte")?.replace(/to/g, "$lte"));
-    for(let i in datesData){
-      matchQuery[i] = datesData[i];
+  if (range) {
+    const rangeData = JSON.parse(JSON.stringify(range)?.replace(/from/g, "$gte")?.replace(/to/g, "$lte"));
+    for(let i in rangeData){
+      matchQuery[i] = rangeData[i];
     }
   }
-
   //search
   let searchQuery = {};
   if (search != "" && req?.body?.searchFields) {

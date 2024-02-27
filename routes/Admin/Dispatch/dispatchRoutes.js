@@ -5,6 +5,7 @@ import {
   createDispatch,
   delivered,
   fetchDispatchBasedonDeliveryStatus,
+  getSalesNoFromDispatchList,
   latestDispatchNo,
   outForDelivery,
 } from "../../../controllers/Admin/Dispatch/dispatchController";
@@ -18,7 +19,7 @@ router.post(
   rolesPermissions("dispatch", "add"),
   createDispatch
 );
-router.get(
+router.post(
   "/fetch",
   authMiddleware,
   rolesPermissions("dispatch", "view"),
@@ -35,6 +36,13 @@ router.patch(
   authMiddleware,
   rolesPermissions("dispatch", "edit"),
   delivered
+);
+
+router.get(
+  "/SalesNoFromDispatch/dropdown/:orderType/:deliveryStatus",
+  authMiddleware,
+  rolesPermissions("dispatch", "view"),
+  getSalesNoFromDispatchList
 );
 
 export default router;

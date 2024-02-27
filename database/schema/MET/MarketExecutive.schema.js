@@ -271,7 +271,6 @@ const MarketExecutiveSchema = SchemaFunction(new mongoose.Schema({
     },
     password: {
       type: String,
-      trim: true,
       default: null,
     },
     onboarding_date: {
@@ -283,7 +282,13 @@ const MarketExecutiveSchema = SchemaFunction(new mongoose.Schema({
       trim: true,
       default: null,
     },
-    otp: { type: String, trim: true, default: null },
+    otp: {
+      type:{
+        otp_digits:Number,
+        otp_expireIn:Number,
+      },
+      default:null,
+    },
   },
   kyc: {
     type: {
@@ -363,6 +368,12 @@ const MarketExecutiveSchema = SchemaFunction(new mongoose.Schema({
 //     // Continue with the update
 //     next();
 // });
+
+MarketExecutiveSchema.index({ "current_data.contact_person_details.primary_email_id": 1 }, { unique: true });
+MarketExecutiveSchema.index({ "proposed_changes.contact_person_details.primary_email_id": 1 }, { unique: true });
+
+// MarketExecutiveSchema.index({"current_data.contact_person_details.primary_mobile_no":1},{unique:true});
+
 
 MarketExecutiveSchema.methods.jwtToken = function (next) {
   try {

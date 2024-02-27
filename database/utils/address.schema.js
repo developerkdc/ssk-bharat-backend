@@ -47,7 +47,8 @@ const addressSchema = new mongoose.Schema({
         type: String,
         trim:true,
         lowercase: true,
-        required: [true, "country is required"]
+        // required: [true, "country is required"],
+        default:"india"
     },
     pincode: {
         type: String,

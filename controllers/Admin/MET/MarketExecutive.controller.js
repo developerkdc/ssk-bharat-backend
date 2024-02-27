@@ -8,6 +8,8 @@ import bcrypt from "bcrypt"
 import { dynamicSearch } from "../../../Utils/dynamicSearch";
 import { approvalData } from "../../HelperFunction/approvalFunction";
 import adminApprovalFunction from "../../HelperFunction/AdminApprovalFunction";
+import sendEmail from "../../../Utils/SendEmail";
+import { welcomeMessage } from "./emailContact/welcome";
 
 export const getMarketExecutive = catchAsync(async (req, res, next) => {
   const { string, boolean, numbers } = req?.body?.searchFields || {};
@@ -66,7 +68,7 @@ export const getMarketExecutive = catchAsync(async (req, res, next) => {
 });
 
 export const getMarketExecutiveById = catchAsync(async (req, res, next) => {
-  const marketExec = await MarketExecutiveModel.findOne({ _id: req.params.id});
+  const marketExec = await MarketExecutiveModel.findOne({ _id: req.params.id });
 
   return res.status(200).json({
     statusCode: 200,
@@ -92,15 +94,15 @@ export const getMarketExecutiveList = catchAsync(async (req, res, next) => {
 
 export const addMarketExec = catchAsync(async (req, res, next) => {
   const METdata = JSON.parse(req.body?.METdata);
-  
+
   let Password = crypto.randomBytes(8).toString("hex");
   let protectedPassword = bcrypt.hashSync(Password, 12);
-  
+
   const images = {};
   if (req.files) {
     for (let i in req.files) {
       images[i] = req.files[i][0].path;
-    } 
+    }
   }
 
   METdata.contact_person_details.password = protectedPassword;
@@ -111,22 +113,31 @@ export const addMarketExec = catchAsync(async (req, res, next) => {
   METdata.kyc.aadhar.aadhar_image = images?.aadhar_image
   METdata.kyc.bank_details.passbook_image = images?.passbook_image
 
-  const addME = await MarketExecutiveModel.create({       
+  const addME = await MarketExecutiveModel.create({
     current_data: {
       ...METdata,
     },
     approver: approvalData(req.user)
   });
 
-  if(!addME){
-    return next(new ApiError("market executive is unable to add",400))
+  if (!addME) {
+    return next(new ApiError("market executive is unable to add", 400))
   }
 
   adminApprovalFunction({
     module: "MarketExecutive",
     user: req.user,
     documentId: addME._id
-  })
+  });
+
+  await sendEmail({
+    email: addME.current_data?.contact_person_details?.primary_email_id,
+    subject: `Welcome ${addME.current_data?.contact_person_details?.first_name} ${addME.current_data?.contact_person_details?.last_name}`,
+    message:welcomeMessage({
+      email:addME.current_data?.contact_person_details?.primary_email_id,
+      password:Password
+    }),
+  });
 
   return res.status(201).json({
     statusCode: 201,
@@ -134,7 +145,7 @@ export const addMarketExec = catchAsync(async (req, res, next) => {
     data: {
       MarketExecutive: addME,
     },
-    message:`${addME?.current_data?.company_details?.companyName || addME?.current_data?.contact_person_details?.first_name} has been added`
+    message: `${addME?.current_data?.company_details?.companyName || addME?.current_data?.contact_person_details?.first_name} has been added`
   });
 });
 
@@ -289,12 +300,12 @@ export const uploadMarketExecImages = catchAsync(async (req, res, next) => {
 export const addNominee = catchAsync(async (req, res, next) => {
   const nomineeData = JSON.parse(req.body?.nomineeData);
   const { pan_image, aadhar_image, gst_image } = req.files;
-  
+
   nomineeData.kyc.pan.pan_image = pan_image?.[0].path;
   nomineeData.kyc.gst.gst_image = gst_image?.[0].path;
   nomineeData.kyc.aadhar.aadhar_image = aadhar_image?.[0].path;
 
-  
+
   const addNominee = await MarketExecutiveModel.updateOne(
     { _id: req.params.id },
     {
@@ -325,7 +336,7 @@ export const addNominee = catchAsync(async (req, res, next) => {
     data: {
       MarketExecutive: addNominee,
     },
-    message: "nominee hass been added",
+    message: "nominee has been added",
   });
 });
 
@@ -351,7 +362,7 @@ export const editNominee = catchAsync(async (req, res, next) => {
         "proposed_changes.nominee.$[e].address.address": nomineeData?.address?.address,
         "proposed_changes.nominee.$[e].address.location": nomineeData?.address?.location,
         "proposed_changes.nominee.$[e].address.area": nomineeData?.address?.area,
-        "proposed_changes.nominee.$[e].address.district":nomineeData?.address?. district,
+        "proposed_changes.nominee.$[e].address.district": nomineeData?.address?.district,
         "proposed_changes.nominee.$[e].address.taluka": nomineeData?.address?.taluka,
         "proposed_changes.nominee.$[e].address.state": nomineeData?.address?.state,
         "proposed_changes.nominee.$[e].address.city": nomineeData?.address?.city,
@@ -389,6 +400,6 @@ export const editNominee = catchAsync(async (req, res, next) => {
     data: {
       MarketExecutive: editNominee,
     },
-    message: "nominee hass been updated",
+    message: "nominee has been updated",
   });
 });

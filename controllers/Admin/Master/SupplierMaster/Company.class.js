@@ -51,7 +51,7 @@ class CompanyMaster {
           pan_no: {
             type: String,
             trim: true,
-            unique:true,
+            unique: true,
             required: [true, "pan no is required"],
           },
           pan_image: {
@@ -116,6 +116,7 @@ class CompanyMaster {
         return next(error);
       }
     };
+    this.#Schema.index({ "current_data.pan.pan_no": 1 }, { unique: true });
     this.#collectionName = collectionName;
     this.#branchCollectionName = branchCollectionName;
     this.#modalName = modalName;
@@ -189,7 +190,7 @@ class CompanyMaster {
     });
   });
   GetCompanyList = catchAsync(async (req, res, next) => {
-    const modalName = await this.#modal.find({ "current_data.isActive": true, "current_data.status": true }, { "company_name": "$current_data.company_name","pan_no":"$current_data.pan.pan_no" });
+    const modalName = await this.#modal.find({ "current_data.isActive": true, "current_data.status": true }, { "company_name": "$current_data.company_name", "pan_no": "$current_data.pan.pan_no" });
     return res.status(201).json({
       statusCode: 200,
       status: "Success",

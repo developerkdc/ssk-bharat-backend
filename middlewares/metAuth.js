@@ -9,13 +9,16 @@ const METauthMiddleware = async (req, res, next) => {
     if (!token) {
       return next(new ApiError("Token not provided", 401));
     }
-    const userId = jwt.verify(token, process.env.JWT_SECRET);
-    if (!userId) return next(new ApiError("userId not found", 400));
-    const user = await METModel.findById(userId.metUserId)
-    if (!user) {
+    const metUserId = jwt.verify(token, process.env.JWT_SECRET);
+    if (!metUserId) return next(new ApiError("userId not found", 400));
+    const metUser = await METModel.findOne({
+      _id:metUserId?.metUserId,
+      "current_data.status":true
+    })
+    if (!metUser) {
         return next(new ApiError("User Not Found", 404));
     }
-    req.user = user;
+    req.metUser = metUser;
     next()
   } catch (error) { 
     return next(error)
