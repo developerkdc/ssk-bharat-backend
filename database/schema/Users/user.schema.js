@@ -96,8 +96,8 @@ const UserSchema = SchemaFunction(
       required: [true, "created by is required"],
     },
     otp: {
-      otp_digits: { type: String, trim: true },
-      otp_expireIn: { type: String, trim: true },
+      otp_digits: { type: Number, trim: true },
+      otp_expireIn: { type: Number, trim: true },
     },
   })
 );
