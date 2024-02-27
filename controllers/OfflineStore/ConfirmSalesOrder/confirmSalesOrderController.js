@@ -10,7 +10,7 @@ export const fetchOfflineConfirmSalesOrders = catchAsync(
     const id = "65b4b72fae664feec7e469c9";
     const {
       page,
-      limit = 2,
+      limit = 10,
       sortBy = "created_at",
       sort = "desc",
       search,
@@ -21,12 +21,12 @@ export const fetchOfflineConfirmSalesOrders = catchAsync(
     const matchQuery = data || {};
 
     if (to && from) {
-      matchQuery.sales_order_date = {
+      matchQuery["current_data.sales_order_date"] = {
         $gte: new Date(from),
         $lte: new Date(to),
       };
     }
-
+    
     let searchQuery = {};
     if (search != "" && req?.body?.searchFields) {
       const searchdata = dynamicSearch(search, boolean, numbers, string);
