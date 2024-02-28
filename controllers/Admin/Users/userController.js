@@ -349,21 +349,81 @@ export const generatePassword = catchAsync(async (req, res) => {
   });
 });
 
-export const AddActiveUser = async(userID, socketID) => {
+export const AddActiveUser = async (userID, socketID) => {
   const data = {
     user_id: userID,
     socket_id: socketID,
   };
+  const isLoggedIn = await activeUserModel.find({ user_id: userID });
+  if (isLoggedIn) return;
   await activeUserModel.create(data);
 };
 
-export const RemoveActiveUser = async(userID, socketID) => {
+export const RemoveActiveUser = async (userID, socketID) => {
   let data = {
     socket_id: socketID,
   };
   if (userID != null) {
     data["user_id"] = userID;
   }
-  console.log(data,"data")
   await activeUserModel.deleteOne(data);
 };
+
+export const getAllActiveUsers = catchAsync(async (req, res) => {
+  const { string, boolean, numbers } = req?.body?.searchFields || {};
+
+  const { page, limit = 10, sortBy = "", sort = "desc" } = req.query;
+  const search = req.query.search || "";
+  const skip = (page - 1) * limit;
+
+  //search  functionality
+  let searchQuery = {};
+  if (search != "" && req?.body?.searchFields) {
+    const searchdata = dynamicSearch(search, boolean, numbers, string);
+    if (searchdata?.length == 0) {
+      return res.status(404).json({
+        statusCode: 404,
+        status: false,
+        data: [],
+        message: "Results Not Found",
+      });
+    }
+    searchQuery = searchdata;
+  }
+
+  const { to, from, ...data } = req?.body?.filters || {};
+  const matchQuery = data || {};
+
+  // Fetching users
+  const users = await activeUserModel
+    .find({ ...matchQuery, ...searchQuery })
+    // .populate("user_id")
+    .populate({
+      path: "user_id",
+      populate: {
+        path: "current_data.role_id",
+      },
+    })
+    .skip(skip)
+    .limit(limit)
+    // .sort({ [sortBy]: sort })
+    .exec();
+  if (!users) {
+    throw new Error(new ApiError("Error during fetching", 400));
+  }
+
+  //total pages
+  const totalDocuments = await activeUserModel.countDocuments({
+    ...matchQuery,
+    ...searchQuery,
+  });
+  const totalPages = Math.ceil(totalDocuments / limit);
+
+  return res.json({
+    statusCode: 200,
+    status: "Success",
+    data: users,
+    message: "Fetched Active Users successfully",
+    totalPages: totalPages,
+  });
+});
