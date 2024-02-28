@@ -8,6 +8,7 @@ import { approvalData } from "../../HelperFunction/approvalFunction.js";
 import ApiError from "../../../Utils/ApiError.js";
 import { createdByFunction } from "../../HelperFunction/createdByfunction.js";
 import adminApprovalFunction from "../../HelperFunction/AdminApprovalFunction.js";
+import activeUserModel from "../../../database/schema/Users/activeUser.schama.js";
 
 export const AddUser = catchAsync(async (req, res) => {
   const user = req.user;
@@ -347,3 +348,22 @@ export const generatePassword = catchAsync(async (req, res) => {
     message: "Password Generated Successfully",
   });
 });
+
+export const AddActiveUser = async(userID, socketID) => {
+  const data = {
+    user_id: userID,
+    socket_id: socketID,
+  };
+  await activeUserModel.create(data);
+};
+
+export const RemoveActiveUser = async(userID, socketID) => {
+  let data = {
+    socket_id: socketID,
+  };
+  if (userID != null) {
+    data["user_id"] = userID;
+  }
+  console.log(data,"data")
+  await activeUserModel.deleteOne(data);
+};

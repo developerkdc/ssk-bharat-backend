@@ -54,10 +54,22 @@ import offlineAddressRouter from "./routes/OfflineStore/AddressDropdown/addressD
 import retailerAddressRouter from "./routes/Retailer/AddressDropdown/addressDropdownRoutes.js";
 import metStoreRouter from "./routes/METAuthRoutes/Store/index.js";
 import metTransactionHistoryRouter from "./routes/METAuthRoutes/Transaction/transaction.route.js";
-
+import http from "http";
+import { Server } from "socket.io";
+import {
+  AddActiveUser,
+  RemoveActiveUser,
+} from "./controllers/Admin/Users/userController.js";
 const app = express();
-
 const port = process.env.PORT || 4001;
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"],
+  },
+});
 
 //Middlewares
 app.use(express.static(__dirname));
@@ -65,7 +77,6 @@ app.use(express.json());
 app.use(
   cors({
     origin: [
-      "https://sskbharat.kdcstaging.in/",
       "https://sskbharat.kdcstaging.in",
       "http://localhost:3000",
       "http://localhost:3001",
@@ -77,6 +88,42 @@ app.use(
 
 //database
 connect();
+
+//socket
+
+io.on("connection", (socket) => {
+  console.log("A new User Has connected", socket.id);
+  socket.on("activeUser", (userID) => {
+    console.log("A", socket.id);
+    console.log("New User", userID);
+    try {
+      AddActiveUser(userID, socket.id);
+    } catch (error) {
+      console.log(error);
+    }
+  });
+
+  socket.on("logoutactiveUser", (userID) => {
+    console.log("A", socket.id);
+    console.log("New User", userID);
+    try {
+      RemoveActiveUser(userID, socket.id);
+    } catch (error) {
+      console.log(error);
+    }
+  });
+
+  // Listen for disconnection
+  socket.on("disconnect", () => {
+    console.log("User disconnected", socket.id);
+    try {
+      RemoveActiveUser(null, socket.id);
+    } catch (error) {
+      console.log(error);
+    }
+    // You can perform additional cleanup or tasks here if needed
+  });
+});
 // Routes for Admin Portal
 app.group("/api/v1/admin", (router) => {
   router.use("/auth", authRouter);
@@ -139,10 +186,7 @@ app.group("/api/v1/offline-store-portal", (router) => {
   router.use("/offlineStore", offlinePortalRouter);
   router.use("/sskcompany", offlineSSKRouter);
   router.use("/address/dropdown", offlineAddressRouter);
-
 });
-
-
 
 app.all("*", (req, res, next) => {
   next(new ApiError("Routes Not Found", 404));
@@ -150,6 +194,6 @@ app.all("*", (req, res, next) => {
 
 app.use(globalErrorHandler);
 
-app.listen(port, () => {
+server.listen(port, () => {
   console.log(`listning on Port ${port}`);
 });
