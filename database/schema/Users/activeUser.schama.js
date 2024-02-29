@@ -9,6 +9,9 @@ const ActiveUserSchema = new mongoose.Schema({
   socket_id: {
     type: String,
   },
+  token: {
+    type: String,
+  },
   loggedIn_at: {
     type: Date,
     default: Date.now,

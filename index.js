@@ -59,6 +59,7 @@ import { Server } from "socket.io";
 import {
   AddActiveUser,
   RemoveActiveUser,
+  isTokenExpired,
 } from "./controllers/Admin/Users/userController.js";
 const app = express();
 const port = process.env.PORT || 4001;
@@ -92,20 +93,17 @@ connect();
 //socket
 
 io.on("connection", (socket) => {
+  isTokenExpired();
   console.log("A new User Has connected", socket.id);
-  socket.on("activeUser", (userID) => {
-    console.log("A", socket.id);
-    console.log("New User", userID);
+  socket.on("activeUser", (userID,token) => {
     try {
-      AddActiveUser(userID, socket.id);
+      AddActiveUser(userID, token, socket.id);
     } catch (error) {
       console.log(error);
     }
   });
 
   socket.on("logoutactiveUser", (userID) => {
-    console.log("A", socket.id);
-    console.log("New User", userID);
     try {
       RemoveActiveUser(userID, socket.id);
     } catch (error) {

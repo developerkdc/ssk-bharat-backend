@@ -9,6 +9,7 @@ import ApiError from "../../../Utils/ApiError.js";
 import { createdByFunction } from "../../HelperFunction/createdByfunction.js";
 import adminApprovalFunction from "../../HelperFunction/AdminApprovalFunction.js";
 import activeUserModel from "../../../database/schema/Users/activeUser.schama.js";
+import jwt from "jsonwebtoken";
 
 export const AddUser = catchAsync(async (req, res) => {
   const user = req.user;
@@ -349,13 +350,15 @@ export const generatePassword = catchAsync(async (req, res) => {
   });
 });
 
-export const AddActiveUser = async (userID, socketID) => {
+export const AddActiveUser = async (userID, token, socketID) => {
   const data = {
     user_id: userID,
     socket_id: socketID,
+    token: token,
   };
   const isLoggedIn = await activeUserModel.find({ user_id: userID });
-  if (isLoggedIn) return;
+
+  if (isLoggedIn.length != 0) return;
   await activeUserModel.create(data);
 };
 
@@ -367,6 +370,41 @@ export const RemoveActiveUser = async (userID, socketID) => {
     data["user_id"] = userID;
   }
   await activeUserModel.deleteOne(data);
+};
+
+export const isTokenExpired = async () => {
+  const allActiveUsers = await activeUserModel.find();
+  if (allActiveUsers.length > 0) {
+    allActiveUsers.map(async (ele) => {
+      console.log(ele, "eleeeeeeeee");
+      const token = ele.token;
+
+      // Your secret key used to sign the JWT
+      const secretKey = process.env.JWT_SECRET;
+
+      // Decode the token to get its payload
+      const decodedToken = jwt.decode(token);
+
+      // Check if the decoded token exists and has an 'exp' (expiration) property
+      if (decodedToken && decodedToken.exp) {
+        // Get the current timestamp in seconds
+        const currentTimestamp = Math.floor(Date.now() / 1000);
+
+        // Compare the expiration time with the current time
+        if (decodedToken.exp > currentTimestamp) {
+          console.log("Token is not expired.");
+        } else {
+          // Token is expired, delete user from activeUserModel
+          await activeUserModel.deleteOne({ token: token });
+          console.log("User deleted due to expired token.");
+        }
+      } else {
+        console.log(
+          "Token is invalid or does not contain expiration information."
+        );
+      }
+    });
+  }
 };
 
 export const getAllActiveUsers = catchAsync(async (req, res) => {
@@ -395,19 +433,58 @@ export const getAllActiveUsers = catchAsync(async (req, res) => {
   const matchQuery = data || {};
 
   // Fetching users
-  const users = await activeUserModel
-    .find({ ...matchQuery, ...searchQuery })
-    // .populate("user_id")
-    .populate({
-      path: "user_id",
-      populate: {
-        path: "current_data.role_id",
+  // const users = await activeUserModel
+  //   .find({ ...matchQuery, ...searchQuery })
+  //   .populate({
+  //     path: "user_id",
+  //     populate: {
+  //       path: "current_data.role_id",
+  //     },
+  //   })
+  //   .skip(skip)
+  //   .limit(limit)
+  //   .sort({ [sortBy]: sort })
+  //   .exec();
+
+  const users = await activeUserModel.aggregate([
+    {
+      $lookup: {
+        from: "users",
+        localField: "user_id",
+        foreignField: "_id",
+        as: "user_id",
       },
-    })
-    .skip(skip)
-    .limit(limit)
-    // .sort({ [sortBy]: sort })
-    .exec();
+    },
+    {
+      $unwind: "$user_id",
+    },
+    {
+      $lookup: {
+        from: "roles",
+        localField: "user_id.current_data.role_id",
+        foreignField: "_id",
+        as: "user_id.current_data.role_id",
+      },
+    },
+    {
+      $unwind: "$user_id.current_data.role_id",
+    },
+    {
+      $match: { ...matchQuery, ...searchQuery },
+    },
+    {
+      $skip: skip,
+    },
+    {
+      $limit: limit,
+    },
+    {
+      $sort: { [sortBy]: sort == "desc" ? -1 : 1 },
+    },
+  ]);
+
+  console.log(users, "userrrsss");
+
   if (!users) {
     throw new Error(new ApiError("Error during fetching", 400));
   }
