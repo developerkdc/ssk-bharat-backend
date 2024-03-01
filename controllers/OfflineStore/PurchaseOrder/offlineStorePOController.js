@@ -5,7 +5,6 @@ import storePOModel from "../../../database/schema/PurchaseOrders/offlineStorePu
 import { dynamicSearch } from "../../../Utils/dynamicSearch";
 
 export const getStorePoByStoreId = catchAsync(async (req, res, next) => {
-  console.log(req.offlineUser,"userrr")
   const user=req.offlineUser
   const { string, boolean, numbers } = req?.body?.searchFields || {};
 

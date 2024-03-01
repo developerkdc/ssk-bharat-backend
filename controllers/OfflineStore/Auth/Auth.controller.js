@@ -1,17 +1,15 @@
-
 import bcrypt from "bcrypt";
 import sendEmail from "../../../Utils/SendEmail.js";
 import catchAsync from "../../../Utils/catchAsync.js";
 import mongoose from "mongoose";
 
-const model=mongoose.model("offlinestores")
-
+const model = mongoose.model("offlinestores");
 
 export const LoginUser = catchAsync(async (req, res, next) => {
   const { username, password } = req.body;
   const secretKey = process.env.JWT_SECRET;
   const user = await model.findOne({
-    "current_data.company_name": username,
+    "current_data.username": username,
   });
   if (!user) {
     return res.status(401).json({ message: "Invalid credentials" });
@@ -27,17 +25,17 @@ export const LoginUser = catchAsync(async (req, res, next) => {
 
   const token = user.jwtToken(next);
 
-  return res.status(200).cookie("token", token).cookie("userId", user.id).json({
-    statusCode: 200,
-    token: token,
-    user: user,
-    message: "Login success",
-  });
+  return res
+    .status(200)
+    .cookie("offline_token", token)
+    .cookie("offline_userId", user.id)
+    .json({
+      statusCode: 200,
+      token: token,
+      user: user,
+      message: "Login success",
+    });
 });
-
-
-
-
 
 export const SendOTP = catchAsync(async (req, res, next) => {
   const { email } = req.body;
@@ -239,16 +237,15 @@ export const UpdatePassword = catchAsync(async (req, res, next) => {
 });
 
 export const getUserById = catchAsync(async (req, res) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+  const id = req.offlineUser;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(200).json({
       statusCode: 200,
       status: "Failed",
       message: "Invalid ID",
     });
   }
-  const user = await userModel
-    .findOne({ _id: req.params.id })
-    .populate({ path: "current_data.role_id" });
+  const user = await model.findOne({ _id:id });
   return res.status(200).json({
     statusCode: 200,
     status: "Success",

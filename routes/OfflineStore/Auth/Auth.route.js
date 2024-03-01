@@ -1,11 +1,15 @@
 import express from "express";
-import { LoginUser } from "../../../controllers/OfflineStore/Auth/Auth.controller";
+import {
+  LoginUser,
+  getUserById,
+} from "../../../controllers/OfflineStore/Auth/Auth.controller";
+import offlineStoreAuthMiddleware from "../../../middlewares/offlineStoreAuth";
 const router = express.Router();
 
 router.post("/login", LoginUser);
 // router.post("/forgotpassword", SendOTP);
 // router.post("/verifyotp", VerifyOtp);
 // router.post("/updatePassword", UpdatePassword);
-// router.get("/getUser/:id", authMiddleware, getUserById);
+router.get("/getUser", offlineStoreAuthMiddleware, getUserById);
 
 export default router;
