@@ -14,7 +14,7 @@ const offlineStoreAuthMiddleware = async (req, res, next) => {
     console.log(offlineId, "offlineid");
     if (!offlineId) return next(new ApiError("userId not found", 400));
     const offlineUser = await model.findOne({
-      _id: offlineId?.offlineId,
+      _id: offlineId?.offlinestore,
       "current_data.status": true,
     });
     if (!offlineUser) {
