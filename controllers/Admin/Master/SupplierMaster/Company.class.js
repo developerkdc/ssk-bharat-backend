@@ -274,7 +274,7 @@ class CompanyMaster {
     });
   });
   UpdateCompany = catchAsync(async (req, res, next) => {
-    const { company_name, onboarding_date, isActive, pan_no } = req.body;
+    const { username,company_name, onboarding_date, isActive, pan_no } = req.body;
     const { id } = req.params;
     const user = req.user;
     let pan_image;
@@ -285,6 +285,7 @@ class CompanyMaster {
       { _id: id },
       {
         $set: {
+          "proposed_changes.username": username,
           "proposed_changes.company_name": company_name,
           "proposed_changes.status": false,
           "proposed_changes.isActive": isActive,
