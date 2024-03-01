@@ -14,110 +14,105 @@ import adminApprovalFunction from "../../../HelperFunction/AdminApprovalFunction
 import ApiError from "../../../../Utils/ApiError";
 
 class CompanyMaster {
-  #Schema;
+  #companySchema;
   #collectionName;
   #branchCollectionName;
   #modalName;
   #modal;
   constructor(modalName, collectionName, branchCollectionName) {
-    this.#Schema = SchemaFunction(new mongoose.Schema({
-      username: {
-        type: String,
-        required: [function () {
-          return this.company_type === "retailers" || this.company_type === "offlinestores";
-        }, "Username is required"]
-      },
-      company_name: {
-        type: String,
-        minlength: [2, "Length should be greater than two"],
-        maxlength: [25, "Length should be less than or equal to 25"],
-        trim: true,
-        required: [true, "Company name is required"],
-      },
-      company_type: {
-        type: String,
-        required: [true, "company Type is required"],
-        enum: {
-          values: ["retailers", "offlinestores", "suppliers", "sskcompanies"],
-          message: "invalid {VALUE}"
+    this.#companySchema = SchemaFunction(
+      new mongoose.Schema({
+        username: {
+          type: String,
+          required: [function () {
+            return this.company_type === "retailers" || this.company_type === "offlinestores";
+          }, "Username is required"]
         },
-        trim: true,
-        lowercase: true,
-        default: collectionName.toLowerCase()
-      },
-      isActive: {
-        type: Boolean,
-        default: true
-      },
-      onboarding_date: {
-        type: Date,
-        default: Date.now,
-      },
-      pan: {
-        type: {
-          pan_no: {
-            type: String,
-            trim: true,
-            // unique: true,
-            required: [true, "pan no is required"],
+        company_name: {
+          type: String,
+          minlength: [2, "Length should be greater than two"],
+          maxlength: [25, "Length should be less than or equal to 25"],
+          trim: true,
+          required: [true, "Company name is required"],
+        },
+        company_type: {
+          type: String,
+          required: [true, "company Type is required"],
+          enum: {
+            values: ["retailers", "offlinestores", "suppliers", "sskcompanies"],
+            message: "invalid {VALUE}"
           },
-          pan_image: {
-            type: String,
-            default: null,
+          trim: true,
+          lowercase: true,
+          default: collectionName.toLowerCase()
+        },
+        isActive: {
+          type: Boolean,
+          default: true
+        },
+        onboarding_date: {
+          type: Date,
+          default: Date.now,
+        },
+        pan: {
+          type: {
+            pan_no: {
+              type: String,
+              trim: true,
+              // unique: true,
+              required: [true, "pan no is required"],
+            },
+            pan_image: {
+              type: String,
+              default: null,
+            },
           },
         },
-      },
-      // register_mobile_no: {
-      //   type: String,
-      //   minlength: [10, "Length should be greater or equal to 10"],
-      //   maxlength: [10, "Length should be less than or equal to 10"],
-      //   trim: true,
-      //   unique: true,
-      //   required: [true, "register mobile no is required"]
-      // },
-      password: {
-        type: String,
-        trim: true,
-        default: null,
-      },
-      primaryBranch: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: branchCollectionName,
-        default: null
-      },
-      inventorySchema: {
-        type: String,
-        lowercase: true,
-        default: function () {
-          if (this.company_type === "retailers" || this.company_type === "offlinestores") {
-            return `${this.company_type}_${this.company_name}_${this.parent()._id.toString().slice(-5)}`
-          } else {
-            return null
+        password: {
+          type: String,
+          trim: true,
+          default: null,
+        },
+        primaryBranch: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: branchCollectionName,
+          default: null
+        },
+        inventorySchema: {
+          type: String,
+          lowercase: true,
+          default: function () {
+            if (this.company_type === "retailers" || this.company_type === "offlinestores") {
+              return `${this.company_type}_${this.company_name}_${this.parent()._id.toString().slice(-5)}`
+            } else {
+              return null
+            }
           }
-        }
-      },
-      billingSchema: {
-        type: String,
-        lowercase: true,
-        default: function () {
-          if (this.company_type === "retailers" || this.company_type === "offlinestores") {
-            return `${this.company_type}_billing_${this.company_name}_${this.parent()._id.toString().slice(-5)}`
-          } else {
-            return null
+        },
+        billingSchema: {
+          type: String,
+          lowercase: true,
+          default: function () {
+            if (this.company_type === "retailers" || this.company_type === "offlinestores") {
+              return `${this.company_type}_billing_${this.company_name}_${this.parent()._id.toString().slice(-5)}`
+            } else {
+              return null
+            }
           }
+        },
+        created_by: {
+          type: createdBy,
+          required: [true, "created by is required"]
         }
-      },
-      created_by: {
-        type: createdBy,
-        required: [true, "created by is required"]
-      }
-    }))
-    this.#Schema.index({ "current_data.pan.pan_no": 1 }, { unique: true })
-    this.#Schema.index({ "current_data.username": 1 }, { unique: true })
-    this.#Schema.methods.jwtToken = function (next) {
+      })
+    )
+    this.#companySchema.index({ "current_data.pan.pan_no": 1 }, { unique: true })
+    this.#companySchema.index({ "current_data.username": 1 }, { unique: true })
+    console.log(this.#companySchema.indexes())
+    this.#companySchema.methods.jwtToken = function (next) {
       try {
         return jwt.sign(
-          { [modalName]: this._id, companyName: this.current_data.company_name,username:this.current_data.username },
+          { [modalName]: this._id, companyName: this.current_data.company_name, username: this.current_data.username },
           process.env.JWT_SECRET,
           { expiresIn: process.env.JWT_EXPIRES }
         );
@@ -128,7 +123,7 @@ class CompanyMaster {
     this.#collectionName = collectionName;
     this.#branchCollectionName = branchCollectionName;
     this.#modalName = modalName;
-    this.#modal = mongoose.model(this.#collectionName, this.#Schema);
+    this.#modal = mongoose.model(this.#collectionName, this.#companySchema);
     LogSchemaFunction(this.#collectionName, this.#modal);
   }
   GetCompany = catchAsync(async (req, res, next) => {
@@ -274,7 +269,7 @@ class CompanyMaster {
     });
   });
   UpdateCompany = catchAsync(async (req, res, next) => {
-    const { username,company_name, onboarding_date, isActive, pan_no } = req.body;
+    const { username, company_name, onboarding_date, isActive, pan_no } = req.body;
     const { id } = req.params;
     const user = req.user;
     let pan_image;

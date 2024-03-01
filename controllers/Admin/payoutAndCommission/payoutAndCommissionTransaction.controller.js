@@ -220,10 +220,9 @@ export const addPayout = catchAsync(async (req, res, next) => {
       { session }
     );
 
-    const amountPaid = addPayout[0].payouts.amountPaid;
+    const amountPaid = Number(addPayout[0].payouts.amountPaid).toFixed(2);
 
-    const newBalance =
-      marketExecutiveBalance.account_balance - Number(amountPaid);
+    const newBalance = Number(marketExecutiveBalance?.account_balance).toFixed(2) - Number(amountPaid).toFixed(2);
 
     if (newBalance < 0) {
       return next(new ApiError("Insufficient funds", 400));
