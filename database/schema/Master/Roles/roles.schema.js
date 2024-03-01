@@ -34,6 +34,11 @@ const RoleSchema = SchemaFunction(
         edit: { type: Boolean, default: false },
         view: { type: Boolean, default: false },
       },
+      approvals: {
+        add: { type: Boolean, default: false },
+        edit: { type: Boolean, default: false },
+        view: { type: Boolean, default: false },
+      },
       gst: {
         add: { type: Boolean, default: false },
         edit: { type: Boolean, default: false },

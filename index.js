@@ -42,6 +42,7 @@ import offlineSalesRouter from "./routes/OfflineStore/ConfirmSalesOrder/offlineC
 import retailerPORouter from "./routes/Retailer/PurchaseOrder/retailerPortalPORoute.js";
 import retailerSalesRouter from "./routes/Retailer/ConfirmSalesOrder/retailerConfirmSalesRoutes.js";
 import RetailerAuthRouter from "./routes/Retailer/Auth/Auth.route.js";
+import offlineAuthRouter from "./routes/OfflineStore/Auth/Auth.route.js";
 import RetailerPRoutes from "./routes/Retailer/Billing/BillingRoutes.js";
 import RetailerInventory from "./routes/Retailer/Inventory/RetailerInventoryRoutes.js";
 import offlineProductRouter from "./routes/OfflineStore/Products/productRoutes.js";
@@ -178,6 +179,7 @@ app.group("/api/v1/retailer-portal", (router) => {
 
 //offline store
 app.group("/api/v1/offline-store-portal", (router) => {
+  router.use("/auth", offlineAuthRouter);
   router.use("/purchase-order", offlinePORouter);
   router.use("/confirm-sales", offlineSalesRouter);
   router.use("/product", offlineProductRouter);
