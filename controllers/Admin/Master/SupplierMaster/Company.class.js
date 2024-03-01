@@ -117,7 +117,7 @@ class CompanyMaster {
     this.#Schema.methods.jwtToken = function (next) {
       try {
         return jwt.sign(
-          { [modalName]: this._id, companyName: this.current_data.company_name },
+          { [modalName]: this._id, companyName: this.current_data.company_name,username:this.current_data.username },
           process.env.JWT_SECRET,
           { expiresIn: process.env.JWT_EXPIRES }
         );
