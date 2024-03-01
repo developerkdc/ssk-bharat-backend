@@ -145,6 +145,8 @@ export const EditUser = catchAsync(async (req, res) => {
   });
 });
 
+
+
 export const ChangePassword = catchAsync(async (req, res) => {
   const userId = req.params.userId;
   const { currentPassword, newPassword } = req.body;
