@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import catchAsync from "../../../../Utils/catchAsync";
 import companyAndApprovals from "../../../../database/utils/approval.schema";
 import { dynamicSearch } from "../../../../Utils/dynamicSearch";
@@ -20,6 +21,12 @@ class CompanyMaster {
   #modal;
   constructor(modalName, collectionName, branchCollectionName) {
     this.#Schema = SchemaFunction(new mongoose.Schema({
+      username: {
+        type: String,
+        required: [function () {
+          return this.company_type === "retailers" || this.company_type === "offlinestores";
+        }, "Username is required"]
+      },
       company_name: {
         type: String,
         minlength: [2, "Length should be greater than two"],
@@ -51,7 +58,7 @@ class CompanyMaster {
           pan_no: {
             type: String,
             trim: true,
-            unique: true,
+            // unique: true,
             required: [true, "pan no is required"],
           },
           pan_image: {
@@ -105,10 +112,12 @@ class CompanyMaster {
         required: [true, "created by is required"]
       }
     }))
+    this.#Schema.index({ "current_data.pan.pan_no": 1 }, { unique: true })
+    this.#Schema.index({ "current_data.username": 1 }, { unique: true })
     this.#Schema.methods.jwtToken = function (next) {
       try {
         return jwt.sign(
-          { [modalName]: this._id, companyName: this.company_name },
+          { [modalName]: this._id, companyName: this.current_data.company_name },
           process.env.JWT_SECRET,
           { expiresIn: process.env.JWT_EXPIRES }
         );
@@ -116,7 +125,6 @@ class CompanyMaster {
         return next(error);
       }
     };
-    this.#Schema.index({ "current_data.pan.pan_no": 1 }, { unique: true });
     this.#collectionName = collectionName;
     this.#branchCollectionName = branchCollectionName;
     this.#modalName = modalName;
@@ -200,15 +208,16 @@ class CompanyMaster {
     });
   });
   AddCompany = catchAsync(async (req, res, next) => {
-    const { approver, inventorySchema, billingSchema, company_name, onboarding_date, pan_no } = req.body;
+    const { approver, inventorySchema, billingSchema, company_name, onboarding_date, pan_no, username } = req.body;
     const user = req.user;
     let protectedPassword;
+    let Password;
     let pan_image;
     if (
       !req.baseUrl.endsWith("sskcompany") &&
       !req.baseUrl.endsWith("suppliers")
     ) {
-      let Password = crypto.randomBytes(8).toString("hex");
+      Password = crypto.randomBytes(8).toString("hex");
       protectedPassword = bcrypt.hashSync(Password, 12);
     }
 
@@ -218,6 +227,7 @@ class CompanyMaster {
 
     const addData = await this.#modal.create({
       current_data: {
+        username,
         company_name,
         onboarding_date,
         pan: {
@@ -236,6 +246,15 @@ class CompanyMaster {
       user: user,
       documentId: addData.id
     })
+
+    // await sendEmail({
+    //   email: addData.current_data?.contact_person_details?.primary_email_id,
+    //   subject: `Welcome ${addME.current_data?.contact_person_details?.first_name} ${addME.current_data?.contact_person_details?.last_name}`,
+    //   message:welcomeMessage({
+    //     email:addME.current_data?.contact_person_details?.primary_email_id,
+    //     password:Password
+    //   }),
+    // });
 
 
     return res.status(201).json({
