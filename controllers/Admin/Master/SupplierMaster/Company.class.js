@@ -108,7 +108,6 @@ class CompanyMaster {
     )
     this.#companySchema.index({ "current_data.pan.pan_no": 1 }, { unique: true })
     this.#companySchema.index({ "current_data.username": 1 }, { unique: true })
-    console.log(this.#companySchema.indexes())
     this.#companySchema.methods.jwtToken = function (next) {
       try {
         return jwt.sign(
