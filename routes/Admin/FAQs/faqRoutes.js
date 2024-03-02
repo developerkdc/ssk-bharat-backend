@@ -1,5 +1,10 @@
 import express from "express";
-import { createFaq, deleteFaq, editFaq, getFaqs } from "../../../controllers/Admin/FAQs/faqController";
+import {
+  createFaq,
+  deleteFaq,
+  editFaq,
+  getFaqs,
+} from "../../../controllers/Admin/FAQs/faqController";
 import authMiddleware from "../../../middlewares/adminAuth";
 import rolesPermissions from "../../../middlewares/rolesPermissionAuth";
 
@@ -12,7 +17,7 @@ router.patch(
   rolesPermissions("faq", "edit"),
   editFaq
 );
-router.get(
+router.post(
   "/getFaq",
   authMiddleware,
   rolesPermissions("faq", "view"),
@@ -20,11 +25,10 @@ router.get(
 );
 
 router.delete(
-    "/delete/:id",
-    authMiddleware,
-    rolesPermissions("faq", "view"),
-    deleteFaq
-  );
-
+  "/delete/:id",
+  authMiddleware,
+  rolesPermissions("faq", "view"),
+  deleteFaq
+);
 
 export default router;

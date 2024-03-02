@@ -1,7 +1,12 @@
 import express from "express";
-import { RetailerLogin } from "../../../controllers/Retailers/Auth/Auth.controller";
-const RetailerAuthRouter = express.Router();
+import retailersAuthMiddleware from "../../../middlewares/retailersAuthMiddleware";
+import { LoginUser, getUserById } from "../../../controllers/Retailers/Auth/Auth.controller";
+const router = express.Router();
 
-RetailerAuthRouter.post("/login",RetailerLogin)
+router.post("/login", LoginUser);
+// router.post("/forgotpassword", SendOTP);
+// router.post("/verifyotp", VerifyOtp);
+// router.post("/updatePassword", UpdatePassword);
+router.get("/getUser", retailersAuthMiddleware, getUserById);
 
-export default RetailerAuthRouter;
+export default router;

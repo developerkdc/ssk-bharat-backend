@@ -6,8 +6,9 @@ import { dynamicSearch } from "../../../Utils/dynamicSearch";
 
 export const fetchOfflineConfirmSalesOrders = catchAsync(
   async (req, res, next) => {
+    const user=req.retailerUser
     const { string, boolean, numbers } = req?.body?.searchFields || {};
-    const id = "65d11012cbc6fb8d5c726d98";
+    const id = user._id;
     const {
       page,
       limit = 10,

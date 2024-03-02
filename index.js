@@ -68,7 +68,12 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:3000","https://sskbharat.kdcstaging.in"],
+    origin: [
+      "https://sskbharat.kdcstaging.in",
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "http://localhost:3002",
+    ],
     methods: ["GET", "POST"],
   },
 });
@@ -96,7 +101,7 @@ connect();
 io.on("connection", (socket) => {
   isTokenExpired();
   console.log("A new User Has connected", socket.id);
-  socket.on("activeUser", (userID,token) => {
+  socket.on("activeUser", (userID, token) => {
     try {
       AddActiveUser(userID, token, socket.id);
     } catch (error) {
@@ -120,9 +125,10 @@ io.on("connection", (socket) => {
     } catch (error) {
       console.log(error);
     }
-    // You can perform additional cleanup or tasks here if needed
+    
   });
 });
+
 // Routes for Admin Portal
 app.group("/api/v1/admin", (router) => {
   router.use("/auth", authRouter);
