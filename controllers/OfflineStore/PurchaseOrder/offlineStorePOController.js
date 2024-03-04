@@ -5,6 +5,7 @@ import storePOModel from "../../../database/schema/PurchaseOrders/offlineStorePu
 import { dynamicSearch } from "../../../Utils/dynamicSearch";
 
 export const getStorePoByStoreId = catchAsync(async (req, res, next) => {
+  const user=req.offlineUser
   const { string, boolean, numbers } = req?.body?.searchFields || {};
 
   const page = parseInt(req.query.page) || 1;
@@ -38,7 +39,7 @@ export const getStorePoByStoreId = catchAsync(async (req, res, next) => {
   const totalUnits = await storePOModel.countDocuments({
     ...matchQuery,
     ...searchQuery,
-    "store_details.store_id": "65b4b72fae664feec7e469c9", //replace id with login user
+    "store_details.store_id": user._id, //replace id with login user
   });
 
   if (!totalUnits) throw new Error(new ApiError("No Data", 404));
@@ -51,7 +52,7 @@ export const getStorePoByStoreId = catchAsync(async (req, res, next) => {
     .find({
       ...matchQuery,
       ...searchQuery,
-      "store_details.store_id": "65b4b72fae664feec7e469c9",
+      "store_details.store_id": user._id,
     })
     .sort({ [sortField]: sortDirection })
     .skip(skip)

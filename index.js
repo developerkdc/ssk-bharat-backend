@@ -42,6 +42,7 @@ import offlineSalesRouter from "./routes/OfflineStore/ConfirmSalesOrder/offlineC
 import retailerPORouter from "./routes/Retailer/PurchaseOrder/retailerPortalPORoute.js";
 import retailerSalesRouter from "./routes/Retailer/ConfirmSalesOrder/retailerConfirmSalesRoutes.js";
 import RetailerAuthRouter from "./routes/Retailer/Auth/Auth.route.js";
+import offlineAuthRouter from "./routes/OfflineStore/Auth/Auth.route.js";
 import RetailerPRoutes from "./routes/Retailer/Billing/BillingRoutes.js";
 import RetailerInventory from "./routes/Retailer/Inventory/RetailerInventoryRoutes.js";
 import offlineProductRouter from "./routes/OfflineStore/Products/productRoutes.js";
@@ -54,10 +55,28 @@ import offlineAddressRouter from "./routes/OfflineStore/AddressDropdown/addressD
 import retailerAddressRouter from "./routes/Retailer/AddressDropdown/addressDropdownRoutes.js";
 import metStoreRouter from "./routes/METAuthRoutes/Store/index.js";
 import metTransactionHistoryRouter from "./routes/METAuthRoutes/Transaction/transaction.route.js";
-
+import http from "http";
+import { Server } from "socket.io";
+import {
+  AddActiveUser,
+  RemoveActiveUser,
+  isTokenExpired,
+} from "./controllers/Admin/Users/userController.js";
 const app = express();
-
 const port = process.env.PORT || 4001;
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: [
+      "https://sskbharat.kdcstaging.in",
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "http://localhost:3002",
+    ],
+    methods: ["GET", "POST"],
+  },
+});
 
 //Middlewares
 app.use(express.static(__dirname));
@@ -65,7 +84,6 @@ app.use(express.json());
 app.use(
   cors({
     origin: [
-      "https://sskbharat.kdcstaging.in/",
       "https://sskbharat.kdcstaging.in",
       "http://localhost:3000",
       "http://localhost:3001",
@@ -77,6 +95,40 @@ app.use(
 
 //database
 connect();
+
+//socket
+
+io.on("connection", (socket) => {
+  isTokenExpired();
+  console.log("A new User Has connected", socket.id);
+  socket.on("activeUser", (userID, token) => {
+    try {
+      AddActiveUser(userID, token, socket.id);
+    } catch (error) {
+      console.log(error);
+    }
+  });
+
+  socket.on("logoutactiveUser", (userID) => {
+    try {
+      RemoveActiveUser(userID, socket.id);
+    } catch (error) {
+      console.log(error);
+    }
+  });
+
+  // Listen for disconnection
+  socket.on("disconnect", () => {
+    console.log("User disconnected", socket.id);
+    try {
+      RemoveActiveUser(null, socket.id);
+    } catch (error) {
+      console.log(error);
+    }
+    
+  });
+});
+
 // Routes for Admin Portal
 app.group("/api/v1/admin", (router) => {
   router.use("/auth", authRouter);
@@ -133,16 +185,14 @@ app.group("/api/v1/retailer-portal", (router) => {
 
 //offline store
 app.group("/api/v1/offline-store-portal", (router) => {
+  router.use("/auth", offlineAuthRouter);
   router.use("/purchase-order", offlinePORouter);
   router.use("/confirm-sales", offlineSalesRouter);
   router.use("/product", offlineProductRouter);
   router.use("/offlineStore", offlinePortalRouter);
   router.use("/sskcompany", offlineSSKRouter);
   router.use("/address/dropdown", offlineAddressRouter);
-
 });
-
-
 
 app.all("*", (req, res, next) => {
   next(new ApiError("Routes Not Found", 404));
@@ -150,6 +200,6 @@ app.all("*", (req, res, next) => {
 
 app.use(globalErrorHandler);
 
-app.listen(port, () => {
+server.listen(port, () => {
   console.log(`listning on Port ${port}`);
 });

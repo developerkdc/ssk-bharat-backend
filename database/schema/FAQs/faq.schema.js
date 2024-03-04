@@ -5,8 +5,9 @@ import createdBy from "../../utils/createdBy.schema";
 const FaqSchema = new mongoose.Schema({
   module_type: {
     type: String,
-    required: [true, "Module Type is required"],
+    // required: [true, "Module Type is required"],
     enum: ["order"],
+    default:null
   },
   question: {
     type: String,

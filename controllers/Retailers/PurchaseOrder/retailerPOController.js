@@ -5,6 +5,7 @@ import retailerPOModel from "../../../database/schema/PurchaseOrders/retailerPur
 import { dynamicSearch } from "../../../Utils/dynamicSearch";
 
 export const getRetailerPoByRetailersId = catchAsync(async (req, res, next) => {
+  const user=req.retailerUser
   const { string, boolean, numbers } = req?.body?.searchFields || {};
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
@@ -37,7 +38,7 @@ export const getRetailerPoByRetailersId = catchAsync(async (req, res, next) => {
   const totalUnits = await retailerPOModel.countDocuments({
     ...matchQuery,
     ...searchQuery,
-    "retailer_details.retailer_id": "65d11012cbc6fb8d5c726d98",
+    "retailer_details.retailer_id": user._id,
   });
   const totalPages = Math.ceil(totalUnits / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
@@ -48,7 +49,7 @@ export const getRetailerPoByRetailersId = catchAsync(async (req, res, next) => {
     .find({
       ...matchQuery,
       ...searchQuery,
-      "retailer_details.retailer_id": "65d11012cbc6fb8d5c726d98",
+      "retailer_details.retailer_id": user._id,
     })
     .sort({ [sortField]: sortDirection })
     .skip(skip)

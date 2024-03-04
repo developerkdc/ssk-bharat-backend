@@ -6,8 +6,9 @@ import { dynamicSearch } from "../../../Utils/dynamicSearch";
 
 export const fetchOfflineConfirmSalesOrders = catchAsync(
   async (req, res, next) => {
+    const user=req.retailerUser
     const { string, boolean, numbers } = req?.body?.searchFields || {};
-    const id = "65d11012cbc6fb8d5c726d98";
+    const id = user._id;
     const {
       page,
       limit = 10,
@@ -42,18 +43,37 @@ export const fetchOfflineConfirmSalesOrders = catchAsync(
       }
       searchQuery = searchdata;
     }
-
-    const salesOrders = await SalesModel.find({
-      ...matchQuery,
-      ...searchQuery,
-      "current_data.order_type": "retailers",
-      "current_data.customer_details.customer_id": id,
-      "current_data.status": true,
-    })
-      .skip(skip)
-      .limit(limit)
-      .sort({ [sortBy]: sort })
-      .exec();
+    const salesOrders = await SalesModel.aggregate([
+      {
+        $match: {
+          ...matchQuery,
+          ...searchQuery,
+          "current_data.order_type": "retailers",
+          "current_data.customer_details.customer_id":
+            new mongoose.Types.ObjectId(id),
+          "current_data.status": true,
+        },
+      },
+      {
+        $lookup: {
+          from: "refunds", // Replace with the actual name of your refund collection
+          localField: "current_data.refund_id",
+          foreignField: "_id",
+          as: "current_data.refund_id",
+        },
+      },
+      {
+        $lookup: {
+          from: "dispatchorders", // Replace with the actual name of your dispatch collection
+          localField: "current_data.dispatch_id",
+          foreignField: "_id",
+          as: "current_data.dispatch_id",
+        },
+      },
+      {
+        $sort: { [sortBy]: sort == "desc" ? -1 : 1 },
+      },
+    ]);
 
     const totalDocuments = await SalesModel.countDocuments({
       ...matchQuery,
@@ -73,7 +93,6 @@ export const fetchOfflineConfirmSalesOrders = catchAsync(
     });
   }
 );
-
 
 export const getOrderNoFromSalesList = catchAsync(async (req, res, next) => {
   const type = req.params.type;

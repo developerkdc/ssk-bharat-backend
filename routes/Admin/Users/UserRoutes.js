@@ -7,6 +7,7 @@ import {
   UserLogs,
   UserLogsFile,
   generatePassword,
+  getAllActiveUsers,
   getUserList,
 } from "../../../controllers/Admin/Users/userController";
 import rolesPermissions from "../../../middlewares/rolesPermissionAuth";
@@ -22,7 +23,7 @@ router.post(
     { name: "profile_pic", maxCount: 1 },
     { name: "pan_image", maxCount: 1 },
     { name: "aadhar_image", maxCount: 1 },
-    { name: "passbook_image", maxCount: 1 }
+    { name: "passbook_image", maxCount: 1 },
   ]),
   rolesPermissions("user", "add"),
   AddUser
@@ -52,18 +53,21 @@ router.post(
   rolesPermissions("user", "view"),
   FetchUsers
 );
+router.post(
+  "/active-users",
+  authMiddleware,
+  rolesPermissions("user", "view"),
+  getAllActiveUsers
+);
 router.get("/userslogsfile", UserLogsFile);
+
 router.get(
   "/userslogs",
   authMiddleware,
   rolesPermissions("user", "view"),
   UserLogs
 );
-router.get(
-  "/list",
-  authMiddleware,
-  getUserList
-);
+router.get("/list", authMiddleware, getUserList);
 router.get("/generate-password", generatePassword);
 
 export default router;
