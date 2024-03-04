@@ -168,7 +168,7 @@ class Branches {
         ],
       })
     );
-    this.#branchSchema.index({"current_data.kyc.gst.gst_no":1},{unique:true})
+    this.#branchSchema.index({"current_data.kyc.gst.gst_no":1},{unique:true});
     this.#branchSchema.pre("save", function (next) {
       if (this.current_data.contact_person.length <= 0) {
         return next(
