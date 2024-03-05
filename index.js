@@ -34,6 +34,7 @@ import InventoryRouter from "./routes/Admin/Inventory/InventoryRoutes.js";
 import SampleRouter from "./routes/Admin/Samples/sampleRoutes.js";
 import FaqRouter from "./routes/Admin/FAQs/faqRoutes.js";
 import TicketRouter from "./routes/Admin/Tickets/ticketRoutes.js";
+import RetailerTicketRouter from "./routes/Retailer/Tickets/ticketRoutes.js";
 import addressDropdownRouter from "./routes/Admin/AddressDropdown/addressDropdownRoutes.js";
 import METAuthRouter from "./routes/METAuthRoutes/Auth/metAuthRoutes";
 import approvalRouter from "./routes/Approval/getPendingApprovalList.route.js";
@@ -181,6 +182,7 @@ app.group("/api/v1/retailer-portal", (router) => {
   router.use("/retailer", retailerPortalRouter);
   router.use("/sskcompany", retailerSSKRouter);
   router.use("/address/dropdown", retailerAddressRouter);
+  router.use("/ticket", RetailerTicketRouter);
 });
 
 //offline store
