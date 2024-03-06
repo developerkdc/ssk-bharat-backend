@@ -252,6 +252,15 @@ export const InventoryList = catchAsync(async (req, res) => {
     ];
   }
 
+  const totalCount = await inventoryModel.aggregate([
+    {
+      $match: matchStage,
+    },
+    {
+      $count: "total",
+    },
+  ]);
+
   const result = await inventoryModel.aggregate([
     {
       $match: matchStage,
@@ -317,12 +326,19 @@ export const InventoryList = catchAsync(async (req, res) => {
       $limit: 10,
     },
   ]);
+
+  const totalPages = Math.ceil(
+    totalCount.length > 0 ? totalCount[0].total / 10 : 0
+  );
+
   return res.status(200).json({
     statusCode: 200,
     message: "Details Fetched successfully",
     data: result,
+    totalPages: totalPages,
   });
 });
+
 
 export const ViewProductHistory = catchAsync(async (req, res) => {
   const id = req.params.id;

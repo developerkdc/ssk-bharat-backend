@@ -245,8 +245,7 @@ export const fetchDispatchBasedonDeliveryStatus = catchAsync(
       sortBy = "created_at",
       sort = "desc",
     } = req.query;
-    const skip =  Math.max((page - 1) * limit, 0);;
-
+    const skip = Math.max((page - 1) * limit, 0);
 
     const search = req.query.search || "";
 
@@ -424,51 +423,53 @@ export const delivered = catchAsync(async (req, res, next) => {
       select: "current_data.inventorySchema",
     });
 
-    // const inventoryName =
-    //   retailerdetails.current_data.customer_details.customer_id.current_data
-    //     .inventorySchema;
+    const inventoryName =
+      retailerdetails.current_data.customer_details.customer_id.current_data
+        .inventorySchema;
 
-    // const inventoryModel = DynamicModel(inventoryName, InventorySchema);
-    // const items = retailerdetails.current_data.Items;
-    // const inventoryArray = [];
-    // for (const item of items) {
-    //   console.log(item);
-    //   const inventory = new inventoryModel({
-    //     sales_order_no: retailerdetails.current_data.sales_order_no,
-    //     supplierCompanyName:
-    //       retailerdetails.current_data.ssk_details.company_name,
-    //     CustomerDetails: retailerdetails.current_data.customer_details,
-    //     receivedDate: retailerdetails.current_data.tracking_date.delivered,
-    //     transportDetails: retailerdetails.current_data.transport_details,
-    //     invoiceDetails: {
-    //       invoiceNo: retailerdetails.current_data.dispatch_no,
-    //       invoiceDate: retailerdetails.current_data.tracking_date.delivered,
-    //       itemsAmount: retailerdetails.current_data.total_item_amount,
-    //       gstAmount: retailerdetails.current_data.total_gst,
-    //       totalAmount: retailerdetails.current_data.total_amount,
-    //     },
-    //     tracking_date: retailerdetails.current_data.tracking_date,
-    //     itemsDetails: {
-    //       product_id: item.product_id,
-    //       item_name: item.item_name,
-    //       category: item.category,
-    //       sku: item.sku,
-    //       hsn_code: item.hsn_code,
-    //       weight: item.weight,
-    //       unit: item.unit,
-    //       rate_per_unit: item.rate_per_unit,
-    //       quantity: item.quantity,
-    //       receivedQuantity: item.quantity,
-    //       item_amount: item.item_amount,
-    //       gst: item.gst,
-    //       total_amount: item.total_amount,
-    //       availableQuantity: item.quantity,
-    //     },
-    //   });
+    const inventoryModel = DynamicModel(inventoryName, InventorySchema);
+    console.log(inventoryModel, "---------------inventory");
+    const items = retailerdetails.current_data.Items;
+    console.log(retailerdetails.current_data.tracking_date, "---------items");
+    const inventoryArray = [];
+    for (const item of items) {
+      console.log(item);
+      const inventory = new inventoryModel({
+        sales_order_no: retailerdetails.current_data.sales_order_no,
+        supplierCompanyName:
+          retailerdetails.current_data.ssk_details.company_name,
+        CustomerDetails: retailerdetails.current_data.customer_details,
+        receivedDate: retailerdetails.current_data.tracking_date.delivered,
+        transportDetails: retailerdetails.current_data.transport_details,
+        invoiceDetails: {
+          invoiceNo: retailerdetails.current_data.dispatch_no,
+          invoiceDate: retailerdetails.current_data.tracking_date.delivered,
+          itemsAmount: retailerdetails.current_data.total_item_amount,
+          gstAmount: retailerdetails.current_data.total_gst,
+          totalAmount: retailerdetails.current_data.total_amount,
+        },
+        tracking_date: retailerdetails.current_data.tracking_date,
+        itemsDetails: {
+          product_id: item.product_id,
+          item_name: item.item_name,
+          category: item.category,
+          sku: item.sku,
+          hsn_code: item.hsn_code,
+          weight: item.weight,
+          unit: item.unit,
+          rate_per_unit: item.rate_per_unit,
+          quantity: item.quantity,
+          receivedQuantity: item.quantity,
+          item_amount: item.item_amount,
+          gst: item.gst,
+          total_amount: item.total_amount,
+          availableQuantity: item.quantity,
+        },
+      });
 
-    //   inventoryArray.push(inventory);
-    //   await inventory.save();
-    // }
+      inventoryArray.push(inventory);
+      await inventory.save();
+    }
     await session.commitTransaction();
     await session.endSession();
 

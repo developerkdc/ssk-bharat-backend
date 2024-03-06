@@ -62,6 +62,7 @@ import {
   RemoveActiveUser,
   isTokenExpired,
 } from "./controllers/Admin/Users/userController.js";
+import OfflineStoreInventory from "./routes/OfflineStore/Inventory/OfflineInventoryRoutes.js";
 const app = express();
 const port = process.env.PORT || 4001;
 const server = http.createServer(app);
@@ -192,6 +193,7 @@ app.group("/api/v1/offline-store-portal", (router) => {
   router.use("/offlineStore", offlinePortalRouter);
   router.use("/sskcompany", offlineSSKRouter);
   router.use("/address/dropdown", offlineAddressRouter);
+  router.use("/inventory", OfflineStoreInventory);
 });
 
 app.all("*", (req, res, next) => {

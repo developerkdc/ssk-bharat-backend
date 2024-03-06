@@ -2,8 +2,7 @@ import jwt from "jsonwebtoken";
 import ApiError from "../Utils/ApiError";
 import mongoose from "mongoose";
 
-const model=mongoose.model("retailers")
-
+const model = mongoose.model("retailers");
 
 const retailerAuthMiddleware = async (req, res, next) => {
   try {
@@ -12,20 +11,21 @@ const retailerAuthMiddleware = async (req, res, next) => {
       return next(new ApiError("Token not provided", 401));
     }
     const retailerId = jwt.verify(token, process.env.JWT_SECRET);
+
     if (!retailerId) return next(new ApiError("userId not found", 400));
     const retailerUser = await model.findOne({
-      _id:retailerId?.retailerId,
-      "current_data.status":true
-    })
+      _id: retailerId?.retailer,
+      "current_data.status": true,
+    });
+    console.log(retailerUser, "retretretretretretretretretretret");
     if (!retailerUser) {
-        return next(new ApiError("User Not Found", 404));
+      return next(new ApiError("User Not Found", 404));
     }
     req.retailerUser = retailerUser;
-    next()
-  } catch (error) { 
-    return next(error)
+    next();
+  } catch (error) {
+    return next(error);
   }
 };
-
 
 export default retailerAuthMiddleware;
