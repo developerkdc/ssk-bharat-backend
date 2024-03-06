@@ -367,16 +367,14 @@ export const getPayoutAndCommissionTrans = catchAsync(
             $sum: "$commission.commissionAmount"
           },
           payouts: {
-            $sum: "$payouts.amountPaid"
+            $sum: { $ifNull: ["$payouts.amountPaid", 0] }
           }
         }
       }
     ])
 
     const totalDocuments = await payoutAndCommissionTransModel.countDocuments({
-      marketExecutiveId: new mongoose.Types.ObjectId(marketExecutiveId),
-      ...matchQuery,
-      ...searchQuery,
+      ...matchObject
     });
 
     const totalPages = Math.ceil(totalDocuments / limit);

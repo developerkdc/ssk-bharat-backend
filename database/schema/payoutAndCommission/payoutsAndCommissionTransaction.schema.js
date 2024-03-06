@@ -113,7 +113,7 @@ const payoutAndCommissionTranSchema = new mongoose.Schema({
         type: {
             companyDetails: {
                 companyId: {
-                    type: String,
+                    type:  mongoose.Schema.Types.ObjectId,
                     required: [true, "company Id is required"]
                 },
                 companyName: {
