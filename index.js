@@ -68,7 +68,9 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:3000","https://sskbharat.kdcstaging.in"],
+    origin: [ "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:3002","https://sskbharat.kdcstaging.in"],
     methods: ["GET", "POST"],
   },
 });
