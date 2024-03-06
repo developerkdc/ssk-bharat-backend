@@ -120,7 +120,7 @@ io.on("connection", (socket) => {
 
   // Listen for disconnection
   socket.on("disconnect", () => {
-    console.log("User disconnected", socket.id);
+    // console.log("User disconnected", socket.id);
     try {
       RemoveActiveUser(null, socket.id);
     } catch (error) {

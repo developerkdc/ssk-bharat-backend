@@ -220,10 +220,9 @@ export const addPayout = catchAsync(async (req, res, next) => {
       { session }
     );
 
-    const amountPaid = addPayout[0].payouts.amountPaid;
+    const amountPaid = Number(addPayout[0].payouts.amountPaid).toFixed(2);
 
-    const newBalance =
-      marketExecutiveBalance.account_balance - Number(amountPaid);
+    const newBalance = Number(marketExecutiveBalance?.account_balance).toFixed(2) - Number(amountPaid).toFixed(2);
 
     if (newBalance < 0) {
       return next(new ApiError("Insufficient funds", 400));
@@ -269,8 +268,7 @@ export const getPayoutAndCommissionTrans = catchAsync(
     } = req.query;
 
     const { marketExecutiveId } = req.params;
-
-
+    const {companyId} = req.query;
 
     const search = req.query.search || "";
 
@@ -294,9 +292,9 @@ export const getPayoutAndCommissionTrans = catchAsync(
     
     const matchQuery = data || {};
 
-    if (range) {
+    if (range instanceof Object &&  Object.keys(range).length > 0) {
       const rangeData = JSON.parse(JSON.stringify(range)?.replace(/from/g, "$gte")?.replace(/to/g, "$lte"));
-      matchQuery.$or = [{}];
+      matchQuery.$or = [];
       const commission = [];
       const payouts = [];
 
@@ -342,12 +340,17 @@ export const getPayoutAndCommissionTrans = catchAsync(
     //   },
     // ]);
 
-
-    const getTransaction = await payoutAndCommissionTransModel.find({
+    const matchObject = {
       marketExecutiveId: new mongoose.Types.ObjectId(marketExecutiveId),
       ...matchQuery,
       ...searchQuery,
-    })
+    }
+
+    if(companyId){
+      matchObject["commission.companyDetails.companyId"] = new mongoose.Types.ObjectId(companyId)
+    }
+
+    const getTransaction = await payoutAndCommissionTransModel.find({...matchObject})
       .skip((Number(page) - 1) * Number(limit))
       .limit(limit)
       .sort({ [sortBy]: sort })
@@ -355,11 +358,7 @@ export const getPayoutAndCommissionTrans = catchAsync(
 
     const getTotals = await payoutAndCommissionTransModel.aggregate([
       {
-        $match: {
-          marketExecutiveId: new mongoose.Types.ObjectId(marketExecutiveId),
-          ...matchQuery,
-          ...searchQuery,
-        },
+        $match: {...matchObject},
       },
       {
         $group: {
@@ -368,16 +367,14 @@ export const getPayoutAndCommissionTrans = catchAsync(
             $sum: "$commission.commissionAmount"
           },
           payouts: {
-            $sum: "$payouts.amountPaid"
+            $sum: { $ifNull: ["$payouts.amountPaid", 0] }
           }
         }
       }
     ])
 
     const totalDocuments = await payoutAndCommissionTransModel.countDocuments({
-      marketExecutiveId: new mongoose.Types.ObjectId(marketExecutiveId),
-      ...matchQuery,
-      ...searchQuery,
+      ...matchObject
     });
 
     const totalPages = Math.ceil(totalDocuments / limit);

@@ -427,7 +427,6 @@ export const isTokenExpired = async () => {
   const allActiveUsers = await activeUserModel.find();
   if (allActiveUsers.length > 0) {
     allActiveUsers.map(async (ele) => {
-      console.log(ele, "eleeeeeeeee");
       const token = ele.token;
 
       // Your secret key used to sign the JWT
@@ -443,7 +442,7 @@ export const isTokenExpired = async () => {
 
         // Compare the expiration time with the current time
         if (decodedToken.exp > currentTimestamp) {
-          console.log("Token is not expired.");
+          // console.log("Token is not expired.");
         } else {
           // Token is expired, delete user from activeUserModel
           await activeUserModel.deleteOne({ token: token });
