@@ -279,7 +279,67 @@ const CustomerDetailsSchema = new mongoose.Schema({
     address: addressSchema,
   },
 });
-
+const ssk_details = new mongoose.Schema({
+  ssk_details: {
+    ssk_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "sskcompanies",
+      required: [true, "SSK Id is required"],
+    },
+    branch_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "sskcompanybranches",
+      required: true,
+    },
+    company_name: {
+      type: String,
+      required: [true, "Company Name is required"],
+      trim: true,
+      default: null,
+    },
+    gst_no: {
+      type: String,
+      required: [true, "Gst No is required"],
+      trim: true,
+      default: null,
+    },
+    first_name: {
+      type: String,
+      required: [true, "First Name is required"],
+      trim: true,
+      default: null,
+    },
+    last_name: {
+      type: String,
+      required: [true, "Last Name is required"],
+      trim: true,
+      default: null,
+    },
+    primary_email_id: {
+      type: String,
+      required: [true, "Primary Email Id is required"],
+      trim: true,
+      validate: {
+        validator: function (value) {
+          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+        },
+        message: "invalid email Id",
+      },
+    },
+    secondary_email_id: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+    primary_mobile_no: {
+      type: String,
+      required: [true, "Primary Mobile Number is required"],
+      trim: true,
+    },
+    secondary_mobile_no: { type: String, default: null },
+    address: addressSchema,
+  },
+});
 const InvoiceDetailsSchema = new mongoose.Schema({
   invoiceNo: { type: String, trim: true },
   invoiceDate: { type: Date, trim: true },
@@ -292,6 +352,7 @@ const InventorySchema = new mongoose.Schema({
   sales_order_no: { type: Number, trim: true },
   dispatch_no: { type: Number, trim: true },
   receivedDate: { type: Date, default: Date.now },
+  supplierCompany: ssk_details,
   CustomerDetails: CustomerDetailsSchema,
   itemsDetails: ItemsSchema,
   transportDetails: TransportDetailsSchema,

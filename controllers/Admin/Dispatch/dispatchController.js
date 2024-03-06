@@ -405,10 +405,13 @@ export const delivered = catchAsync(async (req, res, next) => {
     const updateData = await DispatchModel.findByIdAndUpdate(
       { _id: id },
       {
+        "current_data.delivery_status": "delivered",
+        "current_data.tracking_date.delivered":
+          req.body?.tracking_date?.delivered,
+        // approver: approvalData(user),
         "proposed_changes.delivery_status": "delivered",
         "proposed_changes.tracking_date.delivered":
           req.body?.tracking_date?.delivered,
-        // approver: approvalData(user),
         updated_at: Date.now(),
       },
       { new: true }
@@ -422,23 +425,20 @@ export const delivered = catchAsync(async (req, res, next) => {
       path: "current_data.customer_details.customer_id",
       select: "current_data.inventorySchema",
     });
-
     const inventoryName =
       retailerdetails.current_data.customer_details.customer_id.current_data
         .inventorySchema;
 
     const inventoryModel = DynamicModel(inventoryName, InventorySchema);
-    console.log(inventoryModel, "---------------inventory");
     const items = retailerdetails.current_data.Items;
-    console.log(retailerdetails.current_data.tracking_date, "---------items");
     const inventoryArray = [];
     for (const item of items) {
       console.log(item);
       const inventory = new inventoryModel({
         sales_order_no: retailerdetails.current_data.sales_order_no,
-        supplierCompanyName:
-          retailerdetails.current_data.ssk_details.company_name,
+        supplierCompany: retailerdetails.current_data.ssk_details,
         CustomerDetails: retailerdetails.current_data.customer_details,
+        dispatch_no: retailerdetails.current_data.dispatch_no,
         receivedDate: retailerdetails.current_data.tracking_date.delivered,
         transportDetails: retailerdetails.current_data.transport_details,
         invoiceDetails: {
