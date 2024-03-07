@@ -4,16 +4,29 @@ import DynamicModel from "../../../Utils/DynamicModel";
 import InventorySchema from "../../../database/schema/Inventory/RetailerInventory.schema";
 
 export const RetailerInventoryList = catchAsync(async (req, res) => {
-  // let user = req.user;
   let user = req.retailerUser;
-  console.log(user, "-------------------------");
+  const page = parseInt(req.query.page) || 1;
+  const limit = 10;
+  const searchQuery = req.query.search || "";
+  const sortField = req.query.sortField || "receivedDate";
+  const sortOrder = req.query.sortOrder || "asc";
+  // console.log(sortField, "sortField", sortOrder, "sortOrder", page, "page");
   const retailer = await mongoose.model("retailers").findById(user);
   const inventoryName = retailer.current_data.inventorySchema;
   const Inventoryschema = DynamicModel(inventoryName, InventorySchema);
-  // const products = await Inventoryschema.find();
-  // console.log(Inventoryschema);
 
+  const skip = (page - 1) * limit;
+
+  const matchQuery = {};
+  if (searchQuery) {
+    matchQuery["productName"] = { $regex: searchQuery, $options: "i" };
+  }
+
+  const sortObject = {};
+  sortObject[sortField] = sortOrder === "asc" ? 1 : -1;
+  console.log(sortObject);
   const result = await Inventoryschema.aggregate([
+    { $match: matchQuery },
     {
       $unwind: "$itemsDetails",
     },
@@ -53,11 +66,18 @@ export const RetailerInventoryList = catchAsync(async (req, res) => {
         totalAvailableQuantity: 1,
       },
     },
+    { $sort: sortObject },
+    { $skip: skip },
+    { $limit: limit },
   ]);
+
   return res.status(200).json({
     status: "success",
     statusCode: 200,
     data: result,
     message: "Successfully fetched the product list",
+    currentPage: page,
+    totalPages: Math.ceil(result.length / limit),
+    totalItems: result.length,
   });
 });

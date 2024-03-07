@@ -17,7 +17,7 @@ const retailerAuthMiddleware = async (req, res, next) => {
       _id: retailerId?.retailer,
       "current_data.status": true,
     });
-    console.log(retailerUser, "retretretretretretretretretretret");
+    // console.log(retailerUser, "retretretretretretretretretretret");
     if (!retailerUser) {
       return next(new ApiError("User Not Found", 404));
     }

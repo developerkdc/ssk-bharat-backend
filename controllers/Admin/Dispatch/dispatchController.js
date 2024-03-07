@@ -433,7 +433,10 @@ export const delivered = catchAsync(async (req, res, next) => {
     const items = retailerdetails.current_data.Items;
     const inventoryArray = [];
     for (const item of items) {
-      console.log(item);
+      console.log(
+        retailerdetails.current_data.ssk_details,
+        "******************************"
+      );
       const inventory = new inventoryModel({
         sales_order_no: retailerdetails.current_data.sales_order_no,
         supplierCompany: retailerdetails.current_data.ssk_details,

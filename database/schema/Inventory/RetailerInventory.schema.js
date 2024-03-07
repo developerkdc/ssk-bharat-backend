@@ -279,8 +279,8 @@ const CustomerDetailsSchema = new mongoose.Schema({
     address: addressSchema,
   },
 });
-const ssk_details = new mongoose.Schema({
-  ssk_details: {
+const SSKDetailsSchema = new mongoose.Schema({
+
     ssk_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "sskcompanies",
@@ -338,7 +338,7 @@ const ssk_details = new mongoose.Schema({
     },
     secondary_mobile_no: { type: String, default: null },
     address: addressSchema,
-  },
+  
 });
 const InvoiceDetailsSchema = new mongoose.Schema({
   invoiceNo: { type: String, trim: true },
@@ -352,7 +352,7 @@ const InventorySchema = new mongoose.Schema({
   sales_order_no: { type: Number, trim: true },
   dispatch_no: { type: Number, trim: true },
   receivedDate: { type: Date, default: Date.now },
-  supplierCompany: ssk_details,
+  supplierCompany: SSKDetailsSchema,
   CustomerDetails: CustomerDetailsSchema,
   itemsDetails: ItemsSchema,
   transportDetails: TransportDetailsSchema,
