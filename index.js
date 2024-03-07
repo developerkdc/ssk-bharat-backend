@@ -56,13 +56,11 @@ import offlineAddressRouter from "./routes/OfflineStore/AddressDropdown/addressD
 import retailerAddressRouter from "./routes/Retailer/AddressDropdown/addressDropdownRoutes.js";
 import metStoreRouter from "./routes/METAuthRoutes/Store/index.js";
 import metTransactionHistoryRouter from "./routes/METAuthRoutes/Transaction/transaction.route.js";
+import RetailerFaqRouter from "./routes/Retailer/FAQs/index.js";
+import offlineFaqRouter from "./routes/OfflineStore/FAQs/index.js";
 import http from "http";
 import { Server } from "socket.io";
-import {
-  AddActiveUser,
-  RemoveActiveUser,
-  isTokenExpired,
-} from "./controllers/Admin/Users/userController.js";
+
 const app = express();
 const port = process.env.PORT || 4001;
 const server = http.createServer(app);
@@ -99,36 +97,36 @@ connect();
 
 //socket
 
-io.on("connection", (socket) => {
-  isTokenExpired();
-  console.log("A new User Has connected", socket.id);
-  socket.on("activeUser", (userID, token) => {
-    try {
-      AddActiveUser(userID, token, socket.id);
-    } catch (error) {
-      console.log(error);
-    }
-  });
+// io.on("connection", (socket) => {
+//   isTokenExpired();
+//   console.log("A new User Has connected", socket.id);
+//   socket.on("activeUser", (userID, token) => {
+//     try {
+//       AddActiveUser(userID, token, socket.id);
+//     } catch (error) {
+//       console.log(error);
+//     }
+//   });
 
-  socket.on("logoutactiveUser", (userID) => {
-    try {
-      RemoveActiveUser(userID, socket.id);
-    } catch (error) {
-      console.log(error);
-    }
-  });
+//   socket.on("logoutactiveUser", (userID) => {
+//     try {
+//       RemoveActiveUser(userID, socket.id);
+//     } catch (error) {
+//       console.log(error);
+//     }
+//   });
 
-  // Listen for disconnection
-  socket.on("disconnect", () => {
-    // console.log("User disconnected", socket.id);
-    try {
-      RemoveActiveUser(null, socket.id);
-    } catch (error) {
-      console.log(error);
-    }
-    
-  });
-});
+//   // Listen for disconnection
+//   socket.on("disconnect", () => {
+//     console.log("User disconnected", socket.id);
+//     try {
+//       RemoveActiveUser(null, socket.id);
+//     } catch (error) {
+//       console.log(error);
+//     }
+
+//   });
+// });
 
 // Routes for Admin Portal
 app.group("/api/v1/admin", (router) => {
@@ -183,6 +181,7 @@ app.group("/api/v1/retailer-portal", (router) => {
   router.use("/sskcompany", retailerSSKRouter);
   router.use("/address/dropdown", retailerAddressRouter);
   router.use("/ticket", RetailerTicketRouter);
+  router.use("/faq", RetailerFaqRouter);
 });
 
 //offline store
@@ -194,6 +193,7 @@ app.group("/api/v1/offline-store-portal", (router) => {
   router.use("/offlineStore", offlinePortalRouter);
   router.use("/sskcompany", offlineSSKRouter);
   router.use("/address/dropdown", offlineAddressRouter);
+  router.use("/faq", offlineFaqRouter);
 });
 
 app.all("*", (req, res, next) => {

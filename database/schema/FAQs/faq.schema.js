@@ -3,12 +3,12 @@ import LogSchemaFunction from "../../utils/Logs.schema";
 import createdBy from "../../utils/createdBy.schema";
 
 const FaqSchema = new mongoose.Schema({
-  module_type: {
-    type: String,
-    // required: [true, "Module Type is required"],
-    enum: ["order"],
-    default:null
-  },
+  // portal_type: {
+  //   type: String,
+  //   required: [true, "Module Type is required"],
+  //   enum: ["offlinestore", "retailer", "website"],
+  //   default: null,
+  // },
   question: {
     type: String,
     required: [true, "Question is required"],

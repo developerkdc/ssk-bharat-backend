@@ -10,6 +10,7 @@ import offlinePaymentModel from "../../../database/schema/OfflinePayment/offline
 import { dynamicSearch } from "../../../Utils/dynamicSearch";
 import { approvalData } from "../../HelperFunction/approvalFunction";
 import { createdByFunction } from "../../HelperFunction/createdByfunction";
+import OrdersModel from "../../../database/schema/Orders/order.schema";
 
 export const latestSalesOrderNo = catchAsync(async (req, res, next) => {
   try {
@@ -42,11 +43,46 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
   try {
     session = await mongoose.startSession();
     session.startTransaction();
+    const body = { ...req.body };
+
+    const orders = await OrdersModel.findOne({
+      "current_data.order_no": body.order_no,
+    }).lean();
+
+    let ordersItemArr = orders?.current_data?.Items;
+    const salesItemArr = body.Items;
+
+    salesItemArr.forEach((ele) => {
+      ordersItemArr.filter((element, ind) => {
+        console.log(ele.product_id.toString() == element.product_id.toString());
+        if (ele.product_id.toString() == element.product_id.toString()) {
+          console.log(ind, "indddd");
+          if (
+            ele.balance_quantity > 0 &&
+            element.item_status != "closed"
+          ) {
+            ordersItemArr[ind] = {
+              ...ordersItemArr[ind],
+              pending_quantity: ele.balance_quantity,
+              item_status: "partial",
+            };
+          } else if (
+            ele.balance_quantity == 0 &&
+            element.item_status != "closed"
+          ) {
+            ordersItemArr[ind] = {
+              ...ordersItemArr[ind],
+              pending_quantity: ele.balance_quantity,
+              item_status: "closed",
+            };
+          }
+        }
+      });
+    });
 
     const latestSalesOrder = await SalesModel.findOne()
       .sort({ created_at: -1 })
       .select("current_data.sales_order_no");
-    // return res.json({ data: { ...req.body } });
     const sales = await SalesModel.create(
       [
         {
@@ -62,9 +98,15 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
       ],
       { session }
     );
+
     if (!sales) {
       throw new Error(new ApiError("Error during Sales Order", 400));
     }
+    const updateOrderItems = await OrdersModel.findByIdAndUpdate(
+      orders._id,
+      { $set: { "current_data.Items": ordersItemArr } },
+      { new: true }
+    );
 
     if (sales[0].current_data.order_type === "offlinestores") {
       const dueDate = moment(sales[0].current_data.sales_order_date)
@@ -195,7 +237,7 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
                 marketExec.current_data.commissionPercentage,
               commissionAmount: Number(
                 (sales[0].current_data.total_amount / 100) *
-                marketExec.current_data.commissionPercentage
+                  marketExec.current_data.commissionPercentage
               ).toFixed(2),
             },
           };
@@ -248,8 +290,7 @@ export const fetchSalesOrders = catchAsync(async (req, res, next) => {
     sort = "desc",
     search = "",
   } = req.query;
-  const skip =  Math.max((page - 1) * limit, 0);;
-
+  const skip = Math.max((page - 1) * limit, 0);
 
   const { to, from, ...data } = req?.body?.filters || {};
   const matchQuery = data || {};
@@ -313,9 +354,9 @@ export const getSalesOrderNoList = catchAsync(async (req, res, next) => {
     {
       $project: {
         sales_order_no: "$current_data.sales_order_no",
-        order_no: "$current_data.order_no"
-      }
-    }
+        order_no: "$current_data.order_no",
+      },
+    },
   ]);
   return res.status(200).json({
     statusCode: 200,
