@@ -1,7 +1,21 @@
+import mongoose from "mongoose";
 import ApiError from "../../../Utils/ApiError";
 import catchAsync from "../../../Utils/catchAsync";
-import { dynamicSearch } from "../../../Utils/dynamicSearch";
 import TicketModel from "../../../database/schema/Tickets/tickets.schema";
+import { dynamicSearch } from "../../../Utils/dynamicSearch";
+
+export const createTicket = catchAsync(async (req, res, next) => {
+  const ticketData = req.body;
+  const newTicket = await TicketModel.create(ticketData);
+  if (newTicket) {
+    return res.status(201).json({
+      statusCode: 201,
+      status: "success",
+      data: newTicket,
+      message: "Ticket Created",
+    });
+  }
+});
 
 export const replyTicket = catchAsync(async (req, res, next) => {
   const { id } = req.params;
@@ -25,29 +39,8 @@ export const replyTicket = catchAsync(async (req, res, next) => {
   });
 });
 
-export const updateTicketStatus = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-  const { ticket_status } = req.body;
-
-  const updatedTicket = await TicketModel.findByIdAndUpdate(
-    id,
-    { $set: { ticket_status: ticket_status } },
-    { new: true }
-  );
-
-  if (!updatedTicket) {
-    return next(new ApiError("Ticket not found", 404));
-  }
-
-  return res.status(201).json({
-    statusCode: 201,
-    status: "success",
-    data: updatedTicket,
-    message: "Ticket Status Updated",
-  });
-});
-
 export const ticketList = catchAsync(async (req, res, next) => {
+  const user = req.retailerUser;
   const { string, boolean, numbers } = req?.body?.searchFields || {};
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
@@ -73,15 +66,23 @@ export const ticketList = catchAsync(async (req, res, next) => {
 
   const totalFaq = await TicketModel.countDocuments({
     ...searchQuery,
+    user_id: new mongoose.Types.ObjectId(user._id),
   });
   const totalPages = Math.ceil(totalFaq / limit);
   const validPage = Math.min(Math.max(page, 1), totalPages);
   const skip = Math.max((validPage - 1) * limit, 0);
 
   const tickets = await TicketModel.aggregate([
+    // Populate user_id field
+    {
+      $match: {
+        module_type: "retailers",
+        user_id: new mongoose.Types.ObjectId(user._id),
+      },
+    },
     {
       $lookup: {
-        from: "retailers",
+        from: "retailers", // Assuming the collection name is 'users'
         localField: "user_id",
         foreignField: "_id",
         as: "user_id",
@@ -96,7 +97,6 @@ export const ticketList = catchAsync(async (req, res, next) => {
         },
       },
     },
-    
     { $match: { ...searchQuery } },
     { $sort: { [sortField]: sortDirection } },
     { $skip: skip },

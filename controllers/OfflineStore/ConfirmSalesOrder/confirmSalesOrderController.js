@@ -6,8 +6,9 @@ import { dynamicSearch } from "../../../Utils/dynamicSearch";
 
 export const fetchOfflineConfirmSalesOrders = catchAsync(
   async (req, res, next) => {
+    const user=req.offlineUser
     const { string, boolean, numbers } = req?.body?.searchFields || {};
-    const id = "65b4b72fae664feec7e469c9";
+    const id = user._id;
     const {
       page,
       limit = 10,
@@ -96,7 +97,7 @@ export const fetchOfflineConfirmSalesOrders = catchAsync(
 
 export const getOrderNoFromSalesList = catchAsync(async (req, res, next) => {
   const type = req.params.type;
-  const id = "65b4b72fae664feec7e469c9";
+  const id = user._id;
   const orderNoFromSales = await SalesModel.aggregate([
     {
       $match: {

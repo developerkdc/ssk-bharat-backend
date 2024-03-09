@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
 import ApiError from "../../../Utils/ApiError";
 import catchAsync from "../../../Utils/catchAsync";
-const retailer = mongoose.model("retailers")
-const retailerbranches = mongoose.model("retailerbranches")
+const offlineStore = mongoose.model("offlinestores")
+const offlinestorebranches = mongoose.model("offlinestorebranches")
 
 
-// export const GetRetailer = catchAsync(async (req, res, next) => {
+// export const GetOfflinestore = catchAsync(async (req, res, next) => {
 //     const { string, boolean, numbers } = req?.body?.searchFields || {};
 //     const search = req.query.search || "";
 //     const { filters = {} } = req.body;
@@ -34,14 +34,14 @@ const retailerbranches = mongoose.model("retailerbranches")
 //     }
 
 //     //total pages
-//     const totalDocuments = await retailer.countDocuments({
+//     const totalDocuments = await offlineStore.countDocuments({
 //         ...filters,
 //         ...searchQuery,
 //         "current_data.status": true,
 //     });
 //     const totalPages = Math.ceil(totalDocuments / limit);
 
-//     const modalName = await retailer
+//     const modalName = await offlineStore
 //         .find({ ...filters, ...searchQuery, "current_data.status": true })
 //         .skip(skip)
 //         .limit(limit)
@@ -58,10 +58,10 @@ const retailerbranches = mongoose.model("retailerbranches")
 //         message: `All company`,
 //     });
 // });
-export const GetRetailer = catchAsync(async (req, res, next) => {
-    const retailerUser = req.retailerUser;
-    const modalName = await retailer
-        .findOne({ _id: retailerUser?._id })
+export const GetOfflinestore = catchAsync(async (req, res, next) => {
+    const offlineUser = req.offlineUser;
+    const modalName = await offlineStore
+        .findOne({ _id: offlineUser?._id })
         .populate({
             path: "current_data.primaryBranch",
             select: "_id current_data",
@@ -74,8 +74,8 @@ export const GetRetailer = catchAsync(async (req, res, next) => {
         },
     });
 });
-// export const GetRetailerList = catchAsync(async (req, res, next) => {
-//     const modalName = await retailer.find(
+// export const GetOfflinestoreList = catchAsync(async (req, res, next) => {
+//     const modalName = await offlineStore.find(
 //         { "current_data.isActive": true, "current_data.status": true },
 //         {
 //             company_name: "$current_data.company_name",
@@ -90,16 +90,16 @@ export const GetRetailer = catchAsync(async (req, res, next) => {
 //         },
 //     });
 // });
-export const UpdateRetailer = catchAsync(async (req, res, next) => {
+export const UpdateOfflinestore = catchAsync(async (req, res, next) => {
     const { username, company_name, onboarding_date, isActive, pan_no } = req.body;
     const { id } = req.params;
-    const retailerUser = req.retailerUser;
+    const offlineUser = req.offlineUser;
     let pan_image;
     if (req.file) {
         pan_image = req.file.path;
     }
-    const updateData = await retailer.findByIdAndUpdate(
-        { _id: retailerUser?._id },
+    const updateData = await offlineStore.findByIdAndUpdate(
+        { _id: offlineUser?._id },
         {
             $set: {
                 "current_data.username": username,
@@ -133,24 +133,24 @@ export const UpdateRetailer = catchAsync(async (req, res, next) => {
 });
 export const setPrimaryBranch = catchAsync(async (req, res, next) => {
     const { companyId, branchId } = req.params;
-    const retailerUser = req.retailerUser;
+    const offlineUser = req.offlineUser;
     if (!mongoose.Types.ObjectId.isValid(branchId))
         return next(new ApiError(`${branchId} this is not valid Id`, 400));
 
     const user = req.user;
     if (!user) return next(new ApiError("please Login and try again", 404));
 
-    const branchData = await retailerbranches
+    const branchData = await offlinestorebranches
         .findOne({
             _id: branchId,
-            [`current_data.retailerId`]: retailerUser?._id,
+            [`current_data.retailerId`]: offlineUser?._id,
             "proposed_changes.isActive": true,
             "proposed_changes.status": true,
         });
     if (!branchData) return next(new ApiError(`Branch is not exits`, 404));
 
-    const setPrimary = await retailer.updateOne(
-        { _id: retailerUser?._id },
+    const setPrimary = await offlineStore.updateOne(
+        { _id: offlineUser?._id },
         {
             $set: {
                 "current_data.primaryBranch": branchId,

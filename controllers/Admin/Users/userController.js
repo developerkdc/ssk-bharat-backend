@@ -145,7 +145,56 @@ export const EditUser = catchAsync(async (req, res) => {
   });
 });
 
+export const EditProfile = catchAsync(async (req, res) => {
+  const userId = req.params.userId;
+  const updateData = req.body;
+  console.log(req.body, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+  if (req.body.address) {
+    const address = JSON.parse(req.body.address);
+    updateData.address = address;
+  }
 
+  updateData.updated_at = new Date().toLocaleString();
+
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return res.status(400).json({ message: "Invalid user ID" });
+  }
+
+  console.log(updateData, "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+  const user = await userModel.findByIdAndUpdate(
+    userId,
+    {
+      $set: {
+        "proposed_changes.primary_email_id": updateData?.primary_email_id,
+        "proposed_changes.secondary_email_id": updateData?.secondary_email_id,
+        "proposed_changes.primary_mobile_no": updateData?.primary_mobile_no,
+        "proposed_changes.secondary_mobile_no": updateData?.secondary_mobile_no,
+        "proposed_changes.address": updateData?.address,
+        "current_data.primary_email_id": updateData?.primary_email_id,
+        "current_data.secondary_email_id": updateData?.secondary_email_id,
+        "current_data.primary_mobile_no": updateData?.primary_mobile_no,
+        "current_data.secondary_mobile_no": updateData?.secondary_mobile_no,
+        "current_data.address": updateData?.address,
+        updated_at: Date.now(),
+      },
+    },
+    { new: true }
+  );
+
+  if (!user) {
+    return res.status(404).json({
+      statusCode: 404,
+      status: "Error",
+      message: "User not found",
+    });
+  }
+  return res.json({
+    statusCode: 200,
+    status: "Success",
+    data: user,
+    message: "Updated successfully",
+  });
+});
 
 export const ChangePassword = catchAsync(async (req, res) => {
   const userId = req.params.userId;

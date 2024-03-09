@@ -34,6 +34,7 @@ import InventoryRouter from "./routes/Admin/Inventory/InventoryRoutes.js";
 import SampleRouter from "./routes/Admin/Samples/sampleRoutes.js";
 import FaqRouter from "./routes/Admin/FAQs/faqRoutes.js";
 import TicketRouter from "./routes/Admin/Tickets/ticketRoutes.js";
+import RetailerTicketRouter from "./routes/Retailer/Tickets/ticketRoutes.js";
 import addressDropdownRouter from "./routes/Admin/AddressDropdown/addressDropdownRoutes.js";
 import METAuthRouter from "./routes/METAuthRoutes/Auth/metAuthRoutes";
 import approvalRouter from "./routes/Approval/getPendingApprovalList.route.js";
@@ -55,22 +56,26 @@ import offlineAddressRouter from "./routes/OfflineStore/AddressDropdown/addressD
 import retailerAddressRouter from "./routes/Retailer/AddressDropdown/addressDropdownRoutes.js";
 import metStoreRouter from "./routes/METAuthRoutes/Store/index.js";
 import metTransactionHistoryRouter from "./routes/METAuthRoutes/Transaction/transaction.route.js";
+import RetailerFaqRouter from "./routes/Retailer/FAQs/index.js";
+import offlineFaqRouter from "./routes/OfflineStore/FAQs/index.js";
 import http from "http";
 import { Server } from "socket.io";
-import {
-  AddActiveUser,
-  RemoveActiveUser,
-  isTokenExpired,
-} from "./controllers/Admin/Users/userController.js";
+import retailerMyProfileRouter from "./routes/Retailer/Profile/profile.routes.js";
+import offlineStoreMyProfileRouter from "./routes/OfflineStore/Profile/profile.routes.js";
+import marketExecutiveProfileRouter from "./routes/METAuthRoutes/Profile/Profile.routes.js";
+
 const app = express();
 const port = process.env.PORT || 4001;
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: [ "http://localhost:3000",
-    "http://localhost:3001",
-    "http://localhost:3002","https://sskbharat.kdcstaging.in"],
+    origin: [
+      "https://sskbharat.kdcstaging.in",
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "http://localhost:3002",
+    ],
     methods: ["GET", "POST"],
   },
 });
@@ -95,36 +100,37 @@ connect();
 
 //socket
 
-io.on("connection", (socket) => {
-  isTokenExpired();
-  console.log("A new User Has connected", socket.id);
-  socket.on("activeUser", (userID,token) => {
-    try {
-      AddActiveUser(userID, token, socket.id);
-    } catch (error) {
-      console.log(error);
-    }
-  });
+// io.on("connection", (socket) => {
+//   isTokenExpired();
+//   console.log("A new User Has connected", socket.id);
+//   socket.on("activeUser", (userID, token) => {
+//     try {
+//       AddActiveUser(userID, token, socket.id);
+//     } catch (error) {
+//       console.log(error);
+//     }
+//   });
 
-  socket.on("logoutactiveUser", (userID) => {
-    try {
-      RemoveActiveUser(userID, socket.id);
-    } catch (error) {
-      console.log(error);
-    }
-  });
+//   socket.on("logoutactiveUser", (userID) => {
+//     try {
+//       RemoveActiveUser(userID, socket.id);
+//     } catch (error) {
+//       console.log(error);
+//     }
+//   });
 
-  // Listen for disconnection
-  socket.on("disconnect", () => {
-    // console.log("User disconnected", socket.id);
-    try {
-      RemoveActiveUser(null, socket.id);
-    } catch (error) {
-      console.log(error);
-    }
-    // You can perform additional cleanup or tasks here if needed
-  });
-});
+//   // Listen for disconnection
+//   socket.on("disconnect", () => {
+//     console.log("User disconnected", socket.id);
+//     try {
+//       RemoveActiveUser(null, socket.id);
+//     } catch (error) {
+//       console.log(error);
+//     }
+
+//   });
+// });
+
 // Routes for Admin Portal
 app.group("/api/v1/admin", (router) => {
   router.use("/auth", authRouter);
@@ -162,6 +168,7 @@ app.group("/api/v1/admin", (router) => {
 //MET
 app.group("/api/v1/met-portal", (router) => {
   router.use("/auth", METAuthRouter);
+  router.use("/myProfile", marketExecutiveProfileRouter);
   router.use("/metStore", metStoreRouter);
   router.use("/transactionHistory", metTransactionHistoryRouter);
 });
@@ -170,6 +177,7 @@ app.group("/api/v1/met-portal", (router) => {
 app.group("/api/v1/retailer-portal", (router) => {
   router.use("/auth", RetailerAuthRouter);
   router.use("/retailerp", RetailerPRoutes);
+  router.use("/myProfile", retailerMyProfileRouter);
   router.use("/purchase-order", retailerPORouter);
   router.use("/confirm-sales", retailerSalesRouter);
   router.use("/inventory", RetailerInventory);
@@ -177,17 +185,21 @@ app.group("/api/v1/retailer-portal", (router) => {
   router.use("/retailer", retailerPortalRouter);
   router.use("/sskcompany", retailerSSKRouter);
   router.use("/address/dropdown", retailerAddressRouter);
+  router.use("/ticket", RetailerTicketRouter);
+  router.use("/faq", RetailerFaqRouter);
 });
 
 //offline store
 app.group("/api/v1/offline-store-portal", (router) => {
   router.use("/auth", offlineAuthRouter);
+  router.use("/myProfile", offlineStoreMyProfileRouter);
   router.use("/purchase-order", offlinePORouter);
   router.use("/confirm-sales", offlineSalesRouter);
   router.use("/product", offlineProductRouter);
   router.use("/offlineStore", offlinePortalRouter);
   router.use("/sskcompany", offlineSSKRouter);
   router.use("/address/dropdown", offlineAddressRouter);
+  router.use("/faq", offlineFaqRouter);
 });
 
 app.all("*", (req, res, next) => {

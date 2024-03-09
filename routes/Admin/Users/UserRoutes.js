@@ -2,6 +2,7 @@ import express from "express";
 import {
   AddUser,
   ChangePassword,
+  EditProfile,
   EditUser,
   FetchUsers,
   UserLogs,
@@ -41,6 +42,19 @@ router.patch(
   rolesPermissions("user", "edit"),
   EditUser
 );
+
+router.patch(
+  "/editprofile/:userId",
+  authMiddleware,
+  MulterFunction("./uploads/admin/userDocument").fields([
+    { name: "profile_pic", maxCount: 1 },
+    { name: "pan_image", maxCount: 1 },
+    { name: "aadhar_image", maxCount: 1 },
+    { name: "passbook_image", maxCount: 1 },  
+  ]),
+  EditProfile
+);
+
 router.patch(
   "/:userId/changepassword",
   authMiddleware,

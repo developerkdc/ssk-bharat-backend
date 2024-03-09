@@ -66,7 +66,7 @@ class Branches {
                 gst_no: {
                   type: String,
                   trim: true,
-                  unique:true,
+                  unique: true,
                   required: [true, "gst no is required"],
                 },
                 gst_image: {
@@ -168,7 +168,7 @@ class Branches {
         ],
       })
     );
-    this.#branchSchema.index({"current_data.kyc.gst.gst_no":1},{unique:true});
+    this.#branchSchema.index({ "current_data.kyc.gst.gst_no": 1 }, { unique: true });
     this.#branchSchema.pre("save", function (next) {
       if (this.current_data.contact_person.length <= 0) {
         return next(
@@ -211,10 +211,14 @@ class Branches {
       searchQuery = searchdata;
     }
 
+    const matchQuery = {
+      ...filters,
+      "current_data.status": true
+    }
 
     //total pages
     const totalDocuments = await this.#modal.countDocuments({
-      ...filters,
+      ...matchQuery,
       ...searchQuery,
     });
     const totalPages = Math.ceil(totalDocuments / limit);
@@ -222,7 +226,7 @@ class Branches {
     const data = await this.#modal
       .aggregate([
         {
-          $match: { ...filters, "current_data.status": true },
+          $match: { ...matchQuery },
         },
         {
           $skip: (page - 1) * limit,
@@ -245,7 +249,7 @@ class Branches {
           },
         },
         {
-          $match:{...searchQuery}
+          $match: { ...searchQuery }
         },
         {
           $sort: { [sortBy]: sort === "asc" ? 1 : -1 }
@@ -278,7 +282,7 @@ class Branches {
     });
   });
   GetBranchList = catchAsync(async (req, res, next) => {
-    const {companyId} = req.params
+    const { companyId } = req.params
     const modalName = await this.#modal.find(
       { [`current_data.${this.#modalName}Id`]: companyId, "current_data.isActive": true, "current_data.status": true },
       { "current_data": 1, });

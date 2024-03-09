@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import catchAsync from "../../../Utils/catchAsync";
-const retailer = mongoose.model("retailers")
-const retailerbranches = mongoose.model("retailerbranches")
+const offlineStore = mongoose.model("offlinestores")
+const offlinestorebranches = mongoose.model("offlinestorebranches")
 
 export const getMyBranch = catchAsync(async (req, res, next) => {
     const { string, boolean, numbers } = req?.body?.searchFields || {};
@@ -15,7 +15,7 @@ export const getMyBranch = catchAsync(async (req, res, next) => {
     const page = req.query.page || 1;
     const limit = req.query.limit || 10
 
-    const retailerUser = req.retailerUser;
+    const offlineUser = req.offlineUser;
 
     let searchQuery = {};
     if (search != "" && req?.body?.searchFields) {
@@ -34,19 +34,19 @@ export const getMyBranch = catchAsync(async (req, res, next) => {
     }
 
     const matchQuery = {
-        "current_data.retailerId": retailerUser?._id,
+        "current_data.offlinestoreId": offlineUser?._id,
         ...filters,
         "current_data.status": true
     }
 
     //total pages
-    const totalDocuments = await retailerbranches.countDocuments({
+    const totalDocuments = await offlinestorebranches.countDocuments({
         ...matchQuery,
         ...searchQuery,
     });
     const totalPages = Math.ceil(totalDocuments / limit);
 
-    const data = await retailerbranches
+    const data = await offlinestorebranches
         .aggregate([
             {
                 $match: { ...matchQuery },
@@ -60,14 +60,14 @@ export const getMyBranch = catchAsync(async (req, res, next) => {
             {
                 $lookup: {
                     from: "retailers",
-                    localField: `current_data.retailerId`,
+                    localField: `current_data.offlinestoreId`,
                     foreignField: "_id",
-                    as: `current_data.retailerId`,
+                    as: `current_data.offlinestoreId`,
                 },
             },
             {
                 $unwind: {
-                    path: `$current_data.retailerId`,
+                    path: `$current_data.offlinestoreId`,
                     preserveNullAndEmptyArrays: true,
                 },
             },
@@ -85,14 +85,14 @@ export const getMyBranch = catchAsync(async (req, res, next) => {
         data: {
             branch: data,
         },
-        message: `retailer All Branch`,
+        message: `offlineStore All Branch`,
     });
 });
 export const getMySingleBranch = catchAsync(async (req, res, next) => {
-    const branch = await retailerbranches
-        .find({ [`retailerId`]: req.params.companyId })
+    const branch = await offlinestorebranches
+        .find({ [`offlinestoreId`]: req.params.companyId })
         .populate({
-            path: `retailerId`,
+            path: `offlinestoreId`,
             select: "current_data.company_name current_data.company_type"
         });
     return res.status(200).json({
@@ -101,25 +101,25 @@ export const getMySingleBranch = catchAsync(async (req, res, next) => {
         data: {
             branch: branch,
         },
-        message: `retailer All Branch`,
+        message: `offlineStore All Branch`,
     });
 });
 export const GetBranchList = catchAsync(async (req, res, next) => {
-    const retailerUser = req.retailerUser;
-    const modalName = await retailerbranches.find(
-        { "current_data.retailerId": retailerUser?._id, "current_data.isActive": true, "current_data.status": true },
+    const offlineUser = req.offlineUser;
+    const modalName = await offlinestorebranches.find(
+        { "current_data.offlinestoreId": offlineUser?._id, "current_data.isActive": true, "current_data.status": true },
         { "current_data": 1, });
 
     return res.status(201).json({
         statusCode: 200,
         status: "Success",
         data: {
-            retailerBranches: modalName,
+            offlinestorebranches: modalName,
         },
     });
 })
 export const addBranch = catchAsync(async (req, res, next) => {
-    const retailerUser = req.retailerUser;
+    const offlineUser = req.offlineUser;
     const { approver, kyc: { pan, gst, bank_details }, ...data } = JSON.parse(req.body?.branchData);
     const images = {};
     if (req.files) {
@@ -127,10 +127,10 @@ export const addBranch = catchAsync(async (req, res, next) => {
             images[i] = req.files[i][0].path;
         }
     }
-    const branch = await retailerbranches.create({
+    const branch = await offlinestorebranches.create({
         current_data: {
             ...data,
-            retailerId: retailerUser?._id,
+            offlinestoreId: offlineUser?._id,
             kyc: {
                 // pan: {
                 //   pan_no: pan?.pan_no,
@@ -158,20 +158,20 @@ export const addBranch = catchAsync(async (req, res, next) => {
         data: {
             branch: branch,
         },
-        message: `retailer Branch created`,
+        message: `offlineStore Branch created`,
     });
 });
 export const updateBranch = catchAsync(async (req, res, next) => {
     const { branchId } = req.query;
-    const retailerUser = req.retailerUser;
+    const offlineUser = req.offlineUser;
     const { contact_person, approver, ...data } = req.body;
     if (!branchId) {
         return next(new ApiError("branch id is required"));
     }
-    const updateBranch = await retailerbranches.findOneAndUpdate(
+    const updateBranch = await offlinestorebranches.findOneAndUpdate(
         {
             _id: branchId,
-            [`proposed_changes.retailerId`]: retailerUser?._id,
+            [`proposed_changes.offlinestoreId`]: offlineUser?._id,
         },
         {
             $set: {
@@ -244,13 +244,13 @@ export const updateBranch = catchAsync(async (req, res, next) => {
         data: {
             branch: updateBranch,
         },
-        message: `retailer Branch updated`,
+        message: `offlineStore Branch updated`,
     });
 });
 export const uploadDocument = catchAsync(async (req, res, next) => {
     const { branchId, companyId } = req.params;
-    const retailerUser = req.retailerUser;
-    // const branch = await retailerbranches.findOne({ _id: branchId, [`retailerId`]: companyId });
+    const offlineUser = req.offlineUser;
+    // const branch = await offlinestorebranches.findOne({ _id: branchId, [`offlinestoreId`]: companyId });
     const images = {};
     if (req.files) {
         for (let i in req.files) {
@@ -261,8 +261,8 @@ export const uploadDocument = catchAsync(async (req, res, next) => {
             // }
         }
     }
-    const updatedImages = await retailerbranches.updateOne(
-        { _id: branchId, [`proposed_changes.retailerId`]: retailerUser?._id },
+    const updatedImages = await offlinestorebranches.updateOne(
+        { _id: branchId, [`proposed_changes.offlinestoreId`]: offlineUser?._id },
         {
             $set: {
                 // "proposed_changes.kyc.pan.pan_image": images?.pan_image,
@@ -288,12 +288,12 @@ export const uploadDocument = catchAsync(async (req, res, next) => {
 });
 export const AddContact = catchAsync(async (req, res, next) => {
     const { branchId } = req.params;
-    const retailerUser = req.retailerUser;
+    const offlineUser = req.offlineUser;
     if (!branchId) {
         return next(new ApiError("BranchId is required", 400));
     }
 
-    const max5Contact = await retailerbranches.findOne({ _id: branchId, "proposed_changes.retailerId": retailerUser?._id });
+    const max5Contact = await offlinestorebranches.findOne({ _id: branchId, "proposed_changes.offlinestoreId": offlineUser?._id });
 
     if (!max5Contact) {
         return next(new ApiError("can't find branch", 400));
@@ -303,8 +303,8 @@ export const AddContact = catchAsync(async (req, res, next) => {
         return next(new ApiError("you cannot add contact person more than 5", 400));
     }
 
-    const addConatct = await retailerbranches.findOneAndUpdate(
-        { _id: branchId, "proposed_changes.retailerId": retailerUser?._id },
+    const addConatct = await offlinestorebranches.findOneAndUpdate(
+        { _id: branchId, "proposed_changes.offlinestoreId": offlineUser?._id },
         {
             $push: {
                 "proposed_changes.contact_person": req.body,
@@ -331,7 +331,7 @@ export const AddContact = catchAsync(async (req, res, next) => {
 });
 export const UpdateContact = catchAsync(async (req, res, next) => {
     const { branchId } = req.params;
-    const retailerUser = req.retailerUser;
+    const offlineUser = req.offlineUser;
     const {
         first_name,
         last_name,
@@ -345,10 +345,10 @@ export const UpdateContact = catchAsync(async (req, res, next) => {
     if (!req.query.contactId) {
         return next(new ApiError("contactId is required", 400));
     }
-    const updatedContact = await retailerbranches.findOneAndUpdate(
+    const updatedContact = await offlinestorebranches.findOneAndUpdate(
         {
             _id: branchId,
-            "proposed_changes.retailerId": retailerUser?._id,
+            "proposed_changes.offlinestoreId": offlineUser?._id,
             "proposed_changes.contact_person._id": req.query.contactId,
         },
         {
@@ -397,9 +397,9 @@ export const setPrimaryContact = catchAsync(async (req, res, next) => {
     const { companyId, branchId } = req.params;
     const { contactId } = req.query
     const user = req.user;
-    const contactPrimary = await retailerbranches.updateOne({
+    const contactPrimary = await offlinestorebranches.updateOne({
         _id: branchId,
-        "current_data.retailerId": companyId,
+        "current_data.offlinestoreId": companyId,
         "current_data.contact_person._id": contactId
     }, {
         $set: {
@@ -431,7 +431,7 @@ export const deleteContactPerson = catchAsync(async (req, res, next) => {
         return next(new ApiError("companyId or BranchId is required", 400));
     }
 
-    const max5Contact = await retailerbranches.findOne({ _id: branchId, [`proposed_changes.retailerId`]: companyId });
+    const max5Contact = await offlinestorebranches.findOne({ _id: branchId, [`proposed_changes.offlinestoreId`]: companyId });
 
     if (!max5Contact) {
         return next(new ApiError("can't find branch", 400));
