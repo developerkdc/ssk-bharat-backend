@@ -81,3 +81,123 @@ export const RetailerInventoryList = catchAsync(async (req, res) => {
     totalItems: result.length,
   });
 });
+export const ViewProductHistory = catchAsync(async (req, res) => {
+  const id = req.params.id;
+  let user = req.retailerUser._id;
+  // console.log(user, "----------------------");
+  const page = req.query.page || 1;
+  const searchParam = req.query.searchParam || "";
+  const sortField = req.query.sortField || "product_Id";
+  const sortOrder = req.query.sortOrder || "asc";
+  // const {invoiceDate,receiveDate,...data } = req?.body?.filters || {};
+  const retailer = await mongoose.model("retailers").findById(user);
+  const inventoryName = retailer.current_data.inventorySchema;
+  console.log(inventoryName, "---------------------");
+  const Inventoryschema = DynamicModel(inventoryName, InventorySchema);
+
+  const limit = 10;
+  const matchQuery = {
+    "itemsDetails.product_id": new mongoose.Types.ObjectId(id),
+  };
+  const filter = {};
+
+  if (searchParam) {
+    matchQuery["$or"] = [
+      { purchaseOrderNo: { $regex: searchParam, $options: "i" } },
+      {
+        "supplierDetails.firstName": {
+          $regex: searchParam,
+          $options: "i",
+        },
+      },
+      {
+        "supplierDetails.lastName": {
+          $regex: searchParam,
+          $options: "i",
+        },
+      },
+      {
+        "supplierDetails.primaryEmailID": {
+          $regex: searchParam,
+          $options: "i",
+        },
+      },
+      {
+        "supplierDetails.primaryMobileNo": {
+          $regex: searchParam,
+          $options: "i",
+        },
+      },
+      {
+        "supplierDetails.address.address": {
+          $regex: searchParam,
+          $options: "i",
+        },
+      },
+      {
+        "itemsDetails.itemName": {
+          $regex: searchParam,
+          $options: "i",
+        },
+      },
+      {
+        "itemsDetails.category": {
+          $regex: searchParam,
+          $options: "i",
+        },
+      },
+      {
+        "itemsDetails.sku": { $regex: searchParam, $options: "i" },
+      },
+    ];
+  }
+  if (
+    req?.body?.filters &&
+    req?.body?.filters.invoiceDate &&
+    req?.body?.filters.invoiceDate.to &&
+    req?.body?.filters.invoiceDate.from
+  ) {
+    filter["current_data.invoiceDetails.invoiceDate"] = {
+      $gte: new Date(req.body.filters.invoiceDate.from),
+      $lte: new Date(req.body.filters.invoiceDate.to),
+    };
+  }
+
+  if (
+    req?.body?.filters &&
+    req?.body?.filters.receiveDate &&
+    req?.body?.filters.receiveDate.to &&
+    req?.body?.filters.receiveDate.from
+  ) {
+    filter.receivedDate = {
+      $gte: new Date(req.body.filters.receiveDate.from),
+      $lte: new Date(req.body.filters.receiveDate.to),
+    };
+  }
+  const result = await Inventoryschema.aggregate([
+    {
+      $match: matchQuery,
+    },
+    // {
+    //   $match: filter,
+    // },
+    // {
+    //   $sort: {
+    //     [sortField]: sortOrder === "asc" ? 1 : -1,
+    //   },
+    // },
+    {
+      $skip: (page - 1) * 10,
+    },
+    {
+      $limit: limit,
+    },
+  ]);
+  console.log(result);
+  return res.status(200).json({
+    data: result,
+    statusCode: 200,
+    totalcount: result.length,
+    message: "Product History fetched Successfully!",
+  });
+});

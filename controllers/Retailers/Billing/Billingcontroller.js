@@ -6,38 +6,45 @@ import InventorySchema from "../../../database/schema/Inventory/RetailerInventor
 import BillSchema from "../../../database/schema/Retailers/Bills.schema";
 import DynamicModel from "../../../Utils/DynamicModel";
 
-
 export const createbill = catchAsync(async (req, res, next) => {
   const session = await mongoose.startSession();
-  let user = "6598ecd7d1b23dfc8328ce36";
+  let user = "65e1b1ee0e5d3cfa3c056dc4";
   session.startTransaction();
   try {
     const retailer = await mongoose.model("retailers").findById(user);
-    
     const billName = retailer.current_data.billingSchema;
+    console.log(billName, "retailers", "---------------------");
     const BillsModel = DynamicModel(billName, BillSchema);
     let bills = await BillsModel.create([req.body], { session });
+    console.log(bills[0].Items, "++++++++++++++++++");
     const inventoryName = retailer.current_data.inventorySchema;
     const retailerInveontry = DynamicModel(inventoryName, InventorySchema);
-      for (const product of bills[0].Items) {
-        const productId = product.product_Id;
-        const inventoryProduct = await retailerInveontry.findOne({
-          "itemsDetails.product_Id": productId,
-        });
-   
-        if (inventoryProduct) {
-          const updatedQuantity =
-            inventoryProduct.itemsDetails.availableQuantity - product.quantity;
-          await retailerInveontry.updateOne(
-            { "itemsDetails.product_Id": productId },
-            { $set: { "itemsDetails.availableQuantity": updatedQuantity } }
-          );
-        } else {
-          throw new Error(
-            `Product with ID ${productId} not found in inventory.`
-          );
+    for (const product of bills[0].Items) {
+      const productId = product.product_Id;
+      console.log(product.product_Id, "-----------------------------------");
+      const inventoryProduct = await retailerInveontry.findOne({
+        "itemsDetails.product_id": productId,
+      });
+
+      if (inventoryProduct) {
+        const updatedQuantity =
+          inventoryProduct.itemsDetails.availableQuantity - product.quantity;
+        console.log(
+          updatedQuantity,
+          "updatedQuantityupdatedQuantityupdatedQuantityupdatedQuantityupdatedQuantity"
+        );
+        if (updatedQuantity < 0) {
+          throw new Error(`Product with ID ${productId} is out of stock.`);
         }
+        console.log(retailerInveontry, "uuuuuuuuuuuuuuuuuuuuuu");
+        let data = await retailerInveontry.updateOne(
+          { "itemsDetails.product_id":productId },
+          { $set: { "itemsDetails.availableQuantity": updatedQuantity } }
+        );
+      } else {
+        throw new Error(`Product with ID ${productId} not found in inventory.`);
       }
+    }
     await session.commitTransaction();
     session.endSession();
     return res.status(200).json({

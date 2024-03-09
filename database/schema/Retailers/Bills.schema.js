@@ -3,17 +3,63 @@ import mongoose from "mongoose";
 
 const BillSchema = new mongoose.Schema({
   BillNo: { type: Number, trim: true, unique: true },
-  Name: { type: String, trim: true },
-  Email: { type: String, trim: true },
-  Address: { type: String, trim: true },
-  MobileNo: { type: String, trim: true },
-  Date: { type: Date, default: Date.now },
+  name: { type: String, trim: true },
+  email: { type: String, trim: true },
+  address: {
+    address: {
+      type: String,
+      trim: true,
+      lowercase: true,
+    },
+    location: {
+      type: String,
+      trim: true,
+      lowercase: true,
+    },
+    area: {
+      type: String,
+      trim: true,
+      lowercase: true,
+    },
+    district: {
+      type: String,
+      trim: true,
+      lowercase: true,
+    },
+    taluka: {
+      type: String,
+      trim: true,
+      lowercase: true,
+    },
+    state: {
+      type: String,
+      trim: true,
+      lowercase: true,
+    },
+    city: {
+      type: String,
+      trim: true,
+      lowercase: true,
+    },
+    country: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      default: "india",
+    },
+    pincode: {
+      type: String,
+      trim: true,
+    },
+  },
+  mobileNo: { type: String, trim: true },
+  date: { type: Date, default: Date.now },
   RetailerId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "retailers",
     required: true,
   },
-  Billfor: { type: String, enum: ["retailers", "offlinestores", "websites"] },
+  billfor: { type: String, enum: ["retailers", "offlinestores", "websites"] },
   Items: [
     {
       product_Id: {
@@ -59,34 +105,16 @@ const BillSchema = new mongoose.Schema({
       },
       gst: {
         cgst: {
-          percentage: {
-            type: Number,
-            default: null,
-          },
-          cgst_value: {
-            type: Number,
-            default: null,
-          },
+          type: Number,
+          default: 0,
         },
         sgst: {
-          percentage: {
-            type: Number,
-            default: null,
-          },
-          sgst_value: {
-            type: Number,
-            default: null,
-          },
+          type: Number,
+          default: 0,
         },
         igst: {
-          percentage: {
-            type: Number,
-            default: null,
-          },
-          igst_value: {
-            type: Number,
-            default: null,
-          },
+          type: Number,
+          default: 0,
         },
       },
       total_amount: {
@@ -115,11 +143,23 @@ const BillSchema = new mongoose.Schema({
     type: Number,
     required: [true, "Total Gst is required"],
   },
+  total_igst: {
+    type: Number,
+    default: 0,
+  },
+  total_cgst: {
+    type: Number,
+    default: 0,
+  },
+  total_sgst: {
+    type: Number,
+    default: 0,
+  },
   total_amount: {
     type: Number,
     required: [true, "Total Amount is required"],
   },
-  created_at: { type: Date, default: Date.now },
+  created_on: { type: Date, default: Date.now },
 });
 
 
