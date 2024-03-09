@@ -51,15 +51,15 @@ export const getAllBranchCompany = catchAsync(async (req, res, next) => {
             },
             {
                 $lookup: {
-                    from: this.#refernceName,
-                    localField: `current_data.${this.#modalName}Id`,
+                    from: "retailers",
+                    localField: `current_data.retailerId`,
                     foreignField: "_id",
-                    as: `current_data.${this.#modalName}Id`,
+                    as: `current_data.retailerId`,
                 },
             },
             {
                 $unwind: {
-                    path: `$current_data.${this.#modalName}Id`,
+                    path: `$current_data.retailerId`,
                     preserveNullAndEmptyArrays: true,
                 },
             },
@@ -77,14 +77,14 @@ export const getAllBranchCompany = catchAsync(async (req, res, next) => {
         data: {
             branch: data,
         },
-        message: `${this.#modalName} All Branch`,
+        message: `retailer All Branch`,
     });
 });
 export const getBranchOfCompany = catchAsync(async (req, res, next) => {
     const branch = await retailerbranches
-        .find({ [`${this.#modalName}Id`]: req.params.companyId })
+        .find({ [`retailerId`]: req.params.companyId })
         .populate({
-            path: `${this.#modalName}Id`,
+            path: `retailerId`,
             select: "current_data.company_name current_data.company_type"
         });
     return res.status(200).json({
@@ -93,20 +93,20 @@ export const getBranchOfCompany = catchAsync(async (req, res, next) => {
         data: {
             branch: branch,
         },
-        message: `${this.#modalName} All Branch`,
+        message: `retailer All Branch`,
     });
 });
 export const GetBranchList = catchAsync(async (req, res, next) => {
     const { companyId } = req.params
     const modalName = await retailerbranches.find(
-        { [`current_data.${this.#modalName}Id`]: companyId, "current_data.isActive": true, "current_data.status": true },
+        { "current_data.retailerId": companyId, "current_data.isActive": true, "current_data.status": true },
         { "current_data": 1, });
 
     return res.status(201).json({
         statusCode: 200,
         status: "Success",
         data: {
-            [this.#modalName]: modalName,
+            retailerBranches: modalName,
         },
     });
 })
@@ -149,7 +149,7 @@ export const addBranch = catchAsync(async (req, res, next) => {
         data: {
             branch: branch,
         },
-        message: `${this.#modalName} Branch created`,
+        message: `retailer Branch created`,
     });
 });
 export const updateBranch = catchAsync(async (req, res, next) => {
@@ -161,11 +161,11 @@ export const updateBranch = catchAsync(async (req, res, next) => {
     const updateBranch = await retailerbranches.findOneAndUpdate(
         {
             _id: branchId,
-            [`proposed_changes.${this.#modalName}Id`]: req.params.companyId,
+            [`proposed_changes.retailerId`]: req.params.companyId,
         },
         {
             $set: {
-                [`proposed_changes.${this.#modalName}Id`]: data?.[`${this.#modalName}Id`],
+                [`proposed_changes.retailerId`]: data?.[`retailerId`],
                 "proposed_changes.branch_name": data?.branch_name,
                 "proposed_changes.branch_onboarding_date": data?.branch_onboarding_date,
                 // "proposed_changes.kyc.pan.pan_no": data?.kyc?.pan?.pan_no,
@@ -211,12 +211,12 @@ export const updateBranch = catchAsync(async (req, res, next) => {
         data: {
             branch: updateBranch,
         },
-        message: `${this.#modalName} Branch updated`,
+        message: `retailer Branch updated`,
     });
 });
 export const uploadDocument = catchAsync(async (req, res, next) => {
     const { branchId, companyId } = req.params;
-    // const branch = await retailerbranches.findOne({ _id: branchId, [`${this.#modalName}Id`]: companyId });
+    // const branch = await retailerbranches.findOne({ _id: branchId, [`retailerId`]: companyId });
     const images = {};
     if (req.files) {
         for (let i in req.files) {
@@ -228,7 +228,7 @@ export const uploadDocument = catchAsync(async (req, res, next) => {
         }
     }
     const updatedImages = await retailerbranches.updateOne(
-        { _id: branchId, [`proposed_changes.${this.#modalName}Id`]: companyId },
+        { _id: branchId, [`proposed_changes.retailerId`]: companyId },
         {
             $set: {
                 // "proposed_changes.kyc.pan.pan_image": images?.pan_image,
@@ -256,7 +256,7 @@ export const AddContact = catchAsync(async (req, res, next) => {
         return next(new ApiError("companyId or BranchId is required", 400));
     }
 
-    const max5Contact = await retailerbranches.findOne({ _id: branchId, [`proposed_changes.${this.#modalName}Id`]: companyId });
+    const max5Contact = await retailerbranches.findOne({ _id: branchId, [`proposed_changes.retailerId`]: companyId });
 
     if (!max5Contact) {
         return next(new ApiError("can't find branch", 400));
@@ -267,7 +267,7 @@ export const AddContact = catchAsync(async (req, res, next) => {
     }
 
     const addConatct = await retailerbranches.findOneAndUpdate(
-        { _id: branchId, [`proposed_changes.${this.#modalName}Id`]: companyId },
+        { _id: branchId, [`proposed_changes.retailerId`]: companyId },
         {
             $push: {
                 "proposed_changes.contact_person": req.body,
@@ -310,7 +310,7 @@ export const UpdateContact = catchAsync(async (req, res, next) => {
     const updatedContact = await retailerbranches.findOneAndUpdate(
         {
             _id: branchId,
-            [`proposed_changes.${this.#modalName}Id`]: companyId,
+            [`proposed_changes.retailerId`]: companyId,
             "proposed_changes.contact_person._id": req.query.contactId,
         },
         {
@@ -351,7 +351,7 @@ export const setPrimaryContact = catchAsync(async (req, res, next) => {
     const user = req.user;
     const contactPrimary = await retailerbranches.updateOne({
         _id: branchId,
-        [`current_data.${this.#modalName}Id`]: companyId,
+        "current_data.retailerId": companyId,
         "current_data.contact_person._id": contactId
     }, {
         $set: {
@@ -381,7 +381,7 @@ export const deleteContactPerson = catchAsync(async (req, res, next) => {
         return next(new ApiError("companyId or BranchId is required", 400));
     }
 
-    const max5Contact = await retailerbranches.findOne({ _id: branchId, [`proposed_changes.${this.#modalName}Id`]: companyId });
+    const max5Contact = await retailerbranches.findOne({ _id: branchId, [`proposed_changes.retailerId`]: companyId });
 
     if (!max5Contact) {
         return next(new ApiError("can't find branch", 400));
