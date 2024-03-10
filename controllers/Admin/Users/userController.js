@@ -401,26 +401,49 @@ export const generatePassword = catchAsync(async (req, res) => {
   });
 });
 
-export const AddActiveUser = async (userID, token, socketID) => {
-  const data = {
-    user_id: userID,
-    socket_id: socketID,
-    token: token,
-  };
-  const isLoggedIn = await activeUserModel.find({ user_id: userID });
+export const AddActiveUser = async (data) => {
+  const isLive = await activeUserModel.findOne({
+    user_id: data?.userID,
+    socket_id: { $in: [...data?.socketID] }
+  })
 
-  if (isLoggedIn.length != 0) return;
-  await activeUserModel.create(data);
+  if (!isLive) {
+    await activeUserModel.updateOne({ user_id: data?.userID }, {
+      $set: {
+        token: data?.token
+      },
+      $push: {
+        socket_id: data?.socketID
+      }
+    }, { upsert: true })
+  };
+
+  return
 };
 
-export const RemoveActiveUser = async (userID, socketID) => {
-  let data = {
-    socket_id: socketID,
-  };
-  if (userID != null) {
-    data["user_id"] = userID;
+export const RemoveActiveUser = async (data) => {
+
+  const matchQuery = {
+    socket_id: data?.socketID
   }
-  await activeUserModel.deleteOne(data);
+
+  if (data?.userID) {
+    matchQuery["user_id"] = data?.userID
+  }
+
+  const user = await activeUserModel.findOneAndUpdate({
+    ...matchQuery
+  }, {
+    $pull: {
+      socket_id: data?.socketID
+    }
+  }, { new: true });
+
+  if (!user || user?.socket_id?.length <= 1) {
+    await activeUserModel.deleteOne({ ...matchQuery })
+  }
+
+  return;
 };
 
 export const isTokenExpired = async () => {
@@ -533,8 +556,6 @@ export const getAllActiveUsers = catchAsync(async (req, res) => {
     },
   ]);
 
-  console.log(users, "userrrsss");
-
   if (!users) {
     throw new Error(new ApiError("Error during fetching", 400));
   }
@@ -554,3 +575,82 @@ export const getAllActiveUsers = catchAsync(async (req, res) => {
     totalPages: totalPages,
   });
 });
+
+
+export const ActiveUsersList = async function(queryData){
+  const { string, boolean, numbers } = queryData?.searchFields || {};
+
+  const { page, limit = 10, sortBy = "", sort = "desc" } = queryData?.query;
+  const search = req.query.search || "";
+  const skip = (page - 1) * limit;
+
+  //search  functionality
+  let searchQuery = {};
+  if (search != "" && queryData?.searchFields) {
+    const searchdata = dynamicSearch(search, boolean, numbers, string);
+    if (searchdata?.length == 0) {
+      return {
+        statusCode: 404,
+        status: false,
+        data: [],
+        message: "Results Not Found",
+      }
+    }
+    searchQuery = searchdata;
+  }
+
+  const { to, from, ...data } = queryData?.filters || {};
+  const matchQuery = data || {};
+
+  const users = await activeUserModel.aggregate([
+    {
+      $lookup: {
+        from: "users",
+        localField: "user_id",
+        foreignField: "_id",
+        as: "user_id",
+      },
+    },
+    {
+      $unwind: "$user_id",
+    },
+    {
+      $lookup: {
+        from: "roles",
+        localField: "user_id.current_data.role_id",
+        foreignField: "_id",
+        as: "user_id.current_data.role_id",
+      },
+    },
+    {
+      $unwind: "$user_id.current_data.role_id",
+    },
+    {
+      $match: { ...matchQuery, ...searchQuery },
+    },
+    {
+      $skip: skip,
+    },
+    {
+      $limit: limit,
+    },
+    {
+      $sort: { [sortBy]: sort == "desc" ? -1 : 1 },
+    },
+  ]);
+
+  //total pages
+  const totalDocuments = await activeUserModel.countDocuments({
+    ...matchQuery,
+    ...searchQuery,
+  });
+  const totalPages = Math.ceil(totalDocuments / limit);
+
+  return {
+    statusCode: 200,
+    status: "Success",
+    data: users,
+    message: "Fetched Active Users successfully",
+    totalPages: totalPages,
+  };
+}

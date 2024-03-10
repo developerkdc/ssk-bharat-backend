@@ -7,7 +7,8 @@ const ActiveUserSchema = new mongoose.Schema({
     ref: "user",
   },
   socket_id: {
-    type: String,
+    type: [String],
+    default:null,
   },
   token: {
     type: String,

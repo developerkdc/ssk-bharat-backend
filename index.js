@@ -63,6 +63,7 @@ import { Server } from "socket.io";
 import retailerMyProfileRouter from "./routes/Retailer/Profile/profile.routes.js";
 import offlineStoreMyProfileRouter from "./routes/OfflineStore/Profile/profile.routes.js";
 import marketExecutiveProfileRouter from "./routes/METAuthRoutes/Profile/Profile.routes.js";
+import { AddActiveUser, RemoveActiveUser, getAllActiveUsers } from "./controllers/Admin/Users/userController.js";
 
 const app = express();
 const port = process.env.PORT || 4001;
@@ -100,36 +101,51 @@ connect();
 
 //socket
 
-// io.on("connection", (socket) => {
-//   isTokenExpired();
-//   console.log("A new User Has connected", socket.id);
-//   socket.on("activeUser", (userID, token) => {
-//     try {
-//       AddActiveUser(userID, token, socket.id);
-//     } catch (error) {
-//       console.log(error);
-//     }
-//   });
+io.on("connection", (socket) => {
+  console.log("A new User Has connected", socket.id );
+  socket.on("activeUser", ({userID, token}) => {
+    try {
+      AddActiveUser({
+        userID:userID,
+        token,
+        socketID:socket.id
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  });
 
-//   socket.on("logoutactiveUser", (userID) => {
-//     try {
-//       RemoveActiveUser(userID, socket.id);
-//     } catch (error) {
-//       console.log(error);
-//     }
-//   });
+  socket.on("logoutactiveUser", ({userID}) => {
+    try {
+      RemoveActiveUser({
+        userID,
+        socketID:socket.id
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  });
 
-//   // Listen for disconnection
-//   socket.on("disconnect", () => {
-//     console.log("User disconnected", socket.id);
-//     try {
-//       RemoveActiveUser(null, socket.id);
-//     } catch (error) {
-//       console.log(error);
-//     }
+  socket.on("activeUserList",function(queryData = {}){
+    const Data = {...queryData};
 
-//   });
-// });
+    socket.emit("getActiveUserList",getAllActiveUsers(Data))
+
+  })
+
+  // Listen for disconnection
+  socket.on("disconnect", () => {
+    console.log("User disconnected", socket.id);
+    try {
+      RemoveActiveUser({
+        socketID:socket.id
+      });
+    } catch (error) {
+      console.log(error);
+    }
+
+  });
+});
 
 // Routes for Admin Portal
 app.group("/api/v1/admin", (router) => {
