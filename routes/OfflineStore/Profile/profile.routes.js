@@ -36,14 +36,14 @@ offlineStoreMyProfileRouter
     .patch(offlineStoreAuthMiddleware, updateBranch);
 
 offlineStoreMyProfileRouter
-    .route("/branch/contact/:companyId/:branchId")
+    .route("/branch/contact/:branchId")
     .post(offlineStoreAuthMiddleware, AddContact)
     .patch(offlineStoreAuthMiddleware, UpdateContact);
 
 offlineStoreMyProfileRouter.post("/BranchOfflineStore/all", offlineStoreAuthMiddleware, getMyBranch);
 
 offlineStoreMyProfileRouter.patch(
-    "/branch/upload/:companyId/:branchId", offlineStoreAuthMiddleware,
+    "/branch/upload/:branchId", offlineStoreAuthMiddleware,
     MulterFunction("./uploads/admin/offlineStoreDocument").fields([
         // { name: "pan_image", maxCount: 1 },
         { name: "gst_image", maxCount: 1 },
@@ -53,7 +53,7 @@ offlineStoreMyProfileRouter.patch(
 );
 
 // offlineStoreMyProfileRouter.get("/dropdown/list", offlineStoreAuthMiddleware, GetCompanyList)
-offlineStoreMyProfileRouter.get("/branch/dropdown/list", GetBranchList)
+offlineStoreMyProfileRouter.get("/branch/dropdown/list", offlineStoreAuthMiddleware,GetBranchList)
 
 offlineStoreMyProfileRouter.patch('/contact/setprimary/:branchId', offlineStoreAuthMiddleware, setPrimaryContact)
 

@@ -439,8 +439,13 @@ export const RemoveActiveUser = async (data) => {
     }
   }, { new: true });
 
+  console.log(user)
+
   if (!user || user?.socket_id?.length <= 1) {
-    await activeUserModel.deleteOne({ ...matchQuery })
+    await activeUserModel.deleteOne({$or:[
+      {_id:user?._id},
+      {...matchQuery}
+    ] })
   }
 
   return;

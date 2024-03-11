@@ -229,6 +229,9 @@ class Branches {
           $match: { ...matchQuery },
         },
         {
+          $sort: { [sortBy]: sort === "asc" ? 1 : -1 }
+        },
+        {
           $skip: (page - 1) * limit,
         },
         {
@@ -250,9 +253,6 @@ class Branches {
         },
         {
           $match: { ...searchQuery }
-        },
-        {
-          $sort: { [sortBy]: sort === "asc" ? 1 : -1 }
         },
       ])
     return res.status(200).json({

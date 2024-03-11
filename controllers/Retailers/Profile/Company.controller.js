@@ -132,18 +132,15 @@ export const UpdateRetailer = catchAsync(async (req, res, next) => {
     });
 });
 export const setPrimaryBranch = catchAsync(async (req, res, next) => {
-    const { companyId, branchId } = req.params;
+    const {branchId } = req.params;
     const retailerUser = req.retailerUser;
     if (!mongoose.Types.ObjectId.isValid(branchId))
         return next(new ApiError(`${branchId} this is not valid Id`, 400));
 
-    const user = req.user;
-    if (!user) return next(new ApiError("please Login and try again", 404));
-
     const branchData = await retailerbranches
         .findOne({
             _id: branchId,
-            [`current_data.retailerId`]: retailerUser?._id,
+            "current_data.retailerId": retailerUser?._id,
             "proposed_changes.isActive": true,
             "proposed_changes.status": true,
         });

@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import catchAsync from "../../../Utils/catchAsync";
+import { dynamicSearch } from "../../../Utils/dynamicSearch";
 const offlineStore = mongoose.model("offlinestores")
 const offlinestorebranches = mongoose.model("offlinestorebranches")
 
@@ -52,6 +53,9 @@ export const getMyBranch = catchAsync(async (req, res, next) => {
                 $match: { ...matchQuery },
             },
             {
+                $sort: { [sortBy]: sort === "asc" ? 1 : -1 }
+            },
+            {
                 $skip: (page - 1) * limit,
             },
             {
@@ -59,7 +63,7 @@ export const getMyBranch = catchAsync(async (req, res, next) => {
             },
             {
                 $lookup: {
-                    from: "retailers",
+                    from: "offlinestores",
                     localField: `current_data.offlinestoreId`,
                     foreignField: "_id",
                     as: `current_data.offlinestoreId`,
@@ -73,9 +77,6 @@ export const getMyBranch = catchAsync(async (req, res, next) => {
             },
             {
                 $match: { ...searchQuery }
-            },
-            {
-                $sort: { [sortBy]: sort === "asc" ? 1 : -1 }
             },
         ])
     return res.status(200).json({
@@ -147,7 +148,8 @@ export const addBranch = catchAsync(async (req, res, next) => {
                     ifsc_code: bank_details?.ifsc_code,
                     passbook_image: images["passbook_image"]
                 }
-            }
+            },
+            status:true
         },
         // approver: approvalData(user),
     });
@@ -175,6 +177,11 @@ export const updateBranch = catchAsync(async (req, res, next) => {
         },
         {
             $set: {
+                "current_data.branch_name": data?.branch_name,
+                "current_data.branch_onboarding_date": data?.branch_onboarding_date,
+                // "current_data.kyc.pan.pan_no": data?.kyc?.pan?.pan_no,
+                "current_data.kyc.gst.gst_no": data?.kyc?.gst?.gst_no,
+                "current_data.kyc.kyc_status": data?.kyc?.kyc_status,
                 "current_data.kyc.bank_details.bank_name":
                     data?.kyc?.bank_details?.bank_name,
                 "current_data.kyc.bank_details.account_no":
@@ -199,6 +206,7 @@ export const updateBranch = catchAsync(async (req, res, next) => {
                 "current_data.branch_address.pincode":
                     data?.branch_address?.pincode,
                 "current_data.isActive": data?.isActive,
+                "current_data.status": true,
                 "proposed_changes.branch_name": data?.branch_name,
                 "proposed_changes.branch_onboarding_date": data?.branch_onboarding_date,
                 // "proposed_changes.kyc.pan.pan_no": data?.kyc?.pan?.pan_no,
@@ -248,7 +256,7 @@ export const updateBranch = catchAsync(async (req, res, next) => {
     });
 });
 export const uploadDocument = catchAsync(async (req, res, next) => {
-    const { branchId, companyId } = req.params;
+    const { branchId } = req.params;
     const offlineUser = req.offlineUser;
     // const branch = await offlinestorebranches.findOne({ _id: branchId, [`offlinestoreId`]: companyId });
     const images = {};
@@ -268,6 +276,7 @@ export const uploadDocument = catchAsync(async (req, res, next) => {
                 // "proposed_changes.kyc.pan.pan_image": images?.pan_image,
                 "current_data.kyc.gst.gst_image": images?.gst_image,
                 "current_data.kyc.bank_details.passbook_image": images?.passbook_image,
+                "current_data.status": true,
                 "proposed_changes.kyc.gst.gst_image": images?.gst_image,
                 "proposed_changes.kyc.bank_details.passbook_image": images?.passbook_image,
                 "proposed_changes.status": true,
@@ -307,9 +316,11 @@ export const AddContact = catchAsync(async (req, res, next) => {
         { _id: branchId, "proposed_changes.offlinestoreId": offlineUser?._id },
         {
             $push: {
+                "current_data.contact_person": req.body,
                 "proposed_changes.contact_person": req.body,
             },
             $set: {
+                "current_data.status": true,
                 "proposed_changes.status": true,
                 // approver: approvalData(req.user)
             }
@@ -363,6 +374,7 @@ export const UpdateContact = catchAsync(async (req, res, next) => {
                 "current_data.contact_person.$[e].secondary_mobile":
                     secondary_mobile,
                 "current_data.contact_person.$[e].isActive": isActive,
+                "current_data.status": true,
                 "proposed_changes.contact_person.$[e].first_name": first_name,
                 "proposed_changes.contact_person.$[e].last_name": last_name,
                 "proposed_changes.contact_person.$[e].role": role,
@@ -394,17 +406,18 @@ export const UpdateContact = catchAsync(async (req, res, next) => {
     });
 });
 export const setPrimaryContact = catchAsync(async (req, res, next) => {
-    const { companyId, branchId } = req.params;
+    const offlineUser = req.offlineUser;
+    const { branchId } = req.params;
     const { contactId } = req.query
-    const user = req.user;
     const contactPrimary = await offlinestorebranches.updateOne({
         _id: branchId,
-        "current_data.offlinestoreId": companyId,
+        "current_data.offlinestoreId": offlineUser?._id,
         "current_data.contact_person._id": contactId
     }, {
         $set: {
             "current_data.contact_person.$[ele].isPrimary": false,
             "current_data.contact_person.$[e].isPrimary": true,
+            "current_data.status": true,
             "proposed_changes.contact_person.$[ele].isPrimary": false,
             "proposed_changes.contact_person.$[e].isPrimary": true,
             "proposed_change.status": true,
@@ -413,7 +426,6 @@ export const setPrimaryContact = catchAsync(async (req, res, next) => {
     }, {
         arrayFilters: [{ "e._id": contactId }, { "ele._id": { $ne: contactId } }]
     })
-
 
     return res.status(200).json({
         statusCode: 200,
