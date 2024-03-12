@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 
 const BillSchema = new mongoose.Schema({
   BillNo: { type: Number, trim: true, unique: true },
+  billDate:{type:Date,trim:true},
   name: { type: String, trim: true },
   email: { type: String, trim: true },
   address: {

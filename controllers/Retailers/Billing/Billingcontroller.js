@@ -8,7 +8,7 @@ import DynamicModel from "../../../Utils/DynamicModel";
 
 export const createbill = catchAsync(async (req, res, next) => {
   const session = await mongoose.startSession();
-  let user = "65e1b1ee0e5d3cfa3c056dc4";
+  let user = req.retailerUser;
   session.startTransaction();
   try {
     const retailer = await mongoose.model("retailers").findById(user);
