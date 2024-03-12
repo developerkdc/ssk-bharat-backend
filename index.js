@@ -54,6 +54,7 @@ import offlineSSKRouter from "./routes/OfflineStore/SSK/SSkCompany.routes.js";
 import retailerSSKRouter from "./routes/Retailer/SSK/SSkCompany.routes.js";
 import offlineAddressRouter from "./routes/OfflineStore/AddressDropdown/addressDropdownRoutes.js";
 import retailerAddressRouter from "./routes/Retailer/AddressDropdown/addressDropdownRoutes.js";
+import metAddressDropdown from "./routes/METAuthRoutes/AddressDropdown/addressDropdownRoutes.js";
 import metStoreRouter from "./routes/METAuthRoutes/Store/index.js";
 import metTransactionHistoryRouter from "./routes/METAuthRoutes/Transaction/transaction.route.js";
 import RetailerFaqRouter from "./routes/Retailer/FAQs/index.js";
@@ -187,6 +188,8 @@ app.group("/api/v1/met-portal", (router) => {
   router.use("/myProfile", marketExecutiveProfileRouter);
   router.use("/metStore", metStoreRouter);
   router.use("/transactionHistory", metTransactionHistoryRouter);
+  router.use("/address/dropdown", metAddressDropdown);
+
 });
 
 //retailers

@@ -1,7 +1,15 @@
 import express from "express";
-import { getAddressDropdown } from "../../../controllers/Admin/AddressDropdown/addressDropdownController";
+import {
+  createAddressDropdown,
+  getAddressDropdown,
+  updateAddressDropdown,
+} from "../../../controllers/Admin/AddressDropdown/addressDropdownController";
+import retailersAuthMiddleware from "../../../middlewares/retailersAuthMiddleware";
 
 const router = express.Router();
-router.get("/get/:type", getAddressDropdown);
+
+router.post("/create/:type", retailersAuthMiddleware, createAddressDropdown);
+router.get("/get/:type", retailersAuthMiddleware, getAddressDropdown);
+router.patch("/update/:type/:id", retailersAuthMiddleware, updateAddressDropdown);
 
 export default router;

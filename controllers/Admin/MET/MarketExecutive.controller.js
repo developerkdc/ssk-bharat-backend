@@ -301,9 +301,9 @@ export const addNominee = catchAsync(async (req, res, next) => {
   const nomineeData = JSON.parse(req.body?.nomineeData);
   const { pan_image, aadhar_image, gst_image } = req.files;
 
-  nomineeData.kyc.pan.pan_image = pan_image?.[0].path;
-  nomineeData.kyc.gst.gst_image = gst_image?.[0].path;
-  nomineeData.kyc.aadhar.aadhar_image = aadhar_image?.[0].path;
+  nomineeData.kyc.pan.pan_image = pan_image?.[0]?.path;
+  // nomineeData.kyc.gst.gst_image = gst_image?.[0]?.path;
+  nomineeData.kyc.aadhar.aadhar_image = aadhar_image?.[0]?.path;
 
 
   const addNominee = await MarketExecutiveModel.updateOne(
@@ -341,13 +341,13 @@ export const addNominee = catchAsync(async (req, res, next) => {
 });
 
 export const editNominee = catchAsync(async (req, res, next) => {
-  const nomineeData = JSON.parse(req.body?.nomineeData);
-  const isActive = req.body?.isActive
+  const nomineeData = JSON.parse(req?.body?.nomineeData);
+  const isActive = req?.body?.isActive
 
   const images = {};
   if (req.files) {
     for (let i in req.files) {
-      images[i] = req.files[i][0].path;
+      images[i] = req.files?.[i]?.[0]?.path;
     }
   }
 

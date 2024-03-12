@@ -209,9 +209,9 @@ export const addNominee = catchAsync(async (req, res, next) => {
     const metUser = req.metUser;
     const nomineeData = JSON.parse(req.body?.nomineeData);
     const { pan_image, aadhar_image, gst_image } = req.files;
-    nomineeData.kyc.pan.pan_image = pan_image?.[0].path;
-    nomineeData.kyc.gst.gst_image = gst_image?.[0].path;
-    nomineeData.kyc.aadhar.aadhar_image = aadhar_image?.[0].path;
+    nomineeData.kyc.pan.pan_image = pan_image?.[0]?.path;
+    // nomineeData.kyc.gst.gst_image = gst_image?.[0]?.path;
+    nomineeData.kyc.aadhar.aadhar_image = aadhar_image?.[0]?.path;
 
 
     const addNominee = await MarketExecutiveModel.updateOne(
@@ -255,7 +255,7 @@ export const addNominee = catchAsync(async (req, res, next) => {
 export const editNominee = catchAsync(async (req, res, next) => {
     const nomineeData = JSON.parse(req.body?.nomineeData);
     const isActive = req.body?.isActive
-    const metUser = req.metUser
+    const metUser = req.metUser;
 
     const images = {};
     if (req.files) {
@@ -265,35 +265,35 @@ export const editNominee = catchAsync(async (req, res, next) => {
     }
 
     const editNominee = await MarketExecutiveModel.updateOne(
-        { _id: metUser?._id, "proposed_changes.nominee._id": req.params.nomineeId },
+        { _id: metUser?._id,"current_data.nominee._id": req.params.nomineeId ,"proposed_changes.nominee._id": req.params.nomineeId },
         {
             $set: {
-                "currrent_data.nominee.$[e].nominee_name": nomineeData?.nominee_name,
-                "currrent_data.nominee.$[e].nominee_dob": nomineeData?.nominee_dob,
-                "currrent_data.nominee.$[e].nominee_age": nomineeData?.nominee_age,
+                "current_data.nominee.$[e].nominee_name": nomineeData?.nominee_name,
+                "current_data.nominee.$[e].nominee_dob": nomineeData?.nominee_dob,
+                "current_data.nominee.$[e].nominee_age": nomineeData?.nominee_age,
                 //address
-                "currrent_data.nominee.$[e].address.address": nomineeData?.address?.address,
-                "currrent_data.nominee.$[e].address.location": nomineeData?.address?.location,
-                "currrent_data.nominee.$[e].address.area": nomineeData?.address?.area,
-                "currrent_data.nominee.$[e].address.district": nomineeData?.address?.district,
-                "currrent_data.nominee.$[e].address.taluka": nomineeData?.address?.taluka,
-                "currrent_data.nominee.$[e].address.state": nomineeData?.address?.state,
-                "currrent_data.nominee.$[e].address.city": nomineeData?.address?.city,
-                "currrent_data.nominee.$[e].address.country": nomineeData?.address?.country,
-                "currrent_data.nominee.$[e].address.pincode": nomineeData?.address?.pincode,
+                "current_data.nominee.$[e].address.address": nomineeData?.address?.address,
+                "current_data.nominee.$[e].address.location": nomineeData?.address?.location,
+                "current_data.nominee.$[e].address.area": nomineeData?.address?.area,
+                "current_data.nominee.$[e].address.district": nomineeData?.address?.district,
+                "current_data.nominee.$[e].address.taluka": nomineeData?.address?.taluka,
+                "current_data.nominee.$[e].address.state": nomineeData?.address?.state,
+                "current_data.nominee.$[e].address.city": nomineeData?.address?.city,
+                "current_data.nominee.$[e].address.country": nomineeData?.address?.country,
+                "current_data.nominee.$[e].address.pincode": nomineeData?.address?.pincode,
                 //kyc
                 //pan
-                "currrent_data.nominee.$[e].kyc.pan.pan_no": nomineeData?.kyc?.pan?.pan_no,
-                "currrent_data.nominee.$[e].kyc.pan.pan_image": images?.pan_image,
+                "current_data.nominee.$[e].kyc.pan.pan_no": nomineeData?.kyc?.pan?.pan_no,
+                "current_data.nominee.$[e].kyc.pan.pan_image": images?.pan_image,
                 //gst
-                "currrent_data.nominee.$[e].kyc.gst.gst_no": nomineeData?.kyc?.gst?.gst_no,
-                "currrent_data.nominee.$[e].kyc.gst.gst_image": images?.gst_image,
+                "current_data.nominee.$[e].kyc.gst.gst_no": nomineeData?.kyc?.gst?.gst_no,
+                "current_data.nominee.$[e].kyc.gst.gst_image": images?.gst_image,
                 //aadhar
-                "currrent_data.nominee.$[e].kyc.aadhar.aadhar_no": nomineeData?.kyc?.aadhar?.aadhar_no,
-                "currrent_data.nominee.$[e].kyc.aadhar.aadhar_image": images?.aadhar_image,
+                "current_data.nominee.$[e].kyc.aadhar.aadhar_no": nomineeData?.kyc?.aadhar?.aadhar_no,
+                "current_data.nominee.$[e].kyc.aadhar.aadhar_image": images?.aadhar_image,
 
-                "currrent_data.nominee.$[e].isActive": isActive,
-                "currrent_data.status": true,
+                "current_data.nominee.$[e].isActive": isActive,
+                "current_data.status": true,
                 "proposed_changes.nominee.$[e].nominee_name": nomineeData?.nominee_name,
                 "proposed_changes.nominee.$[e].nominee_dob": nomineeData?.nominee_dob,
                 "proposed_changes.nominee.$[e].nominee_age": nomineeData?.nominee_age,
