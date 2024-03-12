@@ -11,8 +11,9 @@ const retailersAuthMiddleware = async (req, res, next) => {
       return next(new ApiError("Token not provided", 401));
     }
     const retailerId = jwt.verify(token, process.env.JWT_SECRET);
-    console.log(retailerId, "retailerid");
+
     if (!retailerId) return next(new ApiError("userId not found", 400));
+    
     const retailerUser = await model.findOne({
       _id: retailerId?.retailer,
       "current_data.status": true,

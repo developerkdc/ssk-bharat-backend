@@ -252,6 +252,18 @@ const orders = SchemaFunction(
           required: [true, "Quantity is required"],
           trim: true,
         },
+        pending_quantity:{
+          type: Number,
+          required: [true, "Pending Quantity is required"],
+          trim: true,
+        },
+        item_status:{
+          type: String,
+          required: [true, "Item Status is required"],
+          enum: ["pending","partial","closed"],
+          default:"pending",
+          trim: true,
+        },
         item_amount: {
           type: Number,
           required: [true, "Item Amount is required"],

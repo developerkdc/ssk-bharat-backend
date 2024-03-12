@@ -11,7 +11,7 @@ const offlineStoreAuthMiddleware = async (req, res, next) => {
       return next(new ApiError("Token not provided", 401));
     }
     const offlineId = jwt.verify(token, process.env.JWT_SECRET);
-    // console.log(offlineId, "offlineid");
+    
     if (!offlineId) return next(new ApiError("userId not found", 400));
     const offlineUser = await model.findOne({
       _id: offlineId?.offlinestore,

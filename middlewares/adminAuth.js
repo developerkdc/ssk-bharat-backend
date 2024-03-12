@@ -82,7 +82,6 @@ const authMiddleware = async (req, res, next) => {
       return next(new ApiError("User Not Found", 404));
     }
     req.user = user;
-
     next()
   } catch (error) {
     return next(error)

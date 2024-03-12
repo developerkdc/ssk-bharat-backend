@@ -7,8 +7,6 @@ import Branches from "../../../controllers/Admin/Master/SupplierMaster/Branches.
 
 const offlineStoreRouter = express.Router();
 
-
-
 export const offlineStore = new CompanyMaster("offlinestore", "offlinestores", "offlinestorebranches");
 export const branch = new Branches("offlinestore", "offlinestorebranches", "offlinestores");
 

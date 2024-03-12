@@ -47,6 +47,7 @@ export const editFaq = catchAsync(async (req, res, next) => {
 });
 
 export const getFaqs = catchAsync(async (req, res, next) => {
+  
   const { string, boolean, numbers } = req?.body?.searchFields || {};
 
   const page = parseInt(req.query.page) || 1;

@@ -56,13 +56,15 @@ import offlineAddressRouter from "./routes/OfflineStore/AddressDropdown/addressD
 import retailerAddressRouter from "./routes/Retailer/AddressDropdown/addressDropdownRoutes.js";
 import metStoreRouter from "./routes/METAuthRoutes/Store/index.js";
 import metTransactionHistoryRouter from "./routes/METAuthRoutes/Transaction/transaction.route.js";
+import RetailerFaqRouter from "./routes/Retailer/FAQs/index.js";
+import offlineFaqRouter from "./routes/OfflineStore/FAQs/index.js";
 import http from "http";
 import { Server } from "socket.io";
-import {
-  AddActiveUser,
-  RemoveActiveUser,
-  isTokenExpired,
-} from "./controllers/Admin/Users/userController.js";
+import retailerMyProfileRouter from "./routes/Retailer/Profile/profile.routes.js";
+import offlineStoreMyProfileRouter from "./routes/OfflineStore/Profile/profile.routes.js";
+import marketExecutiveProfileRouter from "./routes/METAuthRoutes/Profile/Profile.routes.js";
+import { AddActiveUser, RemoveActiveUser, getAllActiveUsers } from "./controllers/Admin/Users/userController.js";
+
 import OfflineStoreInventory from "./routes/OfflineStore/Inventory/OfflineInventoryRoutes.js";
 const app = express();
 const port = process.env.PORT || 4001;
@@ -101,33 +103,48 @@ connect();
 //socket
 
 io.on("connection", (socket) => {
-  isTokenExpired();
-  console.log("A new User Has connected", socket.id);
-  socket.on("activeUser", (userID, token) => {
+  console.log("A new User Has connected", socket.id );
+  socket.on("activeUser", ({userID, token}) => {
     try {
-      AddActiveUser(userID, token, socket.id);
+      AddActiveUser({
+        userID:userID,
+        token,
+        socketID:socket.id
+      });
     } catch (error) {
       console.log(error);
     }
   });
 
-  socket.on("logoutactiveUser", (userID) => {
+  socket.on("logoutactiveUser", ({userID}) => {
     try {
-      RemoveActiveUser(userID, socket.id);
+      RemoveActiveUser({
+        userID,
+        socketID:socket.id
+      });
     } catch (error) {
       console.log(error);
     }
   });
+
+  socket.on("activeUserList",function(queryData = {}){
+    const Data = {...queryData};
+
+    socket.emit("getActiveUserList",getAllActiveUsers(Data))
+
+  })
 
   // Listen for disconnection
   socket.on("disconnect", () => {
-    // console.log("User disconnected", socket.id);
+    console.log("User disconnected", socket.id);
     try {
-      RemoveActiveUser(null, socket.id);
+      RemoveActiveUser({
+        socketID:socket.id
+      });
     } catch (error) {
       console.log(error);
     }
-    
+
   });
 });
 
@@ -168,6 +185,7 @@ app.group("/api/v1/admin", (router) => {
 //MET
 app.group("/api/v1/met-portal", (router) => {
   router.use("/auth", METAuthRouter);
+  router.use("/myProfile", marketExecutiveProfileRouter);
   router.use("/metStore", metStoreRouter);
   router.use("/transactionHistory", metTransactionHistoryRouter);
 });
@@ -176,6 +194,7 @@ app.group("/api/v1/met-portal", (router) => {
 app.group("/api/v1/retailer-portal", (router) => {
   router.use("/auth", RetailerAuthRouter);
   router.use("/retailerp", RetailerPRoutes);
+  router.use("/myProfile", retailerMyProfileRouter);
   router.use("/purchase-order", retailerPORouter);
   router.use("/confirm-sales", retailerSalesRouter);
   router.use("/inventory", RetailerInventory);
@@ -184,17 +203,20 @@ app.group("/api/v1/retailer-portal", (router) => {
   router.use("/sskcompany", retailerSSKRouter);
   router.use("/address/dropdown", retailerAddressRouter);
   router.use("/ticket", RetailerTicketRouter);
+  router.use("/faq", RetailerFaqRouter);
 });
 
 //offline store
 app.group("/api/v1/offline-store-portal", (router) => {
   router.use("/auth", offlineAuthRouter);
+  router.use("/myProfile", offlineStoreMyProfileRouter);
   router.use("/purchase-order", offlinePORouter);
   router.use("/confirm-sales", offlineSalesRouter);
   router.use("/product", offlineProductRouter);
   router.use("/offlineStore", offlinePortalRouter);
   router.use("/sskcompany", offlineSSKRouter);
   router.use("/address/dropdown", offlineAddressRouter);
+  router.use("/faq", offlineFaqRouter);
   router.use("/inventory", OfflineStoreInventory);
 });
 
