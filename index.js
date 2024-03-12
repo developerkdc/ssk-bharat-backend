@@ -44,7 +44,7 @@ import retailerPORouter from "./routes/Retailer/PurchaseOrder/retailerPortalPORo
 import retailerSalesRouter from "./routes/Retailer/ConfirmSalesOrder/retailerConfirmSalesRoutes.js";
 import RetailerAuthRouter from "./routes/Retailer/Auth/Auth.route.js";
 import offlineAuthRouter from "./routes/OfflineStore/Auth/Auth.route.js";
-import RetailerPRoutes from "./routes/Retailer/Billing/BillingRoutes.js";
+import RetailerBillingRoutes from "./routes/Retailer/Billing/BillingRoutes.js";
 import RetailerInventory from "./routes/Retailer/Inventory/RetailerInventoryRoutes.js";
 import offlineProductRouter from "./routes/OfflineStore/Products/productRoutes.js";
 import retailerProductRouter from "./routes/Retailer/Products/productRoutes.js";
@@ -193,7 +193,7 @@ app.group("/api/v1/met-portal", (router) => {
 //retailers
 app.group("/api/v1/retailer-portal", (router) => {
   router.use("/auth", RetailerAuthRouter);
-  router.use("/retailerp", RetailerPRoutes);
+  router.use("/billing", RetailerBillingRoutes);
   router.use("/myProfile", retailerMyProfileRouter);
   router.use("/purchase-order", retailerPORouter);
   router.use("/confirm-sales", retailerSalesRouter);

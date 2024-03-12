@@ -9,6 +9,7 @@ import DynamicModel from "../../../Utils/DynamicModel";
 export const createbill = catchAsync(async (req, res, next) => {
   const session = await mongoose.startSession();
   let user = req.retailerUser;
+  console.log(user, "=====================");
   session.startTransaction();
   try {
     const retailer = await mongoose.model("retailers").findById(user);
@@ -34,11 +35,13 @@ export const createbill = catchAsync(async (req, res, next) => {
           "updatedQuantityupdatedQuantityupdatedQuantityupdatedQuantityupdatedQuantity"
         );
         if (updatedQuantity < 0) {
-          throw new Error(`Product with ID ${productId} is out of stock.`);
+          throw new Error(
+            `Product ${inventoryProduct?.itemsDetails?.item_name} is out of stock. Available quantity is ${inventoryProduct?.itemsDetails?.availableQuantity}`
+          );
         }
         console.log(retailerInveontry, "uuuuuuuuuuuuuuuuuuuuuu");
         let data = await retailerInveontry.updateOne(
-          { "itemsDetails.product_id":productId },
+          { "itemsDetails.product_id": productId },
           { $set: { "itemsDetails.availableQuantity": updatedQuantity } }
         );
       } else {
@@ -105,11 +108,16 @@ export const Bills = catchAsync(async (req, res) => {
 });
 
 export const latestRetailerBillNo = catchAsync(async (req, res, next) => {
+  let user = req.retailerUser;
   try {
-    // Find the latest purchase order by sorting in descending order based on purchase_order_date
+    const retailer = await mongoose.model("retailers").findById(user);
+    const billName = retailer.current_data.billingSchema;
+    console.log(billName, "retailers", "---------------------");
+    const BillsModel = DynamicModel(billName, BillSchema);
     const latestBillNo = await BillsModel.findOne()
-      .sort({ created_at: -1 })
+      .sort({ created_on: -1 })
       .select("BillNo");
+    console.log(latestBillNo, "teste");
     if (latestBillNo) {
       return res.status(200).json({
         latest_bill_number: latestBillNo.BillNo + 1,

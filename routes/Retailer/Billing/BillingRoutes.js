@@ -4,11 +4,11 @@ import authMiddleware from "../../../middlewares/adminAuth";
 import retailersAuthMiddleware from "../../../middlewares/retailersAuthMiddleware";
 
 
-const RetailerPRoutes = express.Router();
+const RetailerBillingRoutes = express.Router();
 
-RetailerPRoutes.post("/createbills", retailersAuthMiddleware, createbill);
-RetailerPRoutes.get("/bills", Bills);
-RetailerPRoutes.get("/latestbillno", latestRetailerBillNo);
+RetailerBillingRoutes.post("/createbills", retailersAuthMiddleware, createbill);
+RetailerBillingRoutes.get("/bills", Bills);
+RetailerBillingRoutes.get("/latestbillno",retailersAuthMiddleware, latestRetailerBillNo);
 
 
-export default RetailerPRoutes
+export default RetailerBillingRoutes
