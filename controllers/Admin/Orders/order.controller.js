@@ -126,7 +126,6 @@ export const latestOrderNo = catchAsync(async (req, res, next) => {
 
 export const fetchOrders = catchAsync(async (req, res, next) => {
   const { string, boolean, numbers } = req?.body?.searchFields || {};
-
   const {
     type,
     page,

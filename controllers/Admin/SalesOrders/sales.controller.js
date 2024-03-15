@@ -51,12 +51,9 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
 
     let ordersItemArr = orders?.current_data?.Items;
     const salesItemArr = body.Items;
-
     salesItemArr.forEach((ele) => {
       ordersItemArr.filter((element, ind) => {
-        console.log(ele.product_id.toString() == element.product_id.toString());
         if (ele.product_id.toString() == element.product_id.toString()) {
-          console.log(ind, "indddd");
           if (
             ele.balance_quantity > 0 &&
             element.item_status != "closed"
@@ -102,6 +99,8 @@ export const createSalesOrder = catchAsync(async (req, res, next) => {
     if (!sales) {
       throw new Error(new ApiError("Error during Sales Order", 400));
     }
+
+    
     const updateOrderItems = await OrdersModel.findByIdAndUpdate(
       orders._id,
       { $set: { "current_data.Items": ordersItemArr } },
