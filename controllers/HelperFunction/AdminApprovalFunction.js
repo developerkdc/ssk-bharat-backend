@@ -8,7 +8,7 @@ const adminApprovalFunction = async function (obj) {
 
   if (
     user?.current_data?.role_id?.current_data?.role_name === "Admin" ||
-    (!user?.approver?.approver_one && !user?.approver?.approver_two)
+    (!user?.current_data?.approver_one && !user?.current_data?.approver_two)
   ) {
     const model = mongoose.model(module);
     const data = await model.findOne({ _id: documentId });

@@ -77,7 +77,7 @@ const authMiddleware = async (req, res, next) => {
     const userId = jwt.verify(token, process.env.JWT_SECRET);
     if (!userId) return next(new ApiError("userId not found", 400));
 
-    const user = await userModel.findById(userId.userId).populate("current_data.role_id");
+    const user = await userModel.findById(userId.userId).populate("current_data.role_id").lean();
     if (!user) {
       return next(new ApiError("User Not Found", 404));
     }

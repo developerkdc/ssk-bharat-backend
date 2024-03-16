@@ -6,35 +6,87 @@ import retailerPOModel from "../../database/schema/PurchaseOrders/retailerPurcha
 
 export const getApprovalPendingList = catchAsync(async (req, res, next) => {
   const { module, approval2 } = req.query;
-  const { userId } = req.params;
+  const { _id: userId } = req.user;
+
   if (!module) return next(new ApiError("please provide module name", 400));
 
   const model = mongoose.model(module);
 
-  let approvalList = await model.find({
-    "approver.approver_one.user_id": userId,
+  let matchQuery = {
+    "approver.approver_one.user_id": new mongoose.Types.ObjectId(userId),
     "approver.approver_one.isApprove": false,
-  });
+  }
 
   if (approval2 === "true") {
-    approvalList = await model.find({
+    matchQuery = {
       $and: [
         { "approver.approver_one.isApprove": true },
         {
-          "approver.approver_two.user_id": userId,
+          "approver.approver_two.user_id": new mongoose.Types.ObjectId(userId),
           "approver.approver_two.isApprove": false,
         },
       ],
-    });
+    }
   }
 
+  let approvalList = await model.aggregate([
+    {
+      $match: { ...matchQuery }
+    },
+    {
+      $lookup: {
+        from: "users",
+        foreignField: "_id",
+        localField: "approver.updated_by.user_id",
+        pipeline: [
+          {
+            $lookup: {
+              from: "roles",
+              foreignField: "_id",
+              localField: "current_data.role_id",
+              pipeline:[
+                {
+                  $project:{
+                    role_name:"$current_data.role_name"
+                  }
+                }
+              ],
+              as:"current_data.role_id"
+            }
+          },
+          {
+            $unwind:{
+              path:"$current_data.role_id",
+              preserveNullAndEmptyArrays:true
+            }
+          },
+          {
+            $project: {
+              current_data: {
+                  userProfile:"$current_data.profile_pic",
+                  role_name:"$current_data.role_id.role_name"
+              }
+            }
+          }
+        ],
+        as: "approver.updated_by.user_id"
+      },
+    },
+    {
+      $unwind:{
+        path:"$approver.updated_by.user_id",
+        preserveNullAndEmptyArrays:true
+      }
+    }
+  ]);
   //total pages
-  const totalCategory = await model.countDocuments();
+  const totalCategory = await model.countDocuments({ ...matchQuery });
   const totalPages = Math.ceil(totalCategory / 10);
 
   return res.status(200).json({
     statusCode: 200,
     status: true,
+    length: approvalList?.length,
     totalPages: totalPages,
     data: approvalList,
     message: "Approval Pending from your Side",
@@ -166,7 +218,7 @@ export const Approved = catchAsync(async (req, res, next) => {
 
 export const ApprovedByAdmin = catchAsync(async (req, res, next) => {
 
-  const { module} = req.query;
+  const { module } = req.query;
   const { documentId } = req.body;
   if (!module) return next(new ApiError("please provide module name", 400));
 

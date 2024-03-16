@@ -64,7 +64,7 @@ import { Server } from "socket.io";
 import retailerMyProfileRouter from "./routes/Retailer/Profile/profile.routes.js";
 import offlineStoreMyProfileRouter from "./routes/OfflineStore/Profile/profile.routes.js";
 import marketExecutiveProfileRouter from "./routes/METAuthRoutes/Profile/Profile.routes.js";
-import { AddActiveUser, RemoveActiveUser, getAllActiveUsers } from "./controllers/Admin/Users/userController.js";
+import { ActiveUsersList, AddActiveUser, RemoveActiveUser, getAllActiveUsers } from "./controllers/Admin/Users/userController.js";
 
 const app = express();
 const port = process.env.PORT || 4001;
@@ -116,8 +116,9 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("logoutactiveUser", ({userID}) => {
+  socket.on("logoutactiveUser", ({userID,...data}) => {
     try {
+      // console.log(data,";a;a;a;a",socket.id)
       RemoveActiveUser({
         userID,
         socketID:socket.id
@@ -127,25 +128,35 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("activeUserList",function(queryData = {}){
+  socket.on("activeUserList",async function(queryData = {}){
     const Data = {...queryData};
 
-    socket.emit("getActiveUserList",getAllActiveUsers(Data))
-
+    socket.emit("getActiveUserList",await ActiveUsersList(Data))
+    // console.log(socket.emit("getActiveUserList",await ActiveUsersList(Data)),"pppppppppppppppppppp")
   })
+
+  socket.on('error', (err) => {
+    console.error('Socket.IO Error:', err);
+  });
+
+  socket.on("disconnecting", () => {
+    console.log("User disconnecting", socket.id);
+  });
 
   // Listen for disconnection
   socket.on("disconnect", () => {
     console.log("User disconnected", socket.id);
     try {
-      RemoveActiveUser({
-        socketID:socket.id
+      console.log("Attempting to emit logoutactiveUser event...",socket.emit("logoutactiveUser"));
+      socket.emit("logoutactiveUser", {
+        socketID: socket.id
       });
+      console.log("logoutactiveUser event emitted successfully.",socket.eventNames());
     } catch (error) {
-      console.log(error);
+      console.error("Error emitting logoutactiveUser event:", error);
     }
-
   });
+  
 });
 
 // Routes for Admin Portal

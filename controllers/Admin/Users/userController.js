@@ -24,10 +24,10 @@ export const AddUser = catchAsync(async (req, res) => {
   userData.approver_one = approver_one;
   userData.address = address;
   userData.kyc = kyc;
-  userData.profile_pic = req.files.profile_pic[0].path;
-  userData.kyc.pan_card_detail.pan_image = req.files.pan_image[0].path;
-  userData.kyc.aadhar_card_detail.aadhar_image = req.files.aadhar_image[0].path;
-  userData.kyc.bank_details.passbook_image = req.files.passbook_image[0].path;
+  userData.profile_pic = req.files.profile_pic?.[0].path;
+  userData.kyc.pan_card_detail.pan_image = req.files.pan_image?.[0].path;
+  userData.kyc.aadhar_card_detail.aadhar_image = req.files.aadhar_image?.[0].path;
+  userData.kyc.bank_details.passbook_image = req.files.passbook_image?.[0].path;
   const saltRounds = 10;
 
   userData.password = await bcrypt.hash(userData.password, saltRounds);
@@ -148,7 +148,6 @@ export const EditUser = catchAsync(async (req, res) => {
 export const EditProfile = catchAsync(async (req, res) => {
   const userId = req.params.userId;
   const updateData = req.body;
-  console.log(req.body, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>");
   if (req.body.address) {
     const address = JSON.parse(req.body.address);
     updateData.address = address;
@@ -438,7 +437,6 @@ export const RemoveActiveUser = async (data) => {
       socket_id: data?.socketID
     }
   }, { new: true });
-
   console.log(user)
 
   if (!user || user?.socket_id?.length <= 1) {
@@ -585,8 +583,8 @@ export const getAllActiveUsers = catchAsync(async (req, res) => {
 export const ActiveUsersList = async function(queryData){
   const { string, boolean, numbers } = queryData?.searchFields || {};
 
-  const { page, limit = 10, sortBy = "", sort = "desc" } = queryData?.query;
-  const search = req.query.search || "";
+  const { page = 1, limit = 10, sortBy = "loggedIn_at", sort = "desc" } = queryData?.query || {};
+  const search = queryData?.query?.search || "";
   const skip = (page - 1) * limit;
 
   //search  functionality
